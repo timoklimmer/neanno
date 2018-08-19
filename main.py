@@ -1,7 +1,5 @@
 # pylint: disable=E0611
-
-from neanno import (AnnotationDialog, NamedEntityDefinition)
-from PyQt5.QtWidgets import QApplication
+from neanno import (NamedEntityDefinition, annotate_entities)
 
 def main():
     named_entity_definitions = [
@@ -12,7 +10,7 @@ def main():
         NamedEntityDefinition("ORG", "Alt+O", "#b45c18"),
         NamedEntityDefinition("YLW", "Alt+Y", "#b0984f")
     ]
-    annotation_dialog = AnnotationDialog(named_entity_definitions)
+    annotate_entities(named_entity_definitions)
 
 if __name__ == '__main__':
     main()
