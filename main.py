@@ -1,5 +1,6 @@
 # pylint: disable=E0611
-from neanno import (NamedEntityDefinition, annotate_entities)
+from neanno import NamedEntityDefinition, annotate_entities
+
 
 def main():
     named_entity_definitions = [
@@ -8,9 +9,10 @@ def main():
         NamedEntityDefinition("GRN", "Alt+G", "#135714"),
         NamedEntityDefinition("PRP", "Alt+P", "#341b4d"),
         NamedEntityDefinition("ORG", "Alt+O", "#b45c18"),
-        NamedEntityDefinition("YLW", "Alt+Y", "#b0984f")
+        NamedEntityDefinition("YLW", "Alt+Y", "#b0984f"),
     ]
     annotate_entities(named_entity_definitions)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
