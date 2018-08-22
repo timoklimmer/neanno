@@ -1,3 +1,4 @@
+import re
 import sys
 
 from PyQt5 import QtCore
@@ -30,6 +31,7 @@ SHORTCUT_FIRST_KEYSEQUENCE = "Ctrl+F"
 SHORTCUT_LAST_KEYSEQUENCE = "Ctrl+L"
 SHORTCUT_UNDO_KEYSEQUENCE = "Ctrl+Z"
 SHORTCUT_REDO_KEYSEQUENCE = "Ctrl+Y"
+SHORTCUT_REMOVE_KEYSEQUENCE = "Ctrl+R"
 
 
 class _AnnotationDialog(QMainWindow):
@@ -96,6 +98,8 @@ class _AnnotationDialog(QMainWindow):
         control_shortcuts_grid.addWidget(QLabel(SHORTCUT_UNDO_KEYSEQUENCE), 4, 1)
         control_shortcuts_grid.addWidget(QLabel("Redo"), 5, 0)
         control_shortcuts_grid.addWidget(QLabel(SHORTCUT_REDO_KEYSEQUENCE), 5, 1)
+        control_shortcuts_grid.addWidget(QLabel("Remove"), 6, 0)
+        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_REMOVE_KEYSEQUENCE), 6, 1)
         controls_groupbox = QGroupBox("Controls")
         controls_groupbox.setLayout(control_shortcuts_grid)
 
@@ -148,7 +152,7 @@ class _AnnotationDialog(QMainWindow):
             shortcut = QShortcut(
                 QKeySequence(named_entity_definition.key_sequence), self
             )
-            shortcut.activated.connect(self.on_annotate_entity)
+            shortcut.activated.connect(self.annotate_entity)
 
         # next
         shortcut_next = QShortcut(
@@ -181,6 +185,14 @@ class _AnnotationDialog(QMainWindow):
             context=Qt.ApplicationShortcut,
         )
         shortcut_last.activated.connect(self.handle_shortcut_last)
+
+        # remove
+        shortcut_last = QShortcut(
+            QKeySequence(SHORTCUT_REMOVE_KEYSEQUENCE),
+            self,
+            context=Qt.ApplicationShortcut,
+        )
+        shortcut_last.activated.connect(self.remove_entity)
 
     def set_text_model(self, text_model):
         self.text_model = text_model
@@ -220,8 +232,7 @@ class _AnnotationDialog(QMainWindow):
         )
         self.progress_bar.setValue(new_progress_value)
 
-    @pyqtSlot()
-    def on_annotate_entity(self):
+    def annotate_entity(self):
         text_cursor = self.text_edit.textCursor()
         if text_cursor.hasSelection():
             key_sequence = self.sender().key().toString()
@@ -231,6 +242,18 @@ class _AnnotationDialog(QMainWindow):
                     code = named_entity_definition.code
                     break
             text_cursor.insertText("(" + text_cursor.selectedText() + "| " + code + ")")
+
+    def remove_entity(self):
+        current_cursor_pos = self.text_edit.textCursor().position()
+        new_text = re.sub(
+            "\((.*?)\| .+?\)",
+            lambda match: match.group(1)
+            if current_cursor_pos > match.start() and current_cursor_pos < match.end()
+            else match.group(0),
+            self.text_edit.toPlainText(),
+            flags=re.DOTALL
+        )
+        self.text_edit.setPlainText(new_text)
 
 
 class _EntityHighlighter(QSyntaxHighlighter):
