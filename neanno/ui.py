@@ -52,13 +52,13 @@ class _AnnotationDialog(QMainWindow):
         vertical_position = (screen.height() - mysize.height()) / 2
         self.move(horizontal_position, vertical_position)
 
-        ## progress bar
-        # self.progress_bar = QProgressBar()
-        # self.progress_bar.setValue(0)
+        # progress bar
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setValue(0)
 
         # text edit
         self.text_edit = QPlainTextEdit()
-        self.text_edit.setStyleSheet("font-size: 14pt; font-family: Georgia")
+        self.text_edit.setStyleSheet("font-size: 14pt; font-family: Segoe UI; color: lightgrey; background-color: black")
         self.entity_highlighter = _EntityHighlighter(
             self.text_edit.document(), self.named_entity_definitions
         )
@@ -97,6 +97,9 @@ class _AnnotationDialog(QMainWindow):
         controls_groupbox = QGroupBox("Controls")
         controls_groupbox.setLayout(control_shortcuts_grid)
 
+        # about
+        about_button = QPushButton("About")
+
         # close
         close_button = QPushButton("Close")
         close_button.clicked.connect(self.close)
@@ -106,13 +109,14 @@ class _AnnotationDialog(QMainWindow):
         grid.setSpacing(10)
         grid.setColumnStretch(0, 1)
         grid.setColumnStretch(1, 0)
-        # grid.addWidget(progress_bar, 0, 0, 1, 2)
+        grid.addWidget(self.progress_bar, 0, 0, 1, 2)
         grid.addWidget(self.text_edit, 1, 0, 2, 1)
         right_column_layout = QVBoxLayout()
         right_column_layout.addWidget(entities_groupbox)
         right_column_layout.addWidget(controls_groupbox)
         right_column_layout.addStretch()
         grid.addLayout(right_column_layout, 1, 1)
+        grid.addWidget(about_button, 3, 0, alignment=Qt.AlignRight)
         grid.addWidget(close_button, 3, 1)
         central_widget = QWidget()
         central_widget.setLayout(grid)
@@ -213,6 +217,7 @@ class _EntityHighlighter(QSyntaxHighlighter):
     def __init__(self, parent, named_entity_definitions):
         super(_EntityHighlighter, self).__init__(parent)
         named_entity_code_background_color = QColor("lightgrey")
+        self.named_entity_code_format.setForeground(Qt.black)
         self.named_entity_code_format.setBackground(named_entity_code_background_color)
         self.named_entity_code_format.setFontFamily("Segoe UI")
         self.named_entity_code_format.setFontWeight(QFont.Bold)
