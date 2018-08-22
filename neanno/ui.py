@@ -3,7 +3,7 @@ import sys
 
 from PyQt5 import QtCore
 from PyQt5.QtCore import QRegularExpression, Qt, pyqtSlot
-from PyQt5.QtGui import QColor, QFont, QKeySequence, QSyntaxHighlighter, QTextCharFormat
+from PyQt5.QtGui import QColor, QFont, QKeySequence, QSyntaxHighlighter, QTextCharFormat, QIcon
 from PyQt5.QtWidgets import (
     QApplication,
     QDataWidgetMapper,
@@ -38,6 +38,7 @@ class _AnnotationDialog(QMainWindow):
     def __init__(self, text_model, named_entity_definitions):
         app = QApplication([])
         super().__init__()
+        self.setWindowIcon(QIcon('icon.ico'))
         self.text_model = text_model
         self.named_entity_definitions = named_entity_definitions
         self.layout_controls()
