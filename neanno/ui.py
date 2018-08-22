@@ -30,7 +30,6 @@ SHORTCUT_FIRST_KEYSEQUENCE = "Ctrl+F"
 SHORTCUT_LAST_KEYSEQUENCE = "Ctrl+L"
 SHORTCUT_UNDO_KEYSEQUENCE = "Ctrl+Z"
 SHORTCUT_REDO_KEYSEQUENCE = "Ctrl+Y"
-SHORTCUT_SAVE_KEYSEQUENCE = "Ctrl+S"
 
 
 class _AnnotationDialog(QMainWindow):
@@ -97,10 +96,19 @@ class _AnnotationDialog(QMainWindow):
         control_shortcuts_grid.addWidget(QLabel(SHORTCUT_UNDO_KEYSEQUENCE), 4, 1)
         control_shortcuts_grid.addWidget(QLabel("Redo"), 5, 0)
         control_shortcuts_grid.addWidget(QLabel(SHORTCUT_REDO_KEYSEQUENCE), 5, 1)
-        control_shortcuts_grid.addWidget(QLabel("Save"), 6, 0)
-        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_SAVE_KEYSEQUENCE), 6, 1)
         controls_groupbox = QGroupBox("Controls")
         controls_groupbox.setLayout(control_shortcuts_grid)
+
+        # statistics
+        statistics_grid = QGridLayout()
+        statistics_grid.addWidget(QLabel("# Annotated Texts"), 0, 0)
+        self.annotated_texts_label = QLabel("1")
+        statistics_grid.addWidget(self.annotated_texts_label, 0, 1)
+        statistics_grid.addWidget(QLabel("# Total Texts"), 1, 0)
+        self.total_texts_label = QLabel("2")
+        statistics_grid.addWidget(self.total_texts_label, 1, 1)
+        statistics_groupbox = QGroupBox("Statistics")
+        statistics_groupbox.setLayout(statistics_grid)
 
         # about
         about_button = QPushButton("About")
@@ -119,6 +127,7 @@ class _AnnotationDialog(QMainWindow):
         grid.addWidget(self.text_edit, 1, 0, 2, 1)
         right_column_layout = QVBoxLayout()
         right_column_layout.addWidget(entities_groupbox)
+        right_column_layout.addWidget(statistics_groupbox)
         right_column_layout.addWidget(controls_groupbox)
         right_column_layout.addStretch()
         grid.addLayout(right_column_layout, 1, 1)
@@ -173,21 +182,13 @@ class _AnnotationDialog(QMainWindow):
         )
         shortcut_last.activated.connect(self.handle_shortcut_last)
 
-        # save
-        shortcut_last = QShortcut(
-            QKeySequence(SHORTCUT_SAVE_KEYSEQUENCE),
-            self,
-            context=Qt.ApplicationShortcut,
-        )
-        shortcut_last.activated.connect(self.handle_shortcut_save)
-
     def set_text_model(self, text_model):
         self.text_model = text_model
-        self.update_progress_bar()
+        self.update_statistics()
         self.text_mapper = QDataWidgetMapper(self)
         self.text_mapper.setModel(text_model)
         self.text_mapper.addMapping(self.text_edit, 0)
-        self.text_model.dataChanged.connect(self.update_progress_bar)
+        self.text_model.dataChanged.connect(self.update_statistics)
         self.text_mapper.toFirst()
 
     def handle_shortcut_next(self):
@@ -206,16 +207,18 @@ class _AnnotationDialog(QMainWindow):
         self.text_edit.clearFocus()
         self.text_mapper.toLast()
 
-    def handle_shortcut_save(self):
-        self.text_edit.clearFocus()
-        self.text_model.save()
-
     def handle_about_button_clicked(self):
         QMessageBox.question(self, "About", "TODO: complete", QMessageBox.Ok)
 
-    def update_progress_bar(self):
-        new_value = self.text_model.annotatedTextsCount() * 100 / self.text_model.rowCount()
-        self.progress_bar.setValue(new_value)
+    def update_statistics(self):
+        annotated_texts_count = self.text_model.annotatedTextsCount()
+        self.annotated_texts_label.setText(str(annotated_texts_count))
+        total_texts_count = self.text_model.rowCount()
+        self.total_texts_label.setText(str(total_texts_count))
+        new_progress_value = (
+            self.text_model.annotatedTextsCount() * 100 / self.text_model.rowCount()
+        )
+        self.progress_bar.setValue(new_progress_value)
 
     @pyqtSlot()
     def on_annotate_entity(self):

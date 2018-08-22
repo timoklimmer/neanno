@@ -41,6 +41,7 @@ class _TextModel(QAbstractTableModel):
         col = self.annotated_text_column_index
         if self.data(index) != value or self._df.ix[index.row(), self.annotated_text_column_index] is None:      
             self._df.iat[row, col] = value
+            self.save()
             self.dataChanged.emit(index, index)
         return True
 
