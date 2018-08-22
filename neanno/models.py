@@ -39,8 +39,9 @@ class _TextModel(QAbstractTableModel):
     def setData(self, index, value, role):
         row = self._df.index[index.row()]
         col = self.annotated_text_column_index
-        self._df.iat[row, col] = value
-        self.dataChanged.emit(index, index)
+        if self.data(index) != value or self._df.ix[index.row(), self.annotated_text_column_index] is None:      
+            self._df.iat[row, col] = value
+            self.dataChanged.emit(index, index)
         return True
 
     def rowCount(self, parent=QModelIndex()):
@@ -55,3 +56,6 @@ class _TextModel(QAbstractTableModel):
     def save(self):
         if not self.save_callback is None:
             self.save_callback(self._df)
+
+    def annotatedTextsCount(self):
+        return self._df[self.annotated_text_column_name].notnull().sum()

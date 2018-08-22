@@ -182,9 +182,12 @@ class _AnnotationDialog(QMainWindow):
         shortcut_last.activated.connect(self.handle_shortcut_save)
 
     def set_text_model(self, text_model):
+        self.text_model = text_model
+        self.update_progress_bar()
         self.text_mapper = QDataWidgetMapper(self)
         self.text_mapper.setModel(text_model)
         self.text_mapper.addMapping(self.text_edit, 0)
+        self.text_model.dataChanged.connect(self.update_progress_bar)
         self.text_mapper.toFirst()
 
     def handle_shortcut_next(self):
@@ -208,7 +211,11 @@ class _AnnotationDialog(QMainWindow):
         self.text_model.save()
 
     def handle_about_button_clicked(self):
-        QMessageBox.question(self, 'About', "TODO: complete", QMessageBox.Ok)      
+        QMessageBox.question(self, "About", "TODO: complete", QMessageBox.Ok)
+
+    def update_progress_bar(self):
+        new_value = self.text_model.annotatedTextsCount() * 100 / self.text_model.rowCount()
+        self.progress_bar.setValue(new_value)
 
     @pyqtSlot()
     def on_annotate_entity(self):
