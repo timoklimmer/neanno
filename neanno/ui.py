@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import (
     QDesktopWidget,
     QGridLayout,
     QGroupBox,
+    QHBoxLayout,
     QLabel,
     QMainWindow,
     QPlainTextEdit,
@@ -17,6 +18,7 @@ from PyQt5.QtWidgets import (
     QShortcut,
     QVBoxLayout,
     QWidget,
+    QMessageBox,
 )
 
 if hasattr(QtCore.Qt, "AA_UseHighDpiPixmaps"):
@@ -29,6 +31,7 @@ SHORTCUT_LAST_KEYSEQUENCE = "Ctrl+L"
 SHORTCUT_UNDO_KEYSEQUENCE = "Ctrl+Z"
 SHORTCUT_REDO_KEYSEQUENCE = "Ctrl+Y"
 SHORTCUT_SAVE_KEYSEQUENCE = "Ctrl+S"
+
 
 class _AnnotationDialog(QMainWindow):
     def __init__(self, text_model, named_entity_definitions):
@@ -58,7 +61,9 @@ class _AnnotationDialog(QMainWindow):
 
         # text edit
         self.text_edit = QPlainTextEdit()
-        self.text_edit.setStyleSheet("font-size: 14pt; font-family: Segoe UI; color: lightgrey; background-color: black")
+        self.text_edit.setStyleSheet(
+            "font-size: 14pt; font-family: Segoe UI; color: lightgrey; background-color: black"
+        )
         self.entity_highlighter = _EntityHighlighter(
             self.text_edit.document(), self.named_entity_definitions
         )
@@ -99,12 +104,13 @@ class _AnnotationDialog(QMainWindow):
 
         # about
         about_button = QPushButton("About")
+        about_button.clicked.connect(self.handle_about_button_clicked)
 
         # close
         close_button = QPushButton("Close")
         close_button.clicked.connect(self.close)
 
-        # grid
+        # grid and box layouts
         grid = QGridLayout()
         grid.setSpacing(10)
         grid.setColumnStretch(0, 1)
@@ -116,10 +122,15 @@ class _AnnotationDialog(QMainWindow):
         right_column_layout.addWidget(controls_groupbox)
         right_column_layout.addStretch()
         grid.addLayout(right_column_layout, 1, 1)
-        grid.addWidget(about_button, 3, 0, alignment=Qt.AlignRight)
-        grid.addWidget(close_button, 3, 1)
+        vbox = QVBoxLayout()
+        vbox.addLayout(grid)
+        hbox = QHBoxLayout()
+        hbox.addStretch(1)
+        hbox.addWidget(about_button)
+        hbox.addWidget(close_button)
+        vbox.addLayout(hbox)
         central_widget = QWidget()
-        central_widget.setLayout(grid)
+        central_widget.setLayout(vbox)
         self.setCentralWidget(central_widget)
 
     def wire_shortcuts(self):
@@ -195,6 +206,9 @@ class _AnnotationDialog(QMainWindow):
     def handle_shortcut_save(self):
         self.text_edit.clearFocus()
         self.text_model.save()
+
+    def handle_about_button_clicked(self):
+        QMessageBox.question(self, 'About', "TODO: complete", QMessageBox.Ok)      
 
     @pyqtSlot()
     def on_annotate_entity(self):
