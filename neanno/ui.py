@@ -30,7 +30,6 @@ SHORTCUT_UNDO_KEYSEQUENCE = "Ctrl+Z"
 SHORTCUT_REDO_KEYSEQUENCE = "Ctrl+Y"
 SHORTCUT_SAVE_KEYSEQUENCE = "Ctrl+S"
 
-
 class _AnnotationDialog(QMainWindow):
     def __init__(self, text_model, named_entity_definitions):
         app = QApplication([])

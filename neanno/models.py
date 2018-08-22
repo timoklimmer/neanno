@@ -38,8 +38,8 @@ class _TextModel(QAbstractTableModel):
 
     def setData(self, index, value, role):
         row = self._df.index[index.row()]
-        col = self._df.columns[self.annotated_text_column_index]
-        self._df.set_value(row, col, value)
+        col = self.annotated_text_column_index
+        self._df.iat[row, col] = value
         self.dataChanged.emit(index, index)
         return True
 
