@@ -11,6 +11,6 @@ class NamedEntityDefinition:
         self.backcolor = backcolor
 
 
-def annotate_entities(pandas_data_frame, named_entity_definitions):
-    text_model = _TextModel(df=pandas_data_frame)
+def annotate_entities(pandas_data_frame, named_entity_definitions, save_callback):
+    text_model = _TextModel(df=pandas_data_frame, save_callback=save_callback)
     _AnnotationDialog(text_model, named_entity_definitions)

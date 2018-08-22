@@ -1,5 +1,3 @@
-# pylint: disable=E0611
-
 import sys
 
 from PyQt5 import QtCore
@@ -7,6 +5,7 @@ from PyQt5.QtCore import QRegularExpression, Qt, pyqtSlot
 from PyQt5.QtGui import QColor, QFont, QKeySequence, QSyntaxHighlighter, QTextCharFormat
 from PyQt5.QtWidgets import (
     QApplication,
+    QDataWidgetMapper,
     QDesktopWidget,
     QGridLayout,
     QGroupBox,
@@ -18,7 +17,6 @@ from PyQt5.QtWidgets import (
     QShortcut,
     QVBoxLayout,
     QWidget,
-    QDataWidgetMapper,
 )
 
 if hasattr(QtCore.Qt, "AA_UseHighDpiPixmaps"):
@@ -30,6 +28,7 @@ SHORTCUT_FIRST_KEYSEQUENCE = "Ctrl+F"
 SHORTCUT_LAST_KEYSEQUENCE = "Ctrl+L"
 SHORTCUT_UNDO_KEYSEQUENCE = "Ctrl+Z"
 SHORTCUT_REDO_KEYSEQUENCE = "Ctrl+Y"
+SHORTCUT_SAVE_KEYSEQUENCE = "Ctrl+S"
 
 
 class _AnnotationDialog(QMainWindow):
@@ -94,6 +93,8 @@ class _AnnotationDialog(QMainWindow):
         control_shortcuts_grid.addWidget(QLabel(SHORTCUT_UNDO_KEYSEQUENCE), 4, 1)
         control_shortcuts_grid.addWidget(QLabel("Redo"), 5, 0)
         control_shortcuts_grid.addWidget(QLabel(SHORTCUT_REDO_KEYSEQUENCE), 5, 1)
+        control_shortcuts_grid.addWidget(QLabel("Save"), 6, 0)
+        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_SAVE_KEYSEQUENCE), 6, 1)
         controls_groupbox = QGroupBox("Controls")
         controls_groupbox.setLayout(control_shortcuts_grid)
 
@@ -158,6 +159,14 @@ class _AnnotationDialog(QMainWindow):
         )
         shortcut_last.activated.connect(self.handle_shortcut_last)
 
+        # save
+        shortcut_last = QShortcut(
+            QKeySequence(SHORTCUT_SAVE_KEYSEQUENCE),
+            self,
+            context=Qt.ApplicationShortcut,
+        )
+        shortcut_last.activated.connect(self.handle_shortcut_save)
+
     def set_text_model(self, text_model):
         self.text_mapper = QDataWidgetMapper(self)
         self.text_mapper.setModel(text_model)
@@ -179,6 +188,10 @@ class _AnnotationDialog(QMainWindow):
     def handle_shortcut_last(self):
         self.text_edit.clearFocus()
         self.text_mapper.toLast()
+
+    def handle_shortcut_save(self):
+        self.text_edit.clearFocus()
+        self.text_model.save()
 
     @pyqtSlot()
     def on_annotate_entity(self):

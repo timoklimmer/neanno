@@ -1,13 +1,12 @@
-# pylint: disable=E0611
-
 import pandas as pd
 from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant
 
 
 class _TextModel(QAbstractTableModel):
-    def __init__(self, df=pd.DataFrame(), parent=None):
-        super().__init__(parent=parent)
+    def __init__(self, df=pd.DataFrame(), save_callback=None):
+        super().__init__(parent=None)
         self._df = df
+        self.save_callback = save_callback
 
     def data(self, index, role=Qt.DisplayRole):
         return (
@@ -29,3 +28,7 @@ class _TextModel(QAbstractTableModel):
 
     def flags(self, index):
         return super().flags(index) | Qt.ItemIsEditable
+
+    def save(self):
+        if not self.save_callback is None:
+            self.save_callback(self._df)
