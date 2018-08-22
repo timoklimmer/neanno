@@ -1,6 +1,7 @@
-from PyQt5.QtCore import QAbstractTableModel, QModelIndex, QVariant, Qt
+# pylint: disable=E0611
 
 import pandas as pd
+from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant
 
 
 class _TextModel(QAbstractTableModel):
@@ -10,9 +11,7 @@ class _TextModel(QAbstractTableModel):
 
     def data(self, index, role=Qt.DisplayRole):
         return (
-            self._df.ix[index.row(), index.column()]
-            if index.isValid()
-            else QVariant()
+            self._df.ix[index.row(), index.column()] if index.isValid() else QVariant()
         )
 
     def setData(self, index, value, role):
@@ -30,4 +29,3 @@ class _TextModel(QAbstractTableModel):
 
     def flags(self, index):
         return super().flags(index) | Qt.ItemIsEditable
-        
