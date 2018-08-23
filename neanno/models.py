@@ -1,8 +1,10 @@
 import pandas as pd
-from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant
-
+from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant, pyqtSignal
 
 class _TextModel(QAbstractTableModel):
+    saveStarted = pyqtSignal()
+    saveCompleted = pyqtSignal()
+
     def __init__(
         self,
         pandas_data_frame,
@@ -56,7 +58,9 @@ class _TextModel(QAbstractTableModel):
 
     def save(self):
         if not self.save_callback is None:
+            self.saveStarted.emit()
             self.save_callback(self._df)
+            self.saveCompleted.emit()
 
     def annotatedTextsCount(self):
         return self._df[self.annotated_text_column_name].notnull().sum()
