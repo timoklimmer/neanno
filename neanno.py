@@ -15,7 +15,7 @@ def main():
     parser.add_argument(
         "--output_file",
         "-o",
-        help="Path to the CSV output file which will contain the annotations.",
+        help="Path to the CSV output file which will contain the annotations. Can be the same as filename.",
     )
     parser.add_argument(
         "--source_column_name",
