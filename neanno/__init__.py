@@ -12,8 +12,8 @@ class NamedEntityDefinition:
 
 
 def annotate_entities(
-    pandas_data_frame,
-    input_text_column_name,
+    dataframe_to_edit,
+    source_text_column_name,
     annotated_text_column_name,
     named_entity_definitions,
     save_callback,
@@ -21,8 +21,8 @@ def annotate_entities(
     # TODO: ensure that input variable are proper
 
     text_model = _TextModel(
-        pandas_data_frame=pandas_data_frame,
-        input_text_column_name=input_text_column_name,
+        pandas_data_frame=dataframe_to_edit,
+        source_text_column_name=source_text_column_name,
         annotated_text_column_name=annotated_text_column_name,
         save_callback=save_callback
     )

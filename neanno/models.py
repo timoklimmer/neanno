@@ -8,18 +8,18 @@ class _TextModel(QAbstractTableModel):
     def __init__(
         self,
         pandas_data_frame,
-        input_text_column_name,
+        source_text_column_name,
         annotated_text_column_name,
         save_callback=None,
     ):
         super().__init__(parent=None)
         self._df = pandas_data_frame
-        self.input_text_column_name = input_text_column_name
+        self.source_text_column_name = source_text_column_name
         self.annotated_text_column_name = annotated_text_column_name
         self.save_callback = save_callback
 
         # get column indexes and ensure that the data frame has an annotated text column
-        self.text_column_index = self._df.columns.get_loc(input_text_column_name)
+        self.text_column_index = self._df.columns.get_loc(source_text_column_name)
         if self.annotated_text_column_name not in self._df:
             self._df[self.annotated_text_column_name] = None
         self.annotated_text_column_index = self._df.columns.get_loc(
