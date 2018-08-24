@@ -1,0 +1,4 @@
+include CHANGES.txt
+include LICENSE.txt
+include README.txt
+include neanno/resources/*

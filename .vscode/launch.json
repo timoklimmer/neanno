@@ -10,10 +10,10 @@
             "request": "launch",
             "program": "${workspaceFolder}/neanno.py",
             "args": [
-                "--filename", "sample_texts.csv",
-                "--output_file", "sample_texts.annotated.csv",
-                "--source_column_name", "Text",
-                "--target_column_name", "Annotated Text",
+                "--filename", "sample_texts/sample_texts.csv",
+                "--output_file", "sample_texts/sample_texts.annotated.csv",
+                "--source_column_name", "text",
+                "--target_column_name", "annotated_text",
                 "--named_entity_defs", "BLU Alt+B/RED Alt+R/GRN Alt+G/PRP Alt+P/ORA Alt+O/YLW Alt+Y"
             ]
         },

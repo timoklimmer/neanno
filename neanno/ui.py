@@ -1,9 +1,17 @@
+import os
 import re
 import sys
 
 from PyQt5 import QtCore
 from PyQt5.QtCore import QRegularExpression, Qt, pyqtSlot
-from PyQt5.QtGui import QColor, QFont, QKeySequence, QSyntaxHighlighter, QTextCharFormat, QIcon
+from PyQt5.QtGui import (
+    QColor,
+    QFont,
+    QIcon,
+    QKeySequence,
+    QSyntaxHighlighter,
+    QTextCharFormat,
+)
 from PyQt5.QtWidgets import (
     QApplication,
     QDataWidgetMapper,
@@ -13,13 +21,13 @@ from PyQt5.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QMainWindow,
+    QMessageBox,
     QPlainTextEdit,
     QProgressBar,
     QPushButton,
     QShortcut,
     QVBoxLayout,
     QWidget,
-    QMessageBox,
 )
 
 if hasattr(QtCore.Qt, "AA_UseHighDpiPixmaps"):
@@ -38,7 +46,13 @@ class _AnnotationDialog(QMainWindow):
     def __init__(self, text_model, named_entity_definitions):
         app = QApplication([])
         super().__init__()
-        self.setWindowIcon(QIcon('icon.ico'))
+        self.setWindowIcon(
+            QIcon(
+                os.path.join(
+                    os.path.abspath(os.path.dirname(__file__)), "resources/icon.ico"
+                )
+            )
+        )
         self.text_model = text_model
         self.named_entity_definitions = named_entity_definitions
         self.layout_controls()
@@ -252,7 +266,7 @@ class _AnnotationDialog(QMainWindow):
             if current_cursor_pos > match.start() and current_cursor_pos < match.end()
             else match.group(0),
             self.text_edit.toPlainText(),
-            flags=re.DOTALL
+            flags=re.DOTALL,
         )
         self.text_edit.setPlainText(new_text)
 
