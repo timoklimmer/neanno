@@ -46,6 +46,11 @@ class _AnnotationDialog(QMainWindow):
     def __init__(self, text_model, named_entity_definitions):
         app = QApplication([])
         super().__init__()
+
+        print(os.path.join(
+                            os.path.abspath(os.path.dirname(__file__)), "resources/icon.ico"
+                        ))
+
         self.setWindowIcon(
             QIcon(
                 os.path.join(
