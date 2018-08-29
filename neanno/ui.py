@@ -33,13 +33,15 @@ from PyQt5.QtWidgets import (
 if hasattr(QtCore.Qt, "AA_UseHighDpiPixmaps"):
     QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
 
-SHORTCUT_NEXT_KEYSEQUENCE = "Ctrl+Return"
+SHORTCUT_SUBMIT_NEXT_BEST_KEYSEQUENCE = "Ctrl+Return"
+SHORTCUT_NEXT_KEYSEQUENCE = "Ctrl+Tab"
 SHORTCUT_PREVIOUS_KEYSEQUENCE = "Ctrl+Backspace"
 SHORTCUT_FIRST_KEYSEQUENCE = "Ctrl+F"
 SHORTCUT_LAST_KEYSEQUENCE = "Ctrl+L"
 SHORTCUT_UNDO_KEYSEQUENCE = "Ctrl+Z"
 SHORTCUT_REDO_KEYSEQUENCE = "Ctrl+Y"
 SHORTCUT_REMOVE_KEYSEQUENCE = "Ctrl+R"
+SHORTCUT_CLOSE_KEYSEQUENCE = "Ctrl+Esc"
 
 
 class _AnnotationDialog(QMainWindow):
@@ -100,34 +102,43 @@ class _AnnotationDialog(QMainWindow):
         entities_groupbox = QGroupBox("Entities")
         entities_groupbox.setLayout(shortcut_legend_grid)
         control_shortcuts_grid = QGridLayout()
-        control_shortcuts_grid.addWidget(QLabel("Next"), 0, 0)
-        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_NEXT_KEYSEQUENCE), 0, 1)
-        control_shortcuts_grid.addWidget(QLabel("Previous"), 1, 0)
-        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_PREVIOUS_KEYSEQUENCE), 1, 1)
-        control_shortcuts_grid.addWidget(QLabel("First"), 2, 0)
-        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_FIRST_KEYSEQUENCE), 2, 1)
-        control_shortcuts_grid.addWidget(QLabel("Last"), 3, 0)
-        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_LAST_KEYSEQUENCE), 3, 1)
-        control_shortcuts_grid.addWidget(QLabel("Undo"), 4, 0)
-        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_UNDO_KEYSEQUENCE), 4, 1)
-        control_shortcuts_grid.addWidget(QLabel("Redo"), 5, 0)
-        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_REDO_KEYSEQUENCE), 5, 1)
-        control_shortcuts_grid.addWidget(QLabel("Remove"), 6, 0)
-        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_REMOVE_KEYSEQUENCE), 6, 1)
+        control_shortcuts_grid.addWidget(QLabel("Submit/Next Best"), 0, 0)
+        control_shortcuts_grid.addWidget(
+            QLabel(SHORTCUT_SUBMIT_NEXT_BEST_KEYSEQUENCE), 0, 1
+        )
+        control_shortcuts_grid.addWidget(QLabel("Next"), 1, 0)
+        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_NEXT_KEYSEQUENCE), 1, 1)
+        control_shortcuts_grid.addWidget(QLabel("Previous"), 2, 0)
+        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_PREVIOUS_KEYSEQUENCE), 2, 1)
+        control_shortcuts_grid.addWidget(QLabel("First"), 3, 0)
+        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_FIRST_KEYSEQUENCE), 3, 1)
+        control_shortcuts_grid.addWidget(QLabel("Last"), 4, 0)
+        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_LAST_KEYSEQUENCE), 4, 1)
+        control_shortcuts_grid.addWidget(QLabel("Undo"), 5, 0)
+        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_UNDO_KEYSEQUENCE), 5, 1)
+        control_shortcuts_grid.addWidget(QLabel("Redo"), 6, 0)
+        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_REDO_KEYSEQUENCE), 6, 1)
+        control_shortcuts_grid.addWidget(QLabel("Remove"), 7, 0)
+        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_REMOVE_KEYSEQUENCE), 7, 1)
+        control_shortcuts_grid.addWidget(QLabel("Close"), 8, 0)
+        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_CLOSE_KEYSEQUENCE), 8, 1)
         controls_groupbox = QGroupBox("Controls")
         controls_groupbox.setLayout(control_shortcuts_grid)
 
         # statistics
         statistics_grid = QGridLayout()
-        statistics_grid.addWidget(QLabel("# Annotated Texts"), 0, 0)
+        statistics_grid.addWidget(QLabel("Annotated Texts"), 0, 0)
         self.annotated_texts_label = QLabel()
         statistics_grid.addWidget(self.annotated_texts_label, 0, 1)
-        statistics_grid.addWidget(QLabel("# Total Texts"), 1, 0)
+        statistics_grid.addWidget(QLabel("Total Texts"), 1, 0)
         self.total_texts_label = QLabel()
         statistics_grid.addWidget(self.total_texts_label, 1, 1)
-        statistics_grid.addWidget(QLabel("Current Index"), 2, 0)
-        self.current_index_label = QLabel()
-        statistics_grid.addWidget(self.current_index_label, 2, 1)
+        statistics_grid.addWidget(QLabel("Annotated"), 2, 0)
+        self.annotated_percent_label = QLabel()
+        statistics_grid.addWidget(self.annotated_percent_label, 2, 1)
+        statistics_grid.addWidget(QLabel("Current Text Index"), 3, 0)
+        self.current_text_index_label = QLabel()
+        statistics_grid.addWidget(self.current_text_index_label, 3, 1)
         statistics_groupbox = QGroupBox("Statistics")
         statistics_groupbox.setLayout(statistics_grid)
 
@@ -171,13 +182,23 @@ class _AnnotationDialog(QMainWindow):
             )
             shortcut.activated.connect(self.annotate_entity)
 
+        # submit / next best
+        shortcut_submit_next_best = QShortcut(
+            QKeySequence(SHORTCUT_SUBMIT_NEXT_BEST_KEYSEQUENCE),
+            self,
+            context=Qt.ApplicationShortcut,
+        )
+        shortcut_submit_next_best.activated.connect(
+            self.handle_shortcut_submit_next_best
+        )
+
         # next
         shortcut_next = QShortcut(
             QKeySequence(SHORTCUT_NEXT_KEYSEQUENCE),
             self,
             context=Qt.ApplicationShortcut,
         )
-        shortcut_next.activated.connect(self.handle_shortcut_next)
+        shortcut_next.activated.connect(self.text_mapper.toNext)
 
         # previous
         shortcut_previous = QShortcut(
@@ -185,7 +206,7 @@ class _AnnotationDialog(QMainWindow):
             self,
             context=Qt.ApplicationShortcut,
         )
-        shortcut_previous.activated.connect(self.handle_shortcut_previous)
+        shortcut_previous.activated.connect(self.text_mapper.toPrevious)
 
         # first
         shortcut_first = QShortcut(
@@ -193,7 +214,7 @@ class _AnnotationDialog(QMainWindow):
             self,
             context=Qt.ApplicationShortcut,
         )
-        shortcut_first.activated.connect(self.handle_shortcut_first)
+        shortcut_first.activated.connect(self.text_mapper.toFirst)
 
         # last
         shortcut_last = QShortcut(
@@ -201,7 +222,7 @@ class _AnnotationDialog(QMainWindow):
             self,
             context=Qt.ApplicationShortcut,
         )
-        shortcut_last.activated.connect(self.handle_shortcut_last)
+        shortcut_last.activated.connect(self.text_mapper.toLast)
 
         # remove
         shortcut_last = QShortcut(
@@ -211,47 +232,52 @@ class _AnnotationDialog(QMainWindow):
         )
         shortcut_last.activated.connect(self.remove_entity)
 
+        # close
+        shortcut_close = QShortcut(
+            QKeySequence(SHORTCUT_CLOSE_KEYSEQUENCE),
+            self,
+            context=Qt.ApplicationShortcut,
+        )
+        shortcut_close.activated.connect(self.close)
+
     def set_text_model(self, text_model):
         self.text_model = text_model
         self.text_mapper = QDataWidgetMapper(self)
+        self.text_mapper.setSubmitPolicy(QDataWidgetMapper.ManualSubmit)
         self.text_mapper.setModel(text_model)
         self.text_mapper.addMapping(self.text_edit, 0)
-        self.text_mapper.currentIndexChanged.connect(self.update_statistics)
-        self.text_mapper.setCurrentIndex(self.text_model.firstNonAnnotatedRowIndex())
+        self.text_mapper.currentIndexChanged.connect(
+            self.handle_text_mapper_index_changed
+        )
+        self.text_mapper.setCurrentIndex(self.text_model.nextBestRowIndex())
 
-    def handle_shortcut_next(self):
-        self.text_edit.clearFocus()
-        self.text_mapper.toNext()
-
-    def handle_shortcut_previous(self):
-        self.text_edit.clearFocus()
-        self.text_mapper.toPrevious()
-
-    def handle_shortcut_first(self):
-        self.text_edit.clearFocus()
-        self.text_mapper.toFirst()
-
-    def handle_shortcut_last(self):
-        self.text_edit.clearFocus()
-        self.text_mapper.toLast()
+    def handle_shortcut_submit_next_best(self):
+        self.text_mapper.submit()
+        self.text_mapper.setCurrentIndex(self.text_model.nextBestRowIndex())
 
     def handle_about_button_clicked(self):
         QMessageBox.question(self, "About", "TODO: complete", QMessageBox.Ok)
 
-    def update_statistics(self):
+    def handle_text_mapper_index_changed(self):
         # progress
         new_progress_value = (
             self.text_model.annotatedTextsCount() * 100 / self.text_model.rowCount()
         )
         self.progress_bar.setValue(new_progress_value)
         # current index
-        self.current_index_label.setText(str(self.text_mapper.currentIndex()))
+        self.current_text_index_label.setText(str(self.text_mapper.currentIndex() + 1))
         # annotated texts count
         annotated_texts_count = self.text_model.annotatedTextsCount()
         self.annotated_texts_label.setText(str(annotated_texts_count))
         # total texts count
         total_texts_count = self.text_model.rowCount()
         self.total_texts_label.setText(str(total_texts_count))
+        # annotated percent
+        self.annotated_percent_label.setText(
+            "{0:.0%}".format(annotated_texts_count / total_texts_count)
+        )
+        # remove focus from text control
+        self.text_edit.clearFocus()
 
     def annotate_entity(self):
         text_cursor = self.text_edit.textCursor()
