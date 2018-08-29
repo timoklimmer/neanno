@@ -46,11 +46,6 @@ class _AnnotationDialog(QMainWindow):
     def __init__(self, text_model, named_entity_definitions):
         app = QApplication([])
         super().__init__()
-
-        print(os.path.join(
-                            os.path.abspath(os.path.dirname(__file__)), "resources/icon.ico"
-                        ))
-
         self.setWindowIcon(
             QIcon(
                 os.path.join(
@@ -58,10 +53,9 @@ class _AnnotationDialog(QMainWindow):
                 )
             )
         )
-        self.text_model = text_model
         self.named_entity_definitions = named_entity_definitions
         self.layout_controls()
-        self.set_text_model(self.text_model)
+        self.set_text_model(text_model)
         self.wire_shortcuts()
         self.show()
         app.exec_()
@@ -126,11 +120,14 @@ class _AnnotationDialog(QMainWindow):
         # statistics
         statistics_grid = QGridLayout()
         statistics_grid.addWidget(QLabel("# Annotated Texts"), 0, 0)
-        self.annotated_texts_label = QLabel("1")
+        self.annotated_texts_label = QLabel()
         statistics_grid.addWidget(self.annotated_texts_label, 0, 1)
         statistics_grid.addWidget(QLabel("# Total Texts"), 1, 0)
-        self.total_texts_label = QLabel("2")
+        self.total_texts_label = QLabel()
         statistics_grid.addWidget(self.total_texts_label, 1, 1)
+        statistics_grid.addWidget(QLabel("Current Index"), 2, 0)
+        self.current_index_label = QLabel()
+        statistics_grid.addWidget(self.current_index_label, 2, 1)
         statistics_groupbox = QGroupBox("Statistics")
         statistics_groupbox.setLayout(statistics_grid)
 
@@ -216,12 +213,11 @@ class _AnnotationDialog(QMainWindow):
 
     def set_text_model(self, text_model):
         self.text_model = text_model
-        self.update_statistics()
         self.text_mapper = QDataWidgetMapper(self)
         self.text_mapper.setModel(text_model)
         self.text_mapper.addMapping(self.text_edit, 0)
-        self.text_model.dataChanged.connect(self.update_statistics)
-        self.text_mapper.toFirst()
+        self.text_mapper.currentIndexChanged.connect(self.update_statistics)
+        self.text_mapper.setCurrentIndex(self.text_model.firstNonAnnotatedRowIndex())
 
     def handle_shortcut_next(self):
         self.text_edit.clearFocus()
@@ -243,14 +239,19 @@ class _AnnotationDialog(QMainWindow):
         QMessageBox.question(self, "About", "TODO: complete", QMessageBox.Ok)
 
     def update_statistics(self):
-        annotated_texts_count = self.text_model.annotatedTextsCount()
-        self.annotated_texts_label.setText(str(annotated_texts_count))
-        total_texts_count = self.text_model.rowCount()
-        self.total_texts_label.setText(str(total_texts_count))
+        # progress
         new_progress_value = (
             self.text_model.annotatedTextsCount() * 100 / self.text_model.rowCount()
         )
         self.progress_bar.setValue(new_progress_value)
+        # current index
+        self.current_index_label.setText(str(self.text_mapper.currentIndex()))
+        # annotated texts count
+        annotated_texts_count = self.text_model.annotatedTextsCount()
+        self.annotated_texts_label.setText(str(annotated_texts_count))
+        # total texts count
+        total_texts_count = self.text_model.rowCount()
+        self.total_texts_label.setText(str(total_texts_count))
 
     def annotate_entity(self):
         text_cursor = self.text_edit.textCursor()
