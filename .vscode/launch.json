@@ -12,8 +12,8 @@
             "args": [
                 "--filename", "sample_texts/sample_texts.csv",
                 "--output_file", "sample_texts/sample_texts.annotated.csv",
-                "--source_column_name", "text",
-                "--target_column_name", "annotated_text",
+                "--text_column_name", "text",
+                "--is_annotated_column_name", "is_text_annotated",
                 "--named_entity_defs", "BLU Alt+B/RED Alt+R/GRN Alt+G/PRP Alt+P/ORA Alt+O/YLW Alt+Y"
             ]
         },

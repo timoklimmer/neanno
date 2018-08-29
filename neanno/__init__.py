@@ -13,8 +13,8 @@ class NamedEntityDefinition:
 
 def annotate_entities(
     dataframe_to_edit,
-    source_text_column_name,
-    annotated_text_column_name,
+    text_column_name,
+    is_annotated_column_name,
     named_entity_definitions,
     save_callback,
 ):
@@ -22,8 +22,8 @@ def annotate_entities(
 
     text_model = _TextModel(
         pandas_data_frame=dataframe_to_edit,
-        source_text_column_name=source_text_column_name,
-        annotated_text_column_name=annotated_text_column_name,
-        save_callback=save_callback
+        text_column_name=text_column_name,
+        is_annotated_column_name=is_annotated_column_name,
+        save_callback=save_callback,
     )
     _AnnotationDialog(text_model, named_entity_definitions)

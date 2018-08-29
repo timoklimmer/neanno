@@ -1,6 +1,7 @@
 import pandas as pd
 from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant, pyqtSignal
 
+
 class _TextModel(QAbstractTableModel):
     saveStarted = pyqtSignal()
     saveCompleted = pyqtSignal()
@@ -8,41 +9,39 @@ class _TextModel(QAbstractTableModel):
     def __init__(
         self,
         pandas_data_frame,
-        source_text_column_name,
-        annotated_text_column_name,
+        text_column_name,
+        is_annotated_column_name,
         save_callback=None,
     ):
         super().__init__(parent=None)
         self._df = pandas_data_frame
-        self.source_text_column_name = source_text_column_name
-        self.annotated_text_column_name = annotated_text_column_name
+        self.text_column_name = text_column_name
+        self.is_annotated_column_name = is_annotated_column_name
         self.save_callback = save_callback
 
-        # get column indexes and ensure that the data frame has an annotated text column
-        self.text_column_index = self._df.columns.get_loc(source_text_column_name)
-        if self.annotated_text_column_name not in self._df:
-            self._df[self.annotated_text_column_name] = None
-        self.annotated_text_column_index = self._df.columns.get_loc(
-            self.annotated_text_column_name
+        # get column indexes and ensure that the data frame has an is annotated column
+        self.text_column_index = self._df.columns.get_loc(text_column_name)
+        if self.is_annotated_column_name not in self._df:
+            self._df[self.is_annotated_column_name] = False
+        self.is_annotated_column_index = self._df.columns.get_loc(
+            self.is_annotated_column_name
         )
 
     def data(self, index, role=Qt.DisplayRole):
         # ensure index is valid
         if not index.isValid():
             return QVariant()
-        # return annotated text if set, otherwise the original text
-        resultCandidate = self._df.ix[index.row(), self.annotated_text_column_index]
-        return (
-            resultCandidate
-            if resultCandidate is not None
-            else self._df.ix[index.row(), self.text_column_index]
-        )
+        # return text
+        return self._df.ix[index.row(), self.text_column_index]
 
     def setData(self, index, value, role):
-        row = self._df.index[index.row()]
-        col = self.annotated_text_column_index
-        if self.data(index) != value or self._df.ix[index.row(), self.annotated_text_column_index] is None:      
-            self._df.iat[row, col] = value
+        row = index.row()
+        if (
+            self.data(index) != value
+            or self._df.ix[row, self.is_annotated_column_index] == False
+        ):
+            self._df.iat[row, self.text_column_index] = value
+            self._df.iat[row, self.is_annotated_column_index] = True
             self.save()
             self.dataChanged.emit(index, index)
         return True
@@ -63,4 +62,4 @@ class _TextModel(QAbstractTableModel):
             self.saveCompleted.emit()
 
     def annotatedTextsCount(self):
-        return self._df[self.annotated_text_column_name].notnull().sum()
+        return (self._df[self.is_annotated_column_name] == True).sum()

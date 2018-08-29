@@ -18,14 +18,14 @@ def main():
         help="Path to the CSV output file which will contain the annotations. Can be the same as filename.",
     )
     parser.add_argument(
-        "--source_column_name",
-        "-s",
+        "--text_column_name",
+        "-t",
         help="Name of the column containing the texts to annotate.",
     )
     parser.add_argument(
-        "--target_column_name",
-        "-t",
-        help="Name of the column containing the annotated texts. Must be different from source column name.",
+        "--is_annotated_column_name",
+        "-i",
+        help="Name of the column containing a flag if the text has been annotated.",
     )
     parser.add_argument(
         "--named_entity_defs",
@@ -36,15 +36,11 @@ def main():
 
     filename = args.filename  # "sample_texts.csv"
     output_file = args.output_file  # "sample_texts.annotated.csv"
-    source_column_name = args.source_column_name  # "Text"
-    target_column_name = args.target_column_name  # "Annotated Text"
+    text_column_name = args.text_column_name  # "text"
+    is_annotated_column_name = args.is_annotated_column_name  # "is_annotated"
     named_entity_defs_string = (
         args.named_entity_defs
     )  # "BLUE Alt+B/RED Alt+R/GREEN Alt+G"
-
-    # ensure that source_column_name and target_column_name are not the same
-    # TODO: throw exception
-    assert source_column_name != target_column_name
 
     # load pandas data frame
     dataframe_to_edit = pd.read_csv(filename)
@@ -64,9 +60,9 @@ def main():
     # run the annotation UI
     annotate_entities(
         dataframe_to_edit=dataframe_to_edit,
-        source_text_column_name=source_column_name,
-        annotated_text_column_name=target_column_name,
+        text_column_name=text_column_name,
+        is_annotated_column_name=is_annotated_column_name,
         named_entity_definitions=named_entity_definitions,
         save_callback=lambda df: df.to_csv(output_file, index=False, header=True),
     )
-    
+
