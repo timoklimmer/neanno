@@ -31,11 +31,20 @@ class _TextModel(QAbstractTableModel):
         # ensure index is valid
         if not index.isValid():
             return QVariant()
-        # return text
-        return self._df.ix[index.row(), self.text_column_index]
+        # return text if index is on first column, otherwise is_annotated
+        if index.column() == 0:
+            return str(self._df.ix[index.row(), self.text_column_index])
+        else:
+            resultCandidate = self._df.ix[index.row(), self.is_annotated_column_index]
+            return str(resultCandidate if resultCandidate is not None else False)
 
     def setData(self, index, value, role):
         row = index.row()
+        col = index.column()
+        # skip writing is_annotated
+        if col != 0:
+            return True
+        # update _df and save if needed
         if (
             self.data(index) != value
             or self._df.ix[row, self.is_annotated_column_index] == False
@@ -46,11 +55,18 @@ class _TextModel(QAbstractTableModel):
             self.dataChanged.emit(index, index)
         return True
 
+    def headerData(self, section, orientation, role=Qt.DisplayRole):
+        if section == 0:
+            return self.text_column_name
+        if section == 1:
+            return self.is_annotated_column_name
+        return None
+
     def rowCount(self, parent=QModelIndex()):
         return len(self._df.index)
 
     def columnCount(self, parent=QModelIndex()):
-        return 1
+        return 2
 
     def flags(self, index):
         return super().flags(index) | Qt.ItemIsEditable

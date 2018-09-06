@@ -3,7 +3,7 @@ import re
 import sys
 
 from PyQt5 import QtCore
-from PyQt5.QtCore import QRegularExpression, Qt, pyqtSlot
+from PyQt5.QtCore import QByteArray, QRegularExpression, Qt, pyqtSlot
 from PyQt5.QtGui import (
     QColor,
     QFont,
@@ -127,18 +127,21 @@ class _AnnotationDialog(QMainWindow):
 
         # statistics
         statistics_grid = QGridLayout()
-        statistics_grid.addWidget(QLabel("Annotated Texts"), 0, 0)
-        self.annotated_texts_label = QLabel()
-        statistics_grid.addWidget(self.annotated_texts_label, 0, 1)
-        statistics_grid.addWidget(QLabel("Total Texts"), 1, 0)
-        self.total_texts_label = QLabel()
-        statistics_grid.addWidget(self.total_texts_label, 1, 1)
-        statistics_grid.addWidget(QLabel("Annotated"), 2, 0)
-        self.annotated_percent_label = QLabel()
-        statistics_grid.addWidget(self.annotated_percent_label, 2, 1)
-        statistics_grid.addWidget(QLabel("Current Text Index"), 3, 0)
+        statistics_grid.addWidget(QLabel("Current Index"), 0, 0)
         self.current_text_index_label = QLabel()
-        statistics_grid.addWidget(self.current_text_index_label, 3, 1)
+        statistics_grid.addWidget(self.current_text_index_label, 0, 1)
+        statistics_grid.addWidget(QLabel("Is Annotated"), 1, 0)
+        self.is_annotated_label = QLabel()
+        statistics_grid.addWidget(self.is_annotated_label, 1, 1)
+        statistics_grid.addWidget(QLabel("Annotated Texts"), 2, 0)
+        self.annotated_texts_label = QLabel()
+        statistics_grid.addWidget(self.annotated_texts_label, 2, 1)
+        statistics_grid.addWidget(QLabel("Total Texts"), 3, 0)
+        self.total_texts_label = QLabel()
+        statistics_grid.addWidget(self.total_texts_label, 3, 1)
+        statistics_grid.addWidget(QLabel("Annotated"), 4, 0)
+        self.annotated_percent_label = QLabel()
+        statistics_grid.addWidget(self.annotated_percent_label, 4, 1)
         statistics_groupbox = QGroupBox("Statistics")
         statistics_groupbox.setLayout(statistics_grid)
 
@@ -155,7 +158,6 @@ class _AnnotationDialog(QMainWindow):
         grid.setSpacing(10)
         grid.setColumnStretch(0, 1)
         grid.setColumnStretch(1, 0)
-        grid.addWidget(self.progress_bar, 0, 0, 1, 2)
         grid.addWidget(self.text_edit, 1, 0, 2, 1)
         right_column_layout = QVBoxLayout()
         right_column_layout.addWidget(entities_groupbox)
@@ -166,7 +168,7 @@ class _AnnotationDialog(QMainWindow):
         vbox = QVBoxLayout()
         vbox.addLayout(grid)
         hbox = QHBoxLayout()
-        hbox.addStretch(1)
+        hbox.addWidget(self.progress_bar)
         hbox.addWidget(about_button)
         hbox.addWidget(close_button)
         vbox.addLayout(hbox)
@@ -246,6 +248,9 @@ class _AnnotationDialog(QMainWindow):
         self.text_mapper.setSubmitPolicy(QDataWidgetMapper.ManualSubmit)
         self.text_mapper.setModel(text_model)
         self.text_mapper.addMapping(self.text_edit, 0)
+        self.text_mapper.addMapping(
+            self.is_annotated_label, 1, QByteArray().insert(0, "text")
+        )
         self.text_mapper.currentIndexChanged.connect(
             self.handle_text_mapper_index_changed
         )
