@@ -19,6 +19,7 @@ from PyQt5.QtWidgets import (
     QGridLayout,
     QGroupBox,
     QHBoxLayout,
+    QInputDialog,
     QLabel,
     QMainWindow,
     QMessageBox,
@@ -34,14 +35,14 @@ if hasattr(QtCore.Qt, "AA_UseHighDpiPixmaps"):
     QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
 
 SHORTCUT_SUBMIT_NEXT_BEST_KEYSEQUENCE = "Ctrl+Return"
-SHORTCUT_NEXT_KEYSEQUENCE = "Ctrl+Tab"
-SHORTCUT_PREVIOUS_KEYSEQUENCE = "Ctrl+Backspace"
+SHORTCUT_NEXT_KEYSEQUENCE = "Ctrl+Shift+Return"
+SHORTCUT_PREVIOUS_KEYSEQUENCE = "Ctrl+Shift+Backspace"
 SHORTCUT_FIRST_KEYSEQUENCE = "Ctrl+F"
 SHORTCUT_LAST_KEYSEQUENCE = "Ctrl+L"
+SHORTCUT_GOTO_KEYSEQUENCE = "Ctrl+G"
 SHORTCUT_UNDO_KEYSEQUENCE = "Ctrl+Z"
 SHORTCUT_REDO_KEYSEQUENCE = "Ctrl+Y"
 SHORTCUT_REMOVE_KEYSEQUENCE = "Ctrl+R"
-SHORTCUT_CLOSE_KEYSEQUENCE = "Ctrl+Esc"
 
 
 class _AnnotationDialog(QMainWindow):
@@ -114,14 +115,14 @@ class _AnnotationDialog(QMainWindow):
         control_shortcuts_grid.addWidget(QLabel(SHORTCUT_FIRST_KEYSEQUENCE), 3, 1)
         control_shortcuts_grid.addWidget(QLabel("Last"), 4, 0)
         control_shortcuts_grid.addWidget(QLabel(SHORTCUT_LAST_KEYSEQUENCE), 4, 1)
-        control_shortcuts_grid.addWidget(QLabel("Undo"), 5, 0)
-        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_UNDO_KEYSEQUENCE), 5, 1)
-        control_shortcuts_grid.addWidget(QLabel("Redo"), 6, 0)
-        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_REDO_KEYSEQUENCE), 6, 1)
-        control_shortcuts_grid.addWidget(QLabel("Remove"), 7, 0)
-        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_REMOVE_KEYSEQUENCE), 7, 1)
-        control_shortcuts_grid.addWidget(QLabel("Close"), 8, 0)
-        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_CLOSE_KEYSEQUENCE), 8, 1)
+        control_shortcuts_grid.addWidget(QLabel("Goto"), 5, 0)
+        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_GOTO_KEYSEQUENCE), 5, 1)
+        control_shortcuts_grid.addWidget(QLabel("Undo"), 6, 0)
+        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_UNDO_KEYSEQUENCE), 6, 1)
+        control_shortcuts_grid.addWidget(QLabel("Redo"), 7, 0)
+        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_REDO_KEYSEQUENCE), 7, 1)
+        control_shortcuts_grid.addWidget(QLabel("Remove label"), 8, 0)
+        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_REMOVE_KEYSEQUENCE), 8, 1)
         controls_groupbox = QGroupBox("Controls")
         controls_groupbox.setLayout(control_shortcuts_grid)
 
@@ -226,6 +227,14 @@ class _AnnotationDialog(QMainWindow):
         )
         shortcut_last.activated.connect(self.text_mapper.toLast)
 
+        # goto
+        shortcut_goto = QShortcut(
+            QKeySequence(SHORTCUT_GOTO_KEYSEQUENCE),
+            self,
+            context=Qt.ApplicationShortcut,
+        )
+        shortcut_goto.activated.connect(self.handle_shortcut_goto)
+
         # remove
         shortcut_last = QShortcut(
             QKeySequence(SHORTCUT_REMOVE_KEYSEQUENCE),
@@ -233,14 +242,6 @@ class _AnnotationDialog(QMainWindow):
             context=Qt.ApplicationShortcut,
         )
         shortcut_last.activated.connect(self.remove_entity)
-
-        # close
-        shortcut_close = QShortcut(
-            QKeySequence(SHORTCUT_CLOSE_KEYSEQUENCE),
-            self,
-            context=Qt.ApplicationShortcut,
-        )
-        shortcut_close.activated.connect(self.close)
 
     def set_text_model(self, text_model):
         self.text_model = text_model
@@ -254,14 +255,40 @@ class _AnnotationDialog(QMainWindow):
         self.text_mapper.currentIndexChanged.connect(
             self.handle_text_mapper_index_changed
         )
-        self.text_mapper.setCurrentIndex(self.text_model.nextBestRowIndex())
+        self.text_mapper.setCurrentIndex(self.text_model.nextBestRowIndex(0))
 
     def handle_shortcut_submit_next_best(self):
         self.text_mapper.submit()
-        self.text_mapper.setCurrentIndex(self.text_model.nextBestRowIndex())
+        self.text_mapper.setCurrentIndex(
+            self.text_model.nextBestRowIndex(self.text_mapper.currentIndex())
+        )
+
+    def handle_shortcut_goto(self):
+        new_index, is_not_canceled = QInputDialog.getInt(
+            self, "Goto Index", "Enter an index:"
+        )
+        if is_not_canceled:
+            self.text_mapper.setCurrentIndex(new_index)
 
     def handle_about_button_clicked(self):
-        QMessageBox.question(self, "About", "TODO: complete", QMessageBox.Ok)
+        QMessageBox.information(
+            self,
+            "About neanno",
+            """
+neanno is yet another named entity annotation tool.
+
+There are already several other annotation tools out there but none
+of them really matched my requirements. Hence, I created my own.
+
+This is NOT an official Microsoft product, hence does not come with
+any support or obligations for Microsoft.
+
+Feel free to use but don't blame me if things go wrong.
+
+Written in 2018 by Timo Klimmer, timo.klimmer@microsoft.com.
+""",
+            QMessageBox.Ok,
+        )
 
     def handle_text_mapper_index_changed(self):
         # progress
@@ -270,7 +297,7 @@ class _AnnotationDialog(QMainWindow):
         )
         self.progress_bar.setValue(new_progress_value)
         # current index
-        self.current_text_index_label.setText(str(self.text_mapper.currentIndex() + 1))
+        self.current_text_index_label.setText(str(self.text_mapper.currentIndex()))
         # annotated texts count
         annotated_texts_count = self.text_model.annotatedTextsCount()
         self.annotated_texts_label.setText(str(annotated_texts_count))

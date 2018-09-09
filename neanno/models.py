@@ -80,5 +80,8 @@ class _TextModel(QAbstractTableModel):
     def annotatedTextsCount(self):
         return (self._df[self.is_annotated_column_name] == True).sum()
 
-    def nextBestRowIndex(self):
-        return self._df[self.is_annotated_column_name].idxmin()
+    def nextBestRowIndex(self, currentIndex):
+        if False in self._df[self.is_annotated_column_name].values:
+            return self._df[self.is_annotated_column_name].idxmin()
+        else:
+            return (currentIndex + 1) % self.rowCount()
