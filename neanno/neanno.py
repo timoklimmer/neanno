@@ -32,6 +32,14 @@ def main():
         "-n",
         help='Defines the entities available for annotation incl. shortcuts. Eg. "BLUE Alt+B/RED Alt+R/GREEN Alt+G"',
     )
+    parser.add_argument(
+        "--ner_model_name", "-m", help="Name of the new NER/Spacy model."
+    )
+    parser.add_argument(
+        "--ner_model_base_name",
+        "-b",
+        help="Name of the base Spacy model used as baseline.",
+    )
     args = parser.parse_args()
 
     filename = args.filename  # "sample_texts.csv"
@@ -41,6 +49,8 @@ def main():
     named_entity_defs_string = (
         args.named_entity_defs
     )  # "BLUE Alt+B/RED Alt+R/GREEN Alt+G"
+    ner_model_name = args.ner_model_name  # en_my_own
+    ner_model_base_name = args.ner_model_base_name  # en
 
     # load pandas data frame
     dataframe_to_edit = pd.read_csv(filename)
@@ -73,5 +83,7 @@ def main():
         is_annotated_column_name=is_annotated_column_name,
         named_entity_definitions=named_entity_definitions,
         save_callback=lambda df: df.to_csv(output_file, index=False, header=True),
+        ner_model_name=ner_model_name,
+        ner_model_base_name=ner_model_base_name,
     )
 

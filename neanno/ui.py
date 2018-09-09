@@ -57,8 +57,9 @@ class _AnnotationDialog(QMainWindow):
             )
         )
         self.named_entity_definitions = named_entity_definitions
+        self.text_model = text_model
         self.layout_controls()
-        self.set_text_model(text_model)
+        self.wire_text_model()
         self.wire_shortcuts()
         self.show()
         app.exec_()
@@ -146,6 +147,18 @@ class _AnnotationDialog(QMainWindow):
         statistics_groupbox = QGroupBox("Statistics")
         statistics_groupbox.setLayout(statistics_grid)
 
+        # NER model
+        if self.text_model.hasNerModel():
+            model_grid = QGridLayout()
+            model_grid.addWidget(QLabel("Name"), 0, 0)
+            self.ner_model_name_label = QLabel(self.text_model.ner_model_name)
+            model_grid.addWidget(self.ner_model_name_label, 0, 1)
+            model_grid.addWidget(QLabel("Base Name"), 1, 0)
+            self.ner_model_base_name_label = QLabel(self.text_model.ner_model_base_name)
+            model_grid.addWidget(self.ner_model_base_name_label, 1, 1)
+            model_groupbox = QGroupBox("Model")
+            model_groupbox.setLayout(model_grid)
+
         # about
         about_button = QPushButton("About")
         about_button.clicked.connect(self.handle_about_button_clicked)
@@ -163,6 +176,8 @@ class _AnnotationDialog(QMainWindow):
         right_column_layout = QVBoxLayout()
         right_column_layout.addWidget(entities_groupbox)
         right_column_layout.addWidget(statistics_groupbox)
+        if self.text_model.hasNerModel():
+            right_column_layout.addWidget(model_groupbox)
         right_column_layout.addWidget(controls_groupbox)
         right_column_layout.addStretch()
         grid.addLayout(right_column_layout, 1, 1)
@@ -201,7 +216,7 @@ class _AnnotationDialog(QMainWindow):
             self,
             context=Qt.ApplicationShortcut,
         )
-        shortcut_next.activated.connect(self.text_mapper.toNext)
+        shortcut_next.activated.connect(self.text_navigator.toNext)
 
         # previous
         shortcut_previous = QShortcut(
@@ -209,7 +224,7 @@ class _AnnotationDialog(QMainWindow):
             self,
             context=Qt.ApplicationShortcut,
         )
-        shortcut_previous.activated.connect(self.text_mapper.toPrevious)
+        shortcut_previous.activated.connect(self.text_navigator.toPrevious)
 
         # first
         shortcut_first = QShortcut(
@@ -217,7 +232,7 @@ class _AnnotationDialog(QMainWindow):
             self,
             context=Qt.ApplicationShortcut,
         )
-        shortcut_first.activated.connect(self.text_mapper.toFirst)
+        shortcut_first.activated.connect(self.text_navigator.toFirst)
 
         # last
         shortcut_last = QShortcut(
@@ -225,7 +240,7 @@ class _AnnotationDialog(QMainWindow):
             self,
             context=Qt.ApplicationShortcut,
         )
-        shortcut_last.activated.connect(self.text_mapper.toLast)
+        shortcut_last.activated.connect(self.text_navigator.toLast)
 
         # goto
         shortcut_goto = QShortcut(
@@ -243,24 +258,23 @@ class _AnnotationDialog(QMainWindow):
         )
         shortcut_last.activated.connect(self.remove_entity)
 
-    def set_text_model(self, text_model):
-        self.text_model = text_model
-        self.text_mapper = QDataWidgetMapper(self)
-        self.text_mapper.setSubmitPolicy(QDataWidgetMapper.ManualSubmit)
-        self.text_mapper.setModel(text_model)
-        self.text_mapper.addMapping(self.text_edit, 0)
-        self.text_mapper.addMapping(
+    def wire_text_model(self):
+        self.text_navigator = QDataWidgetMapper(self)
+        self.text_navigator.setSubmitPolicy(QDataWidgetMapper.ManualSubmit)
+        self.text_navigator.setModel(self.text_model)
+        self.text_navigator.addMapping(self.text_edit, 0)
+        self.text_navigator.addMapping(
             self.is_annotated_label, 1, QByteArray().insert(0, "text")
         )
-        self.text_mapper.currentIndexChanged.connect(
-            self.handle_text_mapper_index_changed
+        self.text_navigator.currentIndexChanged.connect(
+            self.handle_text_navigator_index_changed
         )
-        self.text_mapper.setCurrentIndex(self.text_model.nextBestRowIndex(0))
+        self.text_navigator.setCurrentIndex(self.text_model.nextBestRowIndex(0))
 
     def handle_shortcut_submit_next_best(self):
-        self.text_mapper.submit()
-        self.text_mapper.setCurrentIndex(
-            self.text_model.nextBestRowIndex(self.text_mapper.currentIndex())
+        self.text_navigator.submit()
+        self.text_navigator.setCurrentIndex(
+            self.text_model.nextBestRowIndex(self.text_navigator.currentIndex())
         )
 
     def handle_shortcut_goto(self):
@@ -268,7 +282,7 @@ class _AnnotationDialog(QMainWindow):
             self, "Goto Index", "Enter an index:"
         )
         if is_not_canceled:
-            self.text_mapper.setCurrentIndex(new_index)
+            self.text_navigator.setCurrentIndex(new_index)
 
     def handle_about_button_clicked(self):
         QMessageBox.information(
@@ -290,14 +304,14 @@ Written in 2018 by Timo Klimmer, timo.klimmer@microsoft.com.
             QMessageBox.Ok,
         )
 
-    def handle_text_mapper_index_changed(self):
+    def handle_text_navigator_index_changed(self):
         # progress
         new_progress_value = (
             self.text_model.annotatedTextsCount() * 100 / self.text_model.rowCount()
         )
         self.progress_bar.setValue(new_progress_value)
         # current index
-        self.current_text_index_label.setText(str(self.text_mapper.currentIndex()))
+        self.current_text_index_label.setText(str(self.text_navigator.currentIndex()))
         # annotated texts count
         annotated_texts_count = self.text_model.annotatedTextsCount()
         self.annotated_texts_label.setText(str(annotated_texts_count))

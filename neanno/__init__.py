@@ -17,6 +17,8 @@ def annotate_entities(
     is_annotated_column_name,
     named_entity_definitions,
     save_callback,
+    ner_model_name,
+    ner_model_base_name
 ):
     # TODO: ensure that input variable are proper
 
@@ -25,5 +27,7 @@ def annotate_entities(
         text_column_name=text_column_name,
         is_annotated_column_name=is_annotated_column_name,
         save_callback=save_callback,
+        ner_model_name=ner_model_name,
+        ner_model_base_name=ner_model_base_name
     )
     _AnnotationDialog(text_model, named_entity_definitions)

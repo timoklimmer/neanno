@@ -12,12 +12,16 @@ class _TextModel(QAbstractTableModel):
         text_column_name,
         is_annotated_column_name,
         save_callback=None,
+        ner_model_name=None,
+        ner_model_base_name=None
     ):
         super().__init__(parent=None)
         self._df = pandas_data_frame
         self.text_column_name = text_column_name
         self.is_annotated_column_name = is_annotated_column_name
         self.save_callback = save_callback
+        self.ner_model_name = ner_model_name
+        self.ner_model_base_name = ner_model_base_name
 
         # get column indexes and ensure that the data frame has an is annotated column
         self.text_column_index = self._df.columns.get_loc(text_column_name)
@@ -85,3 +89,6 @@ class _TextModel(QAbstractTableModel):
             return self._df[self.is_annotated_column_name].idxmin()
         else:
             return (currentIndex + 1) % self.rowCount()
+
+    def hasNerModel(self):
+        return self.ner_model_base_name is not None
