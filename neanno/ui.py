@@ -83,7 +83,7 @@ class _AnnotationDialog(QMainWindow):
         # text edit
         self.text_edit = QPlainTextEdit()
         self.text_edit.setStyleSheet(
-            "font-size: 14pt; font-family: Segoe UI; color: lightgrey; background-color: black"
+            "font-size: 14pt; font-family: Consolas; color: lightgrey; background-color: black"
         )
         self.entity_highlighter = _EntityHighlighter(
             self.text_edit.document(), self.named_entity_definitions
