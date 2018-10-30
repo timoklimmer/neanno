@@ -35,9 +35,11 @@ if hasattr(QtCore.Qt, "AA_UseHighDpiPixmaps"):
     QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
 
 SHORTCUT_SUBMIT_NEXT_BEST_KEYSEQUENCE = "Ctrl+Return"
-SHORTCUT_NEXT_KEYSEQUENCE = "Ctrl+Shift+Return"
-SHORTCUT_PREVIOUS_KEYSEQUENCE = "Ctrl+Shift+Backspace"
+SHORTCUT_BACKWARD_KEYSEQUENCE = "Ctrl+Left"
+SHORTCUT_FORWARD_KEYSEQUENCE = "Ctrl+Right"
 SHORTCUT_FIRST_KEYSEQUENCE = "Ctrl+F"
+SHORTCUT_PREVIOUS_KEYSEQUENCE = "Ctrl+P"
+SHORTCUT_NEXT_KEYSEQUENCE = "Ctrl+N"
 SHORTCUT_LAST_KEYSEQUENCE = "Ctrl+L"
 SHORTCUT_GOTO_KEYSEQUENCE = "Ctrl+G"
 SHORTCUT_UNDO_KEYSEQUENCE = "Ctrl+Z"
@@ -68,7 +70,7 @@ class _AnnotationDialog(QMainWindow):
         # window
         self.setWindowTitle("Annotate entities")
         screen = QDesktopWidget().screenGeometry()
-        self.setGeometry(0, 0, screen.width() * .75, screen.height() * .75)
+        self.setGeometry(0, 0, screen.width() * 0.75, screen.height() * 0.75)
         mysize = self.geometry()
         horizontal_position = (screen.width() - mysize.width()) / 2
         vertical_position = (screen.height() - mysize.height()) / 2
@@ -108,22 +110,26 @@ class _AnnotationDialog(QMainWindow):
         control_shortcuts_grid.addWidget(
             QLabel(SHORTCUT_SUBMIT_NEXT_BEST_KEYSEQUENCE), 0, 1
         )
-        control_shortcuts_grid.addWidget(QLabel("Next"), 1, 0)
-        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_NEXT_KEYSEQUENCE), 1, 1)
-        control_shortcuts_grid.addWidget(QLabel("Previous"), 2, 0)
-        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_PREVIOUS_KEYSEQUENCE), 2, 1)
+        control_shortcuts_grid.addWidget(QLabel("Backward"), 1, 0)
+        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_BACKWARD_KEYSEQUENCE), 1, 1)
+        control_shortcuts_grid.addWidget(QLabel("Forward"), 2, 0)
+        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_FORWARD_KEYSEQUENCE), 2, 1)
         control_shortcuts_grid.addWidget(QLabel("First"), 3, 0)
         control_shortcuts_grid.addWidget(QLabel(SHORTCUT_FIRST_KEYSEQUENCE), 3, 1)
-        control_shortcuts_grid.addWidget(QLabel("Last"), 4, 0)
-        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_LAST_KEYSEQUENCE), 4, 1)
-        control_shortcuts_grid.addWidget(QLabel("Goto"), 5, 0)
-        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_GOTO_KEYSEQUENCE), 5, 1)
-        control_shortcuts_grid.addWidget(QLabel("Undo"), 6, 0)
-        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_UNDO_KEYSEQUENCE), 6, 1)
-        control_shortcuts_grid.addWidget(QLabel("Redo"), 7, 0)
-        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_REDO_KEYSEQUENCE), 7, 1)
-        control_shortcuts_grid.addWidget(QLabel("Remove label"), 8, 0)
-        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_REMOVE_KEYSEQUENCE), 8, 1)
+        control_shortcuts_grid.addWidget(QLabel("Previous"), 4, 0)
+        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_PREVIOUS_KEYSEQUENCE), 4, 1)
+        control_shortcuts_grid.addWidget(QLabel("Next"), 5, 0)
+        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_NEXT_KEYSEQUENCE), 5, 1)
+        control_shortcuts_grid.addWidget(QLabel("Last"), 6, 0)
+        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_LAST_KEYSEQUENCE), 6, 1)
+        control_shortcuts_grid.addWidget(QLabel("Goto"), 7, 0)
+        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_GOTO_KEYSEQUENCE), 7, 1)
+        control_shortcuts_grid.addWidget(QLabel("Undo"), 8, 0)
+        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_UNDO_KEYSEQUENCE), 8, 1)
+        control_shortcuts_grid.addWidget(QLabel("Redo"), 9, 0)
+        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_REDO_KEYSEQUENCE), 9, 1)
+        control_shortcuts_grid.addWidget(QLabel("Remove label"), 10, 0)
+        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_REMOVE_KEYSEQUENCE), 10, 1)
         controls_groupbox = QGroupBox("Controls")
         controls_groupbox.setLayout(control_shortcuts_grid)
 
@@ -156,7 +162,7 @@ class _AnnotationDialog(QMainWindow):
             model_grid.addWidget(QLabel("Base Name"), 1, 0)
             self.ner_model_base_name_label = QLabel(self.text_model.ner_model_base_name)
             model_grid.addWidget(self.ner_model_base_name_label, 1, 1)
-            model_groupbox = QGroupBox("Model")
+            model_groupbox = QGroupBox("NER Model")
             model_groupbox.setLayout(model_grid)
 
         # about
@@ -210,13 +216,29 @@ class _AnnotationDialog(QMainWindow):
             self.handle_shortcut_submit_next_best
         )
 
-        # next
-        shortcut_next = QShortcut(
-            QKeySequence(SHORTCUT_NEXT_KEYSEQUENCE),
+        # backward
+        shortcut_backward = QShortcut(
+            QKeySequence(SHORTCUT_BACKWARD_KEYSEQUENCE),
             self,
             context=Qt.ApplicationShortcut,
         )
-        shortcut_next.activated.connect(self.text_navigator.toNext)
+        shortcut_backward.activated.connect(self.text_navigator.backward)
+
+        # forward
+        shortcut_forward = QShortcut(
+            QKeySequence(SHORTCUT_FORWARD_KEYSEQUENCE),
+            self,
+            context=Qt.ApplicationShortcut,
+        )
+        shortcut_forward.activated.connect(self.text_navigator.forward)
+
+        # first
+        shortcut_first = QShortcut(
+            QKeySequence(SHORTCUT_FIRST_KEYSEQUENCE),
+            self,
+            context=Qt.ApplicationShortcut,
+        )
+        shortcut_first.activated.connect(self.text_navigator.toFirst)
 
         # previous
         shortcut_previous = QShortcut(
@@ -226,13 +248,13 @@ class _AnnotationDialog(QMainWindow):
         )
         shortcut_previous.activated.connect(self.text_navigator.toPrevious)
 
-        # first
-        shortcut_first = QShortcut(
-            QKeySequence(SHORTCUT_FIRST_KEYSEQUENCE),
+        # next
+        shortcut_next = QShortcut(
+            QKeySequence(SHORTCUT_NEXT_KEYSEQUENCE),
             self,
             context=Qt.ApplicationShortcut,
         )
-        shortcut_first.activated.connect(self.text_navigator.toFirst)
+        shortcut_next.activated.connect(self.text_navigator.toNext)
 
         # last
         shortcut_last = QShortcut(
@@ -259,7 +281,7 @@ class _AnnotationDialog(QMainWindow):
         shortcut_last.activated.connect(self.remove_entity)
 
     def wire_text_model(self):
-        self.text_navigator = QDataWidgetMapper(self)
+        self.text_navigator = _QDataWidgetMapperWithHistory(self)
         self.text_navigator.setSubmitPolicy(QDataWidgetMapper.ManualSubmit)
         self.text_navigator.setModel(self.text_model)
         self.text_navigator.addMapping(self.text_edit, 0)
@@ -430,3 +452,33 @@ class _EntityHighlighter(QSyntaxHighlighter):
                     self.named_entity_code_format_no_text,
                 )
                 offset = match.capturedEnd("closingParen")
+
+
+class _QDataWidgetMapperWithHistory(QDataWidgetMapper):
+    backward_stack = []
+    forward_stack = []
+    is_forward_or_backward = False
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+    def setCurrentIndex(self, index):
+        if self.currentIndex() != index:
+            if not self.is_forward_or_backward:
+                self.forward_stack = []
+                self.backward_stack.append(self.currentIndex())
+            super().setCurrentIndex(index)
+
+    def backward(self):
+        if len(self.backward_stack) > 0:
+            self.forward_stack.append(self.currentIndex())
+            self.is_forward_or_backward = True
+            self.setCurrentIndex(self.backward_stack.pop())
+            self.is_forward_or_backward = False
+
+    def forward(self):
+        if len(self.forward_stack) > 0:
+            self.backward_stack.append(self.currentIndex())
+            self.is_forward_or_backward = True
+            self.setCurrentIndex(self.forward_stack.pop())
+            self.is_forward_or_backward = False
