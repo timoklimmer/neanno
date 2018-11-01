@@ -1,10 +1,12 @@
 import pandas as pd
+import spacy
 from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant, pyqtSignal
 
 
 class _TextModel(QAbstractTableModel):
     saveStarted = pyqtSignal()
     saveCompleted = pyqtSignal()
+    spacy_model = None
 
     def __init__(
         self,
@@ -12,8 +14,7 @@ class _TextModel(QAbstractTableModel):
         text_column_name,
         is_annotated_column_name,
         save_callback=None,
-        ner_model_name=None,
-        ner_model_base_name=None
+        ner_model_name=None
     ):
         super().__init__(parent=None)
         self._df = pandas_data_frame
@@ -21,7 +22,7 @@ class _TextModel(QAbstractTableModel):
         self.is_annotated_column_name = is_annotated_column_name
         self.save_callback = save_callback
         self.ner_model_name = ner_model_name
-        self.ner_model_base_name = ner_model_base_name
+        self.spacy_model = spacy.load(self.ner_model_name)
 
         # get column indexes and ensure that the data frame has an is annotated column
         self.text_column_index = self._df.columns.get_loc(text_column_name)
@@ -35,18 +36,35 @@ class _TextModel(QAbstractTableModel):
         # ensure index is valid
         if not index.isValid():
             return QVariant()
-        # return text if index is on first column, otherwise is_annotated
+        # get is_annotated
+        is_annotated = self._df.ix[index.row(), self.is_annotated_column_index]
+        is_annotated = str(is_annotated if is_annotated is not None else False)
+
+        # column 0: text
         if index.column() == 0:
-            return str(self._df.ix[index.row(), self.text_column_index])
-        else:
-            resultCandidate = self._df.ix[index.row(), self.is_annotated_column_index]
-            return str(resultCandidate if resultCandidate is not None else False)
+            result = str(self._df.ix[index.row(), self.text_column_index])
+            # add predicted entities if we have no confirmed annotation yet
+            if is_annotated == 'False':
+                doc = self.spacy_model(result)
+                shift = 0
+                for ent in doc.ents:
+                    oldResultLength = len(result)
+                    result = "{}{}{}".format(
+                        result[: ent.start_char + shift],
+                        "({}| {})".format(ent.text, ent.label_),
+                        result[ent.end_char + shift :],
+                    )
+                    shift += len(result) - oldResultLength
+            return result
+        # column 1: is_annotated
+        if index.column() == 1:
+            return is_annotated
 
     def setData(self, index, value, role):
         row = index.row()
         col = index.column()
         # skip writing is_annotated
-        if col != 0:
+        if col == 1:
             return True
         # update _df and save if needed
         if (
@@ -91,4 +109,4 @@ class _TextModel(QAbstractTableModel):
             return (currentIndex + 1) % self.rowCount()
 
     def hasNerModel(self):
-        return self.ner_model_base_name is not None
+        return self.ner_model_name is not None

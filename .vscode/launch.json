@@ -14,9 +14,8 @@
                 "--output_file", "sample_texts/sample_texts.annotated.csv",
                 "--text_column_name", "text",
                 "--is_annotated_column_name", "is_text_annotated",
-                "--named_entity_defs", "BLU Alt+B/RED Alt+R/GRN Alt+G/PRP Alt+P/ORA Alt+O/YLW Alt+Y",
-                "--ner_model_name", "en_my_own",
-                "--ner_model_base_name", "en"
+                "--named_entity_defs", "PERSON Alt+P/FAC Alt+F/GPE Alt+G/DATE Alt+D",
+                "--ner_model_name", "en_core_web_sm"
             ]
         },
         {

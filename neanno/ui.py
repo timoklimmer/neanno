@@ -159,9 +159,6 @@ class _AnnotationDialog(QMainWindow):
             model_grid.addWidget(QLabel("Name"), 0, 0)
             self.ner_model_name_label = QLabel(self.text_model.ner_model_name)
             model_grid.addWidget(self.ner_model_name_label, 0, 1)
-            model_grid.addWidget(QLabel("Base Name"), 1, 0)
-            self.ner_model_base_name_label = QLabel(self.text_model.ner_model_base_name)
-            model_grid.addWidget(self.ner_model_base_name_label, 1, 1)
             model_groupbox = QGroupBox("NER Model")
             model_groupbox.setLayout(model_grid)
 
