@@ -326,15 +326,27 @@ class _AnnotationDialog(QMainWindow):
             self.is_annotated_label, 1, QByteArray().insert(0, "text")
         )
         self.text_navigator.currentIndexChanged.connect(
-            self.handle_text_navigator_index_changed
+            self.update_statistics_and_progress
         )
         self.text_navigator.setCurrentIndex(self.text_model.nextBestRowIndex(0))
 
     def handle_shortcut_submit_next_best(self):
         self.text_navigator.submit()
-        self.text_navigator.setCurrentIndex(
-            self.text_model.nextBestRowIndex(self.text_navigator.currentIndex())
+        next_best_row_index = self.text_model.nextBestRowIndex(
+            self.text_navigator.currentIndex()
         )
+        if next_best_row_index != -1:
+            # there is another text left to be annotated
+            self.text_navigator.setCurrentIndex(next_best_row_index)
+        else:
+            # all texts have been annotated
+            self.update_statistics_and_progress()
+            QMessageBox.information(
+                self,
+                "Congratulations",
+                "You have annotated all {} texts. There are no more texts to annotate. Use the other shortcuts to navigate through your dataset.".format(self.text_model.rowCount()),
+                QMessageBox.Ok,
+            )
 
     def handle_shortcut_goto(self):
         new_index, is_not_canceled = QInputDialog.getInt(
@@ -363,7 +375,7 @@ Written in 2018 by Timo Klimmer, timo.klimmer@microsoft.com.
             QMessageBox.Ok,
         )
 
-    def handle_text_navigator_index_changed(self):
+    def update_statistics_and_progress(self):
         # progress
         new_progress_value = (
             self.text_model.annotatedTextsCount() * 100 / self.text_model.rowCount()

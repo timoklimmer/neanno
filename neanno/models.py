@@ -127,9 +127,12 @@ class _TextModel(QAbstractTableModel):
 
     def nextBestRowIndex(self, currentIndex):
         if False in self._df[self.is_annotated_column_name].values:
+            # return the next text which is not annotated
             return self._df[self.is_annotated_column_name].idxmin()
         else:
-            return (currentIndex + 1) % self.rowCount()
+            # there is no text that is not annotated yet
+            return -1
+            #return (currentIndex + 1) % self.rowCount()
 
     def hasDatasetMetadata(self):
         return (
