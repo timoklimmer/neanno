@@ -153,12 +153,39 @@ class _AnnotationDialog(QMainWindow):
         statistics_groupbox = QGroupBox("Statistics")
         statistics_groupbox.setLayout(statistics_grid)
 
+        # Dataset
+        if self.text_model.hasDatasetMetadata():
+            dataset_grid = QGridLayout()
+            if self.text_model.dataset_source_friendly is not None:
+                dataset_grid.addWidget(QLabel("Source"), 0, 0)
+                self.dataset_source_friendly_label = QLabel(
+                    self.text_model.dataset_source_friendly
+                )
+                dataset_grid.addWidget(self.dataset_source_friendly_label, 0, 1)
+            if self.text_model.dataset_target_friendly is not None:
+                dataset_grid.addWidget(QLabel("Target"), 1, 0)
+                self.dataset_target_friendly_label = QLabel(
+                    self.text_model.dataset_target_friendly
+                )
+                dataset_grid.addWidget(self.dataset_target_friendly_label, 1, 1)
+            dataset_groupbox = QGroupBox("Dataset")
+            dataset_groupbox.setLayout(dataset_grid)
+
         # NER model
-        if self.text_model.hasNerModel():
+        if self.text_model.hasNerModelMetadata():
             model_grid = QGridLayout()
-            model_grid.addWidget(QLabel("Name"), 0, 0)
-            self.ner_model_name_label = QLabel(self.text_model.ner_model_name)
-            model_grid.addWidget(self.ner_model_name_label, 0, 1)
+            if self.text_model.ner_model_source_spacy is not None:
+                model_grid.addWidget(QLabel("Source"), 0, 0)
+                self.ner_model_source_spacy_label = QLabel(
+                    self.text_model.ner_model_source_spacy
+                )
+                model_grid.addWidget(self.ner_model_source_spacy_label, 0, 1)
+            if self.text_model.ner_model_target_spacy is not None:
+                model_grid.addWidget(QLabel("Target"), 1, 0)
+                self.ner_model_target_spacy_label = QLabel(
+                    self.text_model.ner_model_target_spacy
+                )
+                model_grid.addWidget(self.ner_model_target_spacy_label, 1, 1)
             model_groupbox = QGroupBox("NER Model")
             model_groupbox.setLayout(model_grid)
 
@@ -179,7 +206,9 @@ class _AnnotationDialog(QMainWindow):
         right_column_layout = QVBoxLayout()
         right_column_layout.addWidget(entities_groupbox)
         right_column_layout.addWidget(statistics_groupbox)
-        if self.text_model.hasNerModel():
+        if self.text_model.hasDatasetMetadata():
+            right_column_layout.addWidget(dataset_groupbox)
+        if self.text_model.hasNerModelMetadata():
             right_column_layout.addWidget(model_groupbox)
         right_column_layout.addWidget(controls_groupbox)
         right_column_layout.addStretch()
