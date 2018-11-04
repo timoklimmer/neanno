@@ -14,9 +14,9 @@
                 "--dataset_target_csv", "sample_texts/sample_texts.annotated.csv",
                 "--text_column_name", "text",
                 "--is_annotated_column_name", "is_text_annotated",
-                "--named_entity_defs", "PERSON Alt+P/FAC Alt+F/GPE Alt+G/DATE Alt+D",
+                //"--named_entity_defs", "PERSON Alt+P/FAC Alt+F/GPE Alt+G/DATE Alt+D",
                 "--ner_model_source_spacy", "en_core_web_sm",
-                //"--ner_model_target_spacy", "en_my_own"
+                "--ner_model_target_spacy", "en_my_own"
             ]
         },
         {

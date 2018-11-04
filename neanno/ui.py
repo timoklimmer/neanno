@@ -48,7 +48,7 @@ SHORTCUT_REMOVE_KEYSEQUENCE = "Ctrl+R"
 
 
 class _AnnotationDialog(QMainWindow):
-    def __init__(self, text_model, named_entity_definitions):
+    def __init__(self, text_model):
         app = QApplication([])
         super().__init__()
         self.setWindowIcon(
@@ -58,7 +58,6 @@ class _AnnotationDialog(QMainWindow):
                 )
             )
         )
-        self.named_entity_definitions = named_entity_definitions
         self.text_model = text_model
         self.layout_controls()
         self.wire_text_model()
@@ -86,13 +85,13 @@ class _AnnotationDialog(QMainWindow):
             "font-size: 14pt; font-family: Consolas; color: lightgrey; background-color: black"
         )
         self.entity_highlighter = _EntityHighlighter(
-            self.text_edit.document(), self.named_entity_definitions
+            self.text_edit.document(), self.text_model.named_entity_definitions
         )
 
         # shortcuts
         shortcut_legend_grid = QGridLayout()
         row = 0
-        for named_entity_definition in self.named_entity_definitions:
+        for named_entity_definition in self.text_model.named_entity_definitions:
             color_widget = QLabel(" " + named_entity_definition.code)
             color_widget.setStyleSheet(
                 "font-size: 10pt; color: white; background-color: %s"
@@ -226,7 +225,7 @@ class _AnnotationDialog(QMainWindow):
 
     def wire_shortcuts(self):
         # named entities
-        for named_entity_definition in self.named_entity_definitions:
+        for named_entity_definition in self.text_model.named_entity_definitions:
             shortcut = QShortcut(
                 QKeySequence(named_entity_definition.key_sequence), self
             )

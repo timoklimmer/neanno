@@ -13,6 +13,7 @@ class _TextModel(QAbstractTableModel):
         pandas_data_frame,
         text_column_name,
         is_annotated_column_name,
+        named_entity_definitions,
         save_callback=None,
         ner_model_source_spacy=None,
         ner_model_target_spacy=None,
@@ -23,16 +24,26 @@ class _TextModel(QAbstractTableModel):
         self._df = pandas_data_frame
         self.text_column_name = text_column_name
         self.is_annotated_column_name = is_annotated_column_name
+        self.named_entity_definitions = named_entity_definitions
         self.save_callback = save_callback
         self.ner_model_source_spacy = ner_model_source_spacy
         self.ner_model_target_spacy = ner_model_target_spacy
         self.dataset_source_friendly = dataset_source_friendly
         self.dataset_target_friendly = dataset_target_friendly
 
-        # load spacy model
+        # load and prepare spacy model
         if self.ner_model_source_spacy is not None:
+            # load model
             self.ner_model_spacy = spacy.load(self.ner_model_source_spacy)
-            # TODO: ensure that the configured named entities exist in the model
+            # ensure we have a ner pipe
+            if 'ner' not in self.ner_model_spacy.pipe_names:
+                ner = self.ner_model_spacy.create_pipe('ner')
+                self.ner_model_spacy.add_pipe(ner, last=True)
+            else:
+                ner = self.ner_model_spacy.get_pipe('ner')
+            # ensure we have all configured labels configured in the model
+            for named_entity_definition in self.named_entity_definitions:
+                ner.add_label(named_entity_definition.code)
 
         # get column indexes and ensure that the data frame has an is annotated column
         self.text_column_index = self._df.columns.get_loc(text_column_name)
