@@ -33,17 +33,19 @@ class _TextModel(QAbstractTableModel):
 
         # load and prepare spacy model
         if self.ner_model_source_spacy is not None:
+            # we have an existing model
             # load model
             self.ner_model_spacy = spacy.load(self.ner_model_source_spacy)
             # ensure we have a ner pipe
-            if 'ner' not in self.ner_model_spacy.pipe_names:
-                ner = self.ner_model_spacy.create_pipe('ner')
+            if "ner" not in self.ner_model_spacy.pipe_names:
+                ner = self.ner_model_spacy.create_pipe("ner")
                 self.ner_model_spacy.add_pipe(ner, last=True)
             else:
-                ner = self.ner_model_spacy.get_pipe('ner')
-            # ensure we have all configured labels configured in the model
+                ner = self.ner_model_spacy.get_pipe("ner")
+            # ensure we have all configured labels also configured in the model
             for named_entity_definition in self.named_entity_definitions:
                 ner.add_label(named_entity_definition.code)
+            # TODO: remove all other labels
 
         # get column indexes and ensure that the data frame has an is annotated column
         self.text_column_index = self._df.columns.get_loc(text_column_name)

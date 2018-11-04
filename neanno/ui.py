@@ -75,10 +75,6 @@ class _AnnotationDialog(QMainWindow):
         vertical_position = (screen.height() - mysize.height()) / 2
         self.move(horizontal_position, vertical_position)
 
-        # progress bar
-        self.progress_bar = QProgressBar()
-        self.progress_bar.setValue(0)
-
         # text edit
         self.text_edit = QPlainTextEdit()
         self.text_edit.setStyleSheet(
@@ -185,8 +181,13 @@ class _AnnotationDialog(QMainWindow):
                     self.text_model.ner_model_target_spacy
                 )
                 model_grid.addWidget(self.ner_model_target_spacy_label, 1, 1)
+            
             model_groupbox = QGroupBox("NER Model")
             model_groupbox.setLayout(model_grid)
+
+        # progress bar
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setValue(0)
 
         # about
         about_button = QPushButton("About")
@@ -377,7 +378,7 @@ Written in 2018 by Timo Klimmer, timo.klimmer@microsoft.com.
         if text_cursor.hasSelection():
             key_sequence = self.sender().key().toString()
             code = ""
-            for named_entity_definition in self.named_entity_definitions:
+            for named_entity_definition in self.text_model.named_entity_definitions:
                 if named_entity_definition.key_sequence == key_sequence:
                     code = named_entity_definition.code
                     break

@@ -10,13 +10,13 @@
             "request": "launch",
             "program": "${workspaceFolder}/neanno.py",
             "args": [
-                "--dataset_source_csv", "sample_texts/sample_texts.csv",
-                "--dataset_target_csv", "sample_texts/sample_texts.annotated.csv",
-                "--text_column_name", "text",
-                "--is_annotated_column_name", "is_text_annotated",
-                "--named_entity_defs", "PERSON Alt+P/FAC Alt+F/GPE Alt+G/DATE Alt+D",
-                "--ner_model_source_spacy", "en_core_web_sm",
-                "--ner_model_target_spacy", "en_my_own"
+                "--dataset_source_csv", "sample_data/sample_posts_small.csv",
+                "--dataset_target_csv", "sample_data/sample_posts.annotated.csv",
+                "--text_column_name", "post_text",
+                "--is_annotated_column_name", "is_post_annotated",
+                "--named_entity_defs", "MEAL Alt+M/SIDE Alt+S/APPETIZER Alt+A/DESSERT Alt+D/BEVERAGE Alt+B",
+                "--ner_model_source_spacy", "xx",
+                //"--ner_model_target_spacy", "en_my_own"
             ]
         },
         {
