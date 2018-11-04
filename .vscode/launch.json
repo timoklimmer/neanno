@@ -11,7 +11,7 @@
             "program": "${workspaceFolder}/neanno.py",
             "args": [
                 "--dataset_source_csv", "sample_data/sample_posts_small.csv",
-                "--dataset_target_csv", "sample_data/sample_posts.annotated.csv",
+                "--dataset_target_csv", "sample_data/sample_posts_small.annotated.csv",
                 "--text_column_name", "post_text",
                 "--is_annotated_column_name", "is_post_annotated",
                 "--named_entity_defs", "MEAL Alt+M/SIDE Alt+S/APPETIZER Alt+A/DESSERT Alt+D/BEVERAGE Alt+B",

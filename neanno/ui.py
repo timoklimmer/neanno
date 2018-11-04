@@ -45,6 +45,7 @@ SHORTCUT_GOTO_KEYSEQUENCE = "Ctrl+G"
 SHORTCUT_UNDO_KEYSEQUENCE = "Ctrl+Z"
 SHORTCUT_REDO_KEYSEQUENCE = "Ctrl+Y"
 SHORTCUT_REMOVE_KEYSEQUENCE = "Ctrl+R"
+SHORTCUT_REMOVE_ALL_KEYSEQUENCE = "Ctrl+T"
 
 
 class _AnnotationDialog(QMainWindow):
@@ -125,6 +126,8 @@ class _AnnotationDialog(QMainWindow):
         control_shortcuts_grid.addWidget(QLabel(SHORTCUT_REDO_KEYSEQUENCE), 9, 1)
         control_shortcuts_grid.addWidget(QLabel("Remove label"), 10, 0)
         control_shortcuts_grid.addWidget(QLabel(SHORTCUT_REMOVE_KEYSEQUENCE), 10, 1)
+        control_shortcuts_grid.addWidget(QLabel("Remove all labels"), 11, 0)
+        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_REMOVE_ALL_KEYSEQUENCE), 11, 1)
         controls_groupbox = QGroupBox("Controls")
         controls_groupbox.setLayout(control_shortcuts_grid)
 
@@ -181,7 +184,7 @@ class _AnnotationDialog(QMainWindow):
                     self.text_model.ner_model_target_spacy
                 )
                 model_grid.addWidget(self.ner_model_target_spacy_label, 1, 1)
-            
+
             model_groupbox = QGroupBox("NER Model")
             model_groupbox.setLayout(model_grid)
 
@@ -306,6 +309,14 @@ class _AnnotationDialog(QMainWindow):
         )
         shortcut_last.activated.connect(self.remove_entity)
 
+        # remove all
+        shortcut_last = QShortcut(
+            QKeySequence(SHORTCUT_REMOVE_ALL_KEYSEQUENCE),
+            self,
+            context=Qt.ApplicationShortcut,
+        )
+        shortcut_last.activated.connect(self.remove_all_entities)
+
     def wire_text_model(self):
         self.text_navigator = _QDataWidgetMapperWithHistory(self)
         self.text_navigator.setSubmitPolicy(QDataWidgetMapper.ManualSubmit)
@@ -391,6 +402,15 @@ Written in 2018 by Timo Klimmer, timo.klimmer@microsoft.com.
             lambda match: match.group(1)
             if current_cursor_pos > match.start() and current_cursor_pos < match.end()
             else match.group(0),
+            self.text_edit.toPlainText(),
+            flags=re.DOTALL,
+        )
+        self.text_edit.setPlainText(new_text)
+
+    def remove_all_entities(self):
+        new_text = re.sub(
+            "\((.*?)\| .+?\)",
+            lambda match: match.group(1),
             self.text_edit.toPlainText(),
             flags=re.DOTALL,
         )
