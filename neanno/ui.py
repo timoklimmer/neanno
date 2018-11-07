@@ -178,13 +178,16 @@ class _AnnotationDialog(QMainWindow):
                     self.text_model.ner_model_source_spacy
                 )
                 model_grid.addWidget(self.ner_model_source_spacy_label, 0, 1)
+                retrain_model_button = QPushButton("Retrain")
+                # TODO: add handler for button click    
+                model_grid.addWidget(retrain_model_button, 1, 0)    
+
             if self.text_model.ner_model_target_spacy is not None:
-                model_grid.addWidget(QLabel("Target"), 1, 0)
+                model_grid.addWidget(QLabel("Target"), 2, 0)
                 self.ner_model_target_spacy_label = QLabel(
                     self.text_model.ner_model_target_spacy
                 )
-                model_grid.addWidget(self.ner_model_target_spacy_label, 1, 1)
-
+                model_grid.addWidget(self.ner_model_target_spacy_label, 2, 1)
             model_groupbox = QGroupBox("NER Model")
             model_groupbox.setLayout(model_grid)
 
