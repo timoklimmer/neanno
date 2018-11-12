@@ -1,4 +1,4 @@
 /.vscode/.ropeproject
 /neanno/__pycache__
-/sample_texts/sample_texts.annotated.csv
-/sample_texts/sample_posts_small.annotated.csv
+/sample_data/sample_texts.annotated.csv
+/sample_data/sample_posts_small.annotated.csv

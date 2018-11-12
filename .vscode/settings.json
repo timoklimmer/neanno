@@ -3,5 +3,6 @@
     "python.linting.pylintArgs": [
         "--disable-msg",
         "E0611"
-    ]
+    ],
+    "python.linting.pylintEnabled": true
 }
