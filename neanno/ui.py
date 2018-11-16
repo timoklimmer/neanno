@@ -48,8 +48,8 @@ SHORTCUT_REMOVE_KEYSEQUENCE = "Ctrl+R"
 SHORTCUT_REMOVE_ALL_KEYSEQUENCE = "Ctrl+T"
 
 
-class _AnnotationDialog(QMainWindow):
-    def __init__(self, text_model):
+class AnnotationDialog(QMainWindow):
+    def __init__(self, textmodel):
         app = QApplication([])
         super().__init__()
         self.setWindowIcon(
@@ -59,9 +59,9 @@ class _AnnotationDialog(QMainWindow):
                 )
             )
         )
-        self.text_model = text_model
+        self.textmodel = textmodel
         self.layout_controls()
-        self.wire_text_model()
+        self.wire_textmodel()
         self.wire_shortcuts()
         self.show()
         app.exec_()
@@ -82,13 +82,13 @@ class _AnnotationDialog(QMainWindow):
             "font-size: 14pt; font-family: Consolas; color: lightgrey; background-color: black"
         )
         self.entity_highlighter = _EntityHighlighter(
-            self.text_edit.document(), self.text_model.named_entity_definitions
+            self.text_edit.document(), self.textmodel.named_entity_definitions
         )
 
         # shortcuts
         shortcut_legend_grid = QGridLayout()
         row = 0
-        for named_entity_definition in self.text_model.named_entity_definitions:
+        for named_entity_definition in self.textmodel.named_entity_definitions:
             color_widget = QLabel(" " + named_entity_definition.code)
             color_widget.setStyleSheet(
                 "font-size: 10pt; color: white; background-color: %s"
@@ -152,48 +152,47 @@ class _AnnotationDialog(QMainWindow):
         statistics_groupbox.setLayout(statistics_grid)
 
         # Dataset
-        if self.text_model.hasDatasetMetadata():
+        if self.textmodel.hasDatasetMetadata():
             dataset_grid = QGridLayout()
-            if self.text_model.dataset_source_friendly is not None:
+            if self.textmodel.dataset_source_friendly is not None:
                 dataset_grid.addWidget(QLabel("Source"), 0, 0)
                 self.dataset_source_friendly_label = QLabel(
-                    self.text_model.dataset_source_friendly
+                    self.textmodel.dataset_source_friendly
                 )
                 dataset_grid.addWidget(self.dataset_source_friendly_label, 0, 1)
-            if self.text_model.dataset_target_friendly is not None:
+            if self.textmodel.dataset_target_friendly is not None:
                 dataset_grid.addWidget(QLabel("Target"), 1, 0)
                 self.dataset_target_friendly_label = QLabel(
-                    self.text_model.dataset_target_friendly
+                    self.textmodel.dataset_target_friendly
                 )
                 dataset_grid.addWidget(self.dataset_target_friendly_label, 1, 1)
             dataset_groupbox = QGroupBox("Dataset")
             dataset_groupbox.setLayout(dataset_grid)
 
         # NER model
-        if self.text_model.hasNerModelMetadata():
+        if self.textmodel.hasNerModel():
             model_grid = QGridLayout()
-            if self.text_model.ner_model_source_spacy is not None:
-                model_grid.addWidget(QLabel("Source"), 0, 0)
-                self.ner_model_source_spacy_label = QLabel(
-                    self.text_model.ner_model_source_spacy
-                )
-                model_grid.addWidget(self.ner_model_source_spacy_label, 0, 1)
-                retrain_model_button = QPushButton("Retrain")
-                # TODO: add handler for button click    
-                model_grid.addWidget(retrain_model_button, 1, 0)    
+            model_grid.addWidget(QLabel("Source"), 0, 0)
+            self.ner_model_source_label = QLabel(
+                self.textmodel.ner_model_source
+            )
+            model_grid.addWidget(self.ner_model_source_label, 0, 1)
+            retrain_model_button = QPushButton("Retrain")
+            retrain_model_button.clicked.connect(self.handle_retrain_button_clicked)
+            model_grid.addWidget(retrain_model_button, 2, 0)
 
-            if self.text_model.ner_model_target_spacy is not None:
-                model_grid.addWidget(QLabel("Target"), 2, 0)
-                self.ner_model_target_spacy_label = QLabel(
-                    self.text_model.ner_model_target_spacy
+            if self.textmodel.ner_model_target is not None:
+                model_grid.addWidget(QLabel("Target"), 1, 0)
+                self.ner_model_target_label = QLabel(
+                    self.textmodel.ner_model_target
                 )
-                model_grid.addWidget(self.ner_model_target_spacy_label, 2, 1)
+                model_grid.addWidget(self.ner_model_target_label, 1, 1)
             model_groupbox = QGroupBox("NER Model")
             model_groupbox.setLayout(model_grid)
 
         # progress bar
-        self.progress_bar = QProgressBar()
-        self.progress_bar.setValue(0)
+        self.progressbar = QProgressBar()
+        self.progressbar.setValue(0)
 
         # about
         about_button = QPushButton("About")
@@ -212,9 +211,9 @@ class _AnnotationDialog(QMainWindow):
         right_column_layout = QVBoxLayout()
         right_column_layout.addWidget(entities_groupbox)
         right_column_layout.addWidget(statistics_groupbox)
-        if self.text_model.hasDatasetMetadata():
+        if self.textmodel.hasDatasetMetadata():
             right_column_layout.addWidget(dataset_groupbox)
-        if self.text_model.hasNerModelMetadata():
+        if self.textmodel.hasNerModel():
             right_column_layout.addWidget(model_groupbox)
         right_column_layout.addWidget(controls_groupbox)
         right_column_layout.addStretch()
@@ -222,7 +221,7 @@ class _AnnotationDialog(QMainWindow):
         vbox = QVBoxLayout()
         vbox.addLayout(grid)
         hbox = QHBoxLayout()
-        hbox.addWidget(self.progress_bar)
+        hbox.addWidget(self.progressbar)
         hbox.addWidget(about_button)
         hbox.addWidget(close_button)
         vbox.addLayout(hbox)
@@ -232,7 +231,7 @@ class _AnnotationDialog(QMainWindow):
 
     def wire_shortcuts(self):
         # named entities
-        for named_entity_definition in self.text_model.named_entity_definitions:
+        for named_entity_definition in self.textmodel.named_entity_definitions:
             shortcut = QShortcut(
                 QKeySequence(named_entity_definition.key_sequence), self
             )
@@ -320,10 +319,10 @@ class _AnnotationDialog(QMainWindow):
         )
         shortcut_last.activated.connect(self.remove_all_entities)
 
-    def wire_text_model(self):
+    def wire_textmodel(self):
         self.text_navigator = _QDataWidgetMapperWithHistory(self)
         self.text_navigator.setSubmitPolicy(QDataWidgetMapper.ManualSubmit)
-        self.text_navigator.setModel(self.text_model)
+        self.text_navigator.setModel(self.textmodel)
         self.text_navigator.addMapping(self.text_edit, 0)
         self.text_navigator.addMapping(
             self.is_annotated_label, 1, QByteArray().insert(0, "text")
@@ -331,11 +330,11 @@ class _AnnotationDialog(QMainWindow):
         self.text_navigator.currentIndexChanged.connect(
             self.update_statistics_and_progress
         )
-        self.text_navigator.setCurrentIndex(self.text_model.nextBestRowIndex(0))
+        self.text_navigator.setCurrentIndex(self.textmodel.nextBestRowIndex(0))
 
     def handle_shortcut_submit_next_best(self):
         self.text_navigator.submit()
-        next_best_row_index = self.text_model.nextBestRowIndex(
+        next_best_row_index = self.textmodel.nextBestRowIndex(
             self.text_navigator.currentIndex()
         )
         if next_best_row_index != -1:
@@ -347,7 +346,9 @@ class _AnnotationDialog(QMainWindow):
             QMessageBox.information(
                 self,
                 "Congratulations",
-                "You have annotated all {} texts. There are no more texts to annotate. Use the other shortcuts to navigate through your dataset.".format(self.text_model.rowCount()),
+                "You have annotated all {} texts. There are no more texts to annotate. Use the other shortcuts to navigate through your dataset.".format(
+                    self.textmodel.rowCount()
+                ),
                 QMessageBox.Ok,
             )
 
@@ -378,19 +379,22 @@ Written in 2018 by Timo Klimmer, timo.klimmer@microsoft.com.
             QMessageBox.Ok,
         )
 
+    def handle_retrain_button_clicked(self):
+        self.textmodel.retrain_ner_model()
+
     def update_statistics_and_progress(self):
         # progress
         new_progress_value = (
-            self.text_model.annotatedTextsCount() * 100 / self.text_model.rowCount()
+            self.textmodel.annotatedTextsCount() * 100 / self.textmodel.rowCount()
         )
-        self.progress_bar.setValue(new_progress_value)
+        self.progressbar.setValue(new_progress_value)
         # current index
         self.current_text_index_label.setText(str(self.text_navigator.currentIndex()))
         # annotated texts count
-        annotated_texts_count = self.text_model.annotatedTextsCount()
+        annotated_texts_count = self.textmodel.annotatedTextsCount()
         self.annotated_texts_label.setText(str(annotated_texts_count))
         # total texts count
-        total_texts_count = self.text_model.rowCount()
+        total_texts_count = self.textmodel.rowCount()
         self.total_texts_label.setText(str(total_texts_count))
         # annotated percent
         self.annotated_percent_label.setText(
@@ -404,7 +408,7 @@ Written in 2018 by Timo Klimmer, timo.klimmer@microsoft.com.
         if text_cursor.hasSelection():
             key_sequence = self.sender().key().toString()
             code = ""
-            for named_entity_definition in self.text_model.named_entity_definitions:
+            for named_entity_definition in self.textmodel.named_entity_definitions:
                 if named_entity_definition.key_sequence == key_sequence:
                     code = named_entity_definition.code
                     break

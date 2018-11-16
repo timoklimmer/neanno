@@ -15,8 +15,8 @@
                 "--text_column_name", "post_text",
                 "--is_annotated_column_name", "is_post_annotated",
                 "--named_entity_defs", "MEAL Alt+M/SIDE Alt+S/APPETIZER Alt+A/DESSERT Alt+D/BEVERAGE Alt+B",
-                "--ner_model_source_spacy", "xx",
-                "--ner_model_target_spacy", "en_my_own"
+                "--ner_model_source", "blank:de",
+                //"--ner_model_target", "en_meals"
             ]
         },
         {

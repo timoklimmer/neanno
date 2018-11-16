@@ -35,10 +35,10 @@ def main():
         help='Defines the entities available for annotation incl. shortcuts. Eg. "BLUE Alt+B/RED Alt+R/GREEN Alt+G"',
     )
     parser.add_argument(
-        "--ner_model_source_spacy", "-m", help="Name of the source NER/Spacy model."
+        "--ner_model_source", "-m", help="Name of the source NER/Spacy model."
     )
     parser.add_argument(
-        "--ner_model_target_spacy",
+        "--ner_model_target",
         "-o",
         help="Name under which the modified NER/spacy model is to be trained.",
     )
@@ -51,8 +51,8 @@ def main():
     named_entity_defs_string = (
         args.named_entity_defs
     )  # "BLUE Alt+B/RED Alt+R/GREEN Alt+G"
-    ner_model_source_spacy = args.ner_model_source_spacy  # en_core_web_sm
-    ner_model_target_spacy = args.ner_model_target_spacy  # en_my_own
+    ner_model_source_spacy = args.ner_model_source  # en_core_web_sm
+    ner_model_target_spacy = args.ner_model_target  # en_my_own
 
     # load pandas data frame
     dataframe_to_edit = pd.read_csv(dataset_source_csv)
@@ -89,8 +89,8 @@ def main():
         save_callback=lambda df: df.to_csv(dataset_target_csv, index=False, header=True)
         if dataset_target_csv is not None
         else None,
-        ner_model_source_spacy=ner_model_source_spacy,
-        ner_model_target_spacy=ner_model_target_spacy,
+        ner_model_source=ner_model_source_spacy,
+        ner_model_target=ner_model_target_spacy,
         dataset_source_friendly=dataset_source_friendly,
         dataset_target_friendly=dataset_target_friendly,
     )
