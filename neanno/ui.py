@@ -173,9 +173,7 @@ class AnnotationDialog(QMainWindow):
         if self.textmodel.hasNerModel():
             model_grid = QGridLayout()
             model_grid.addWidget(QLabel("Source"), 0, 0)
-            self.ner_model_source_label = QLabel(
-                self.textmodel.ner_model_source
-            )
+            self.ner_model_source_label = QLabel(self.textmodel.ner_model_source)
             model_grid.addWidget(self.ner_model_source_label, 0, 1)
             retrain_model_button = QPushButton("Retrain")
             retrain_model_button.clicked.connect(self.handle_retrain_button_clicked)
@@ -183,9 +181,7 @@ class AnnotationDialog(QMainWindow):
 
             if self.textmodel.ner_model_target is not None:
                 model_grid.addWidget(QLabel("Target"), 1, 0)
-                self.ner_model_target_label = QLabel(
-                    self.textmodel.ner_model_target
-                )
+                self.ner_model_target_label = QLabel(self.textmodel.ner_model_target)
                 model_grid.addWidget(self.ner_model_target_label, 1, 1)
             model_groupbox = QGroupBox("NER Model")
             model_groupbox.setLayout(model_grid)
@@ -330,27 +326,27 @@ class AnnotationDialog(QMainWindow):
         self.text_navigator.currentIndexChanged.connect(
             self.update_statistics_and_progress
         )
-        self.text_navigator.setCurrentIndex(self.textmodel.nextBestRowIndex(0))
+        self.text_navigator.setCurrentIndex(self.textmodel.nextBestRowIndex(-1))
 
     def handle_shortcut_submit_next_best(self):
+        # submit changes of old text
         self.text_navigator.submit()
-        next_best_row_index = self.textmodel.nextBestRowIndex(
-            self.text_navigator.currentIndex()
-        )
-        if next_best_row_index != -1:
-            # there is another text left to be annotated
-            self.text_navigator.setCurrentIndex(next_best_row_index)
-        else:
-            # all texts have been annotated
-            self.update_statistics_and_progress()
+        # update statistics and progress bar
+        self.update_statistics_and_progress()
+        # show "all messages annotated" if all texts are annotated
+        if not self.textmodel.isTextToAnnotateLeft():
             QMessageBox.information(
                 self,
                 "Congratulations",
-                "You have annotated all {} texts. There are no more texts to annotate. Use the other shortcuts to navigate through your dataset.".format(
+                "You have annotated all {} texts. There are no more texts to annotate.".format(
                     self.textmodel.rowCount()
                 ),
                 QMessageBox.Ok,
             )
+        # identify and go to next best text
+        self.text_navigator.setCurrentIndex(
+            self.textmodel.nextBestRowIndex(self.text_navigator.currentIndex())
+        )
 
     def handle_shortcut_goto(self):
         new_index, is_not_canceled = QInputDialog.getInt(

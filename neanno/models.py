@@ -92,7 +92,7 @@ class TextModel(QAbstractTableModel):
             .tolist()
         )
         # do the training
-        n_iter = 10
+        n_iter = 25
         optimizer = self.ner_model.begin_training()
         other_pipes = [pipe for pipe in self.ner_model.pipe_names if pipe != "ner"]
         with self.ner_model.disable_pipes(*other_pipes):
@@ -197,13 +197,16 @@ class TextModel(QAbstractTableModel):
         return (self._df[self.is_annotated_column_name] == True).sum()
 
     def nextBestRowIndex(self, currentIndex):
-        if False in self._df[self.is_annotated_column_name].values:
-            # return the next text which is not annotated
+        if self.isTextToAnnotateLeft():
+            # return the next text which is not annotated yet
             return self._df[self.is_annotated_column_name].idxmin()
         else:
             # there is no text that is not annotated yet
-            return -1
-            # return (currentIndex + 1) % self.rowCount()
+            # return the next text (might start at the beginning if end of available texts is reads)
+            return (currentIndex + 1) % self.rowCount()
+
+    def isTextToAnnotateLeft(self):
+        return (False in self._df[self.is_annotated_column_name].values)
 
     def hasDatasetMetadata(self):
         return (
