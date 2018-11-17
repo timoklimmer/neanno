@@ -1,0 +1,7 @@
+text,is_text_annotated
+(Horses| ANIMAL) are too tall and they pretend to care about your feelings,True
+Do they bite?,True
+(horses| ANIMAL) are too tall and they pretend to care about your feelings,True
+(horses| ANIMAL) pretend to care about your feelings,True
+"they pretend to care about your feelings, those (horses| ANIMAL)",True
+(horses| ANIMAL)?,True

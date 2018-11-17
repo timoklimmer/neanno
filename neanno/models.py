@@ -109,11 +109,11 @@ class TextModel(QAbstractTableModel):
 
         # test the trained model
         # TODO: complete, precision/recall statistics
-        test_text = "Guten Morgen, bei uns gibt es heute Bifteki mit Schafkäsesoße, dazu Reis und Salat. Schönen Freitag,"
-        doc = self.ner_model(test_text)
-        print("Entities in '%s'" % test_text)
-        for ent in doc.ents:
-            print(ent.label_, ent.text)
+        #test_text = "Guten Morgen, bei uns gibt es heute Bifteki mit Schafkäsesoße, dazu Reis und Salat. Schönen Freitag,"
+        #doc = self.ner_model(test_text)
+        #print("Entities in '%s'" % test_text)
+        #for ent in doc.ents:
+        #    print(ent.label_, ent.text)
 
         # save model to output directory
         if self.ner_model_target is not None:
