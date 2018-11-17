@@ -10,13 +10,13 @@
             "request": "launch",
             "program": "${workspaceFolder}/neanno.py",
             "args": [
-                "--dataset_source_csv", "sample_data/sample_data.annotated.csv",
-                "--dataset_target_csv", "sample_data/sample_data.annotated.csv",
-                "--text_column_name", "text",
-                "--is_annotated_column_name", "is_text_annotated",
-                "--named_entity_defs", "ANIMAL Alt+A",
-                "--ner_model_source", "en",
-                "--ner_model_target", "models/en_animals"
+                "--named-entity-defs", "ANIMAL Alt+A",
+                "--dataset-source-csv", "sample_data/sample_data.annotated.csv",
+                "--text-column", "text",
+                "--is-annotated-column", "is_text_annotated",
+                "--dataset-target-csv", "sample_data/sample_data.annotated.csv",
+                "--ner-model-source", "en",
+                "--ner-model-target", "models/en_animals"
             ]
         },
         {
@@ -25,13 +25,13 @@
             "request": "launch",
             "program": "${workspaceFolder}/neanno.py",
             "args": [
-                "--dataset_source_csv", "sample_data/sample_posts.annotated.csv",
-                "--dataset_target_csv", "sample_data/sample_posts.annotated.csv",
-                "--text_column_name", "post_text",
-                "--is_annotated_column_name", "is_post_annotated",
-                "--named_entity_defs", "MEAL Alt+M/SIDE Alt+S/APPETIZER Alt+A/DESSERT Alt+D/BEVERAGE Alt+B",
-                "--ner_model_source", "blank:de",
-                //"--ner_model_target", "de_meals"
+                "--named-entity-defs", "MEAL Alt+M/SIDE Alt+S/APPETIZER Alt+A/DESSERT Alt+D/BEVERAGE Alt+B",
+                "--dataset-source-csv", "sample_data/sample_posts.annotated.csv",
+                "--text-column", "post_text",
+                "--is-annotated-column", "is_post_annotated",
+                "--dataset-target-csv", "sample_data/sample_posts.annotated.csv",
+                "--ner-model-source", "blank:de",
+                //"--ner-model-target", "de_meals"
             ]
         },
         {

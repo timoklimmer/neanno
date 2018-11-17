@@ -15,14 +15,35 @@ def annotate_entities(
     dataframe_to_edit,
     text_column_name,
     is_annotated_column_name,
-    named_entity_definitions,
+    named_entity_defs,
     save_callback,
-    ner_model_source,
-    ner_model_target,
     dataset_source_friendly,
     dataset_target_friendly,
+    ner_model_source,
+    ner_model_target,
 ):
-    # TODO: ensure that input variable are proper
+    # TODO: ensure valid parameters
+    
+    # compute the named entity definition collection
+    named_entity_definitions = []
+    default_colors = [
+        "#153465",
+        "#67160e",
+        "#135714",
+        "#341b4d",
+        "#b45c18",
+        "#b0984f",
+        "#838b83",
+        "#2f4f4f",
+    ]
+    index = 0
+    for definition in named_entity_defs.split("/"):
+        items = definition.split(" ")
+        code = items[0]
+        shortcut = items[1]
+        color = items[2] if len(items) >= 3 else default_colors[index % len(default_colors)]
+        named_entity_definitions.append(NamedEntityDefinition(code, shortcut, color))
+        index += 1
 
     text_model = TextModel(
         pandas_data_frame=dataframe_to_edit,

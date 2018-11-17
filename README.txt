@@ -2,7 +2,7 @@
 neanno
 =======
 
-** Yet another named entity annotation tool. **
+** A tool to annotate named entities and train models to recognize them. **
 
 "neanno" is a tool and Python function to annotate named entities.
 
