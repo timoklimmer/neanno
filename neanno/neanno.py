@@ -6,6 +6,8 @@ from neanno import NamedEntityDefinition, annotate_entities
 
 
 def main():
+    print("Starting neanno...")
+
     parser = argparse.ArgumentParser(
         description="A tool to annotate named entities and train models to recognize them."
     )
@@ -44,6 +46,8 @@ def main():
     )
     args = parser.parse_args()
 
+    # get configuration
+    print("Getting configuration...")
     named_entity_defs = args.named_entity_defs
     dataset_source_csv = args.dataset_source_csv
     text_column = args.text_column
@@ -51,9 +55,6 @@ def main():
     dataset_target_csv = args.dataset_target_csv
     ner_model_source = args.ner_model_source
     ner_model_target = args.ner_model_target
-
-    # load pandas data frame
-    dataframe_to_edit = pd.read_csv(dataset_source_csv)
 
     # compute friendly data source names
     dataset_source_friendly = (
@@ -63,7 +64,12 @@ def main():
         os.path.basename(dataset_target_csv) if dataset_target_csv is not None else None
     )
 
+    # load pandas data frame
+    print("Loading data frame with texts to annotate...")
+    dataframe_to_edit = pd.read_csv(dataset_source_csv)
+
     # run the annotation UI
+    print("Showing annotation dialog...")
     annotate_entities(
         dataframe_to_edit=dataframe_to_edit,
         text_column_name=text_column,
