@@ -468,7 +468,7 @@ class _EntityHighlighter(QSyntaxHighlighter):
                 (
                     QRegularExpression(
                         r"(?<openParen>\()"
-                        + r"(?<text>[^|]+)"
+                        + r"(?<text>[^|(]+?)"
                         + r"(?<pipe>\|)"
                         + r"(?<entityCode> "
                         + named_entity_definition.code
