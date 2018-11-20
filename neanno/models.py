@@ -4,8 +4,7 @@ import re
 
 import pandas as pd
 import spacy
-from PyQt5.QtCore import (QAbstractTableModel, QModelIndex, Qt, QVariant,
-                          pyqtSignal)
+from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant, pyqtSignal
 from spacy.util import compounding, minibatch
 
 
@@ -91,8 +90,9 @@ class TextModel(QAbstractTableModel):
             .map(lambda text: self.extract_entities_from_nerded_text(text))
             .tolist()
         )
+
         # do the training
-        n_iter = 25
+        n_iter = 10
         optimizer = self.ner_model.begin_training()
         other_pipes = [pipe for pipe in self.ner_model.pipe_names if pipe != "ner"]
         with self.ner_model.disable_pipes(*other_pipes):
@@ -105,14 +105,14 @@ class TextModel(QAbstractTableModel):
                     self.ner_model.update(
                         texts, annotations, sgd=optimizer, drop=0.35, losses=losses
                     )
-                print("Losses", losses)
+                print("Iteration: {}, losses: {}".format(itn, losses))
 
         # test the trained model
         # TODO: complete, precision/recall statistics
-        #test_text = "Guten Morgen, bei uns gibt es heute Bifteki mit Schafkäsesoße, dazu Reis und Salat. Schönen Freitag,"
-        #doc = self.ner_model(test_text)
-        #print("Entities in '%s'" % test_text)
-        #for ent in doc.ents:
+        # test_text = "Guten Morgen, bei uns gibt es heute Bifteki mit Schafkäsesoße, dazu Reis und Salat. Schönen Freitag,"
+        # doc = self.ner_model(test_text)
+        # print("Entities in '%s'" % test_text)
+        # for ent in doc.ents:
         #    print(ent.label_, ent.text)
 
         # save model to output directory
@@ -120,7 +120,7 @@ class TextModel(QAbstractTableModel):
             output_dir = pathlib.Path(self.ner_model_target)
             if not output_dir.exists():
                 output_dir.mkdir()
-            self.ner_model.meta['name'] = self.ner_model_target
+            self.ner_model.meta["name"] = self.ner_model_target
             self.ner_model.to_disk(output_dir)
             print("Retraining completed. Saved model to folder '{}'".format(output_dir))
         else:
@@ -206,7 +206,7 @@ class TextModel(QAbstractTableModel):
             return (currentIndex + 1) % self.rowCount()
 
     def isTextToAnnotateLeft(self):
-        return (False in self._df[self.is_annotated_column_name].values)
+        return False in self._df[self.is_annotated_column_name].values
 
     def hasDatasetMetadata(self):
         return (
