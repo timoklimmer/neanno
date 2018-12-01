@@ -39,12 +39,12 @@ def main():
             required=True,
         )
         parser.add_argument(
-            "--ner-model-source",
+            "--spacy-model-source",
             help="Name of the source NER/Spacy model, used as starting point and to recommend labels. If the argument is not specified, no recommendations will be made.",
         )
         parser.add_argument(
-            "--ner-model-target",
-            help="Directory where the modified, newly trained NER/spacy model is saved. Can only be used if --ner-model-source is used.",
+            "--spacy-model-target",
+            help="Directory where the modified, newly trained NER/spacy model is saved. Can only be used if --spacy-model-source is used.",
         )
         args = parser.parse_args()
 
@@ -55,8 +55,8 @@ def main():
         text_column = args.text_column
         is_annotated_column = args.is_annotated_column
         dataset_target_csv = args.dataset_target_csv
-        ner_model_source = args.ner_model_source
-        ner_model_target = args.ner_model_target
+        spacy_model_source = args.spacy_model_source
+        spacy_model_target = args.spacy_model_target
 
         # compute friendly data source names
         dataset_source_friendly = (
@@ -82,8 +82,8 @@ def main():
             else None,
             dataset_source_friendly=dataset_source_friendly,
             dataset_target_friendly=dataset_target_friendly,
-            ner_model_source=ner_model_source,
-            ner_model_target=ner_model_target
+            spacy_model_source=spacy_model_source,
+            spacy_model_target=spacy_model_target
         )
     except:
         print("An unhandled error occured: ", sys.exc_info()[0])

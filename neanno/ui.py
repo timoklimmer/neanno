@@ -13,6 +13,7 @@ from PyQt5.QtGui import (
     QTextCharFormat,
 )
 from PyQt5.QtWidgets import (
+    QAbstractItemView,
     QApplication,
     QDataWidgetMapper,
     QDesktopWidget,
@@ -21,6 +22,7 @@ from PyQt5.QtWidgets import (
     QHBoxLayout,
     QInputDialog,
     QLabel,
+    QListWidget,
     QMainWindow,
     QMessageBox,
     QPlainTextEdit,
@@ -47,6 +49,22 @@ SHORTCUT_REDO_KEYSEQUENCE = "Ctrl+Y"
 SHORTCUT_REMOVE_KEYSEQUENCE = "Ctrl+R"
 SHORTCUT_REMOVE_ALL_KEYSEQUENCE = "Ctrl+T"
 
+ABOUT_TEXT = """
+neanno is yet another text annotation tool.
+
+There are already several other annotation tools out there but none
+of them really matched my requirements. Hence, I created my own.
+
+This is NOT an official Microsoft product, hence does not come with
+any support or obligations for Microsoft.
+
+Feel free to use but don't blame me if things go wrong.
+
+Get the most updated version from GitHub.
+
+Written in 2018 by Timo Klimmer, timo.klimmer@microsoft.com.
+"""
+
 
 class AnnotationDialog(QMainWindow):
     def __init__(self, textmodel):
@@ -68,7 +86,7 @@ class AnnotationDialog(QMainWindow):
 
     def layout_controls(self):
         # window
-        self.setWindowTitle("Annotate entities")
+        self.setWindowTitle("neanno")
         screen = QDesktopWidget().screenGeometry()
         self.setGeometry(0, 0, screen.width() * 0.75, screen.height() * 0.75)
         mysize = self.geometry()
@@ -84,6 +102,19 @@ class AnnotationDialog(QMainWindow):
         self.entity_highlighter = _EntityHighlighter(
             self.text_edit.document(), self.textmodel.named_entity_definitions
         )
+
+        # text categories
+        text_categories_grid = QGridLayout()
+        text_categories_list = QListWidget()
+        text_categories_list.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        text_categories_list.addItem("Option 1")
+        text_categories_list.addItem("Option 2")
+        text_categories_list.addItem("Option 3")
+        text_categories_list.addItem("Option 4")
+        text_categories_list.addItem("Option 5")
+        text_categories_grid.addWidget(text_categories_list)
+        text_categories_groupbox = QGroupBox("Text Categories")
+        text_categories_groupbox.setLayout(text_categories_grid)
 
         # shortcuts
         shortcut_legend_grid = QGridLayout()
@@ -101,35 +132,6 @@ class AnnotationDialog(QMainWindow):
             row += 1
         entities_groupbox = QGroupBox("Entities")
         entities_groupbox.setLayout(shortcut_legend_grid)
-        control_shortcuts_grid = QGridLayout()
-        control_shortcuts_grid.addWidget(QLabel("Submit/Next Best"), 0, 0)
-        control_shortcuts_grid.addWidget(
-            QLabel(SHORTCUT_SUBMIT_NEXT_BEST_KEYSEQUENCE), 0, 1
-        )
-        control_shortcuts_grid.addWidget(QLabel("Backward"), 1, 0)
-        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_BACKWARD_KEYSEQUENCE), 1, 1)
-        control_shortcuts_grid.addWidget(QLabel("Forward"), 2, 0)
-        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_FORWARD_KEYSEQUENCE), 2, 1)
-        control_shortcuts_grid.addWidget(QLabel("First"), 3, 0)
-        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_FIRST_KEYSEQUENCE), 3, 1)
-        control_shortcuts_grid.addWidget(QLabel("Previous"), 4, 0)
-        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_PREVIOUS_KEYSEQUENCE), 4, 1)
-        control_shortcuts_grid.addWidget(QLabel("Next"), 5, 0)
-        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_NEXT_KEYSEQUENCE), 5, 1)
-        control_shortcuts_grid.addWidget(QLabel("Last"), 6, 0)
-        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_LAST_KEYSEQUENCE), 6, 1)
-        control_shortcuts_grid.addWidget(QLabel("Goto"), 7, 0)
-        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_GOTO_KEYSEQUENCE), 7, 1)
-        control_shortcuts_grid.addWidget(QLabel("Undo"), 8, 0)
-        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_UNDO_KEYSEQUENCE), 8, 1)
-        control_shortcuts_grid.addWidget(QLabel("Redo"), 9, 0)
-        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_REDO_KEYSEQUENCE), 9, 1)
-        control_shortcuts_grid.addWidget(QLabel("Remove label"), 10, 0)
-        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_REMOVE_KEYSEQUENCE), 10, 1)
-        control_shortcuts_grid.addWidget(QLabel("Remove all labels"), 11, 0)
-        control_shortcuts_grid.addWidget(QLabel(SHORTCUT_REMOVE_ALL_KEYSEQUENCE), 11, 1)
-        controls_groupbox = QGroupBox("Controls")
-        controls_groupbox.setLayout(control_shortcuts_grid)
 
         # statistics
         statistics_grid = QGridLayout()
@@ -169,21 +171,21 @@ class AnnotationDialog(QMainWindow):
             dataset_groupbox = QGroupBox("Dataset")
             dataset_groupbox.setLayout(dataset_grid)
 
-        # NER model
-        if self.textmodel.hasNerModel():
+        # spacy model
+        if self.textmodel.hasSpacyModel():
             model_grid = QGridLayout()
             model_grid.addWidget(QLabel("Source"), 0, 0)
-            self.ner_model_source_label = QLabel(self.textmodel.ner_model_source)
-            model_grid.addWidget(self.ner_model_source_label, 0, 1)
+            self.spacy_model_source_label = QLabel(self.textmodel.spacy_model_source)
+            model_grid.addWidget(self.spacy_model_source_label, 0, 1)
             retrain_model_button = QPushButton("Retrain")
             retrain_model_button.clicked.connect(self.handle_retrain_button_clicked)
             model_grid.addWidget(retrain_model_button, 2, 0)
 
-            if self.textmodel.ner_model_target is not None:
+            if self.textmodel.spacy_model_target is not None:
                 model_grid.addWidget(QLabel("Target"), 1, 0)
-                self.ner_model_target_label = QLabel(self.textmodel.ner_model_target)
-                model_grid.addWidget(self.ner_model_target_label, 1, 1)
-            model_groupbox = QGroupBox("NER Model")
+                self.spacy_model_target_label = QLabel(self.textmodel.spacy_model_target)
+                model_grid.addWidget(self.spacy_model_target_label, 1, 1)
+            model_groupbox = QGroupBox("Spacy Model")
             model_groupbox.setLayout(model_grid)
 
         # progress bar
@@ -193,6 +195,10 @@ class AnnotationDialog(QMainWindow):
         # about
         about_button = QPushButton("About")
         about_button.clicked.connect(self.handle_about_button_clicked)
+
+        # shortcuts button
+        shortcuts_button = QPushButton("Shortcuts")
+        shortcuts_button.clicked.connect(self.handle_shortcuts_button_clicked)
 
         # close
         close_button = QPushButton("Close")
@@ -205,13 +211,13 @@ class AnnotationDialog(QMainWindow):
         grid.setColumnStretch(1, 0)
         grid.addWidget(self.text_edit, 1, 0, 2, 1)
         right_column_layout = QVBoxLayout()
+        right_column_layout.addWidget(text_categories_groupbox)
         right_column_layout.addWidget(entities_groupbox)
         right_column_layout.addWidget(statistics_groupbox)
         if self.textmodel.hasDatasetMetadata():
             right_column_layout.addWidget(dataset_groupbox)
-        if self.textmodel.hasNerModel():
+        if self.textmodel.hasSpacyModel():
             right_column_layout.addWidget(model_groupbox)
-        right_column_layout.addWidget(controls_groupbox)
         right_column_layout.addStretch()
         grid.addLayout(right_column_layout, 1, 1)
         vbox = QVBoxLayout()
@@ -219,6 +225,7 @@ class AnnotationDialog(QMainWindow):
         hbox = QHBoxLayout()
         hbox.addWidget(self.progressbar)
         hbox.addWidget(about_button)
+        hbox.addWidget(shortcuts_button)
         hbox.addWidget(close_button)
         vbox.addLayout(hbox)
         central_widget = QWidget()
@@ -359,24 +366,46 @@ class AnnotationDialog(QMainWindow):
         QMessageBox.information(
             self,
             "About neanno",
-            """
-neanno is yet another named entity annotation tool.
-
-There are already several other annotation tools out there but none
-of them really matched my requirements. Hence, I created my own.
-
-This is NOT an official Microsoft product, hence does not come with
-any support or obligations for Microsoft.
-
-Feel free to use but don't blame me if things go wrong.
-
-Written in 2018 by Timo Klimmer, timo.klimmer@microsoft.com.
-""",
+            ABOUT_TEXT,
             QMessageBox.Ok,
         )
 
+    def handle_shortcuts_button_clicked(self):
+        def shortcut_fragment(label, shortcut):
+            return "<tr><td style=""padding-right:20"">{}</td><td>{}</td></tr>".format(label, shortcut)
+        message = "<table>"
+        message += shortcut_fragment("Submit/Next Best", SHORTCUT_SUBMIT_NEXT_BEST_KEYSEQUENCE)
+        message += shortcut_fragment("Backward", SHORTCUT_BACKWARD_KEYSEQUENCE)
+        message += shortcut_fragment("Forward", SHORTCUT_FORWARD_KEYSEQUENCE)
+        message += shortcut_fragment("First", SHORTCUT_FIRST_KEYSEQUENCE)
+        message += shortcut_fragment("Previous", SHORTCUT_PREVIOUS_KEYSEQUENCE)
+        message += shortcut_fragment("Next", SHORTCUT_NEXT_KEYSEQUENCE)
+        message += shortcut_fragment("Last", SHORTCUT_LAST_KEYSEQUENCE)
+        message += shortcut_fragment("Goto", SHORTCUT_GOTO_KEYSEQUENCE)
+        message += shortcut_fragment("Undo", SHORTCUT_UNDO_KEYSEQUENCE)
+        message += shortcut_fragment("Redo", SHORTCUT_REDO_KEYSEQUENCE)
+        message += shortcut_fragment("Remove label", SHORTCUT_REMOVE_KEYSEQUENCE)
+        message += shortcut_fragment("Remove all labels", SHORTCUT_REMOVE_ALL_KEYSEQUENCE)
+        message += "</table>"
+
+
+        msg = QMessageBox()
+        msg.setTextFormat(Qt.RichText)
+        msg.setIcon(QMessageBox.Information)
+        msg.setText(message)
+        msg.setWindowTitle("Shortcuts")
+        msg.setStandardButtons(QMessageBox.Ok)
+        msg.exec_()
+
+        #QMessageBox.information(
+        #    self,
+        #    "Shortcuts",
+        #    message,
+        #    QMessageBox.Ok,
+        #)
+
     def handle_retrain_button_clicked(self):
-        self.textmodel.retrain_ner_model()
+        self.textmodel.retrain_spacy_model()
 
     def update_statistics_and_progress(self):
         # progress

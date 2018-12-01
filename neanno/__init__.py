@@ -19,8 +19,8 @@ def annotate_entities(
     save_callback,
     dataset_source_friendly,
     dataset_target_friendly,
-    ner_model_source,
-    ner_model_target,
+    spacy_model_source,
+    spacy_model_target,
 ):
     # TODO: ensure valid parameters
     
@@ -51,8 +51,8 @@ def annotate_entities(
         is_annotated_column_name=is_annotated_column_name,
         named_entity_definitions=named_entity_definitions,
         save_callback=save_callback,
-        ner_model_source=ner_model_source,
-        ner_model_target=ner_model_target,
+        spacy_model_source=spacy_model_source,
+        spacy_model_target=spacy_model_target,
         dataset_source_friendly=dataset_source_friendly,
         dataset_target_friendly=dataset_target_friendly,
     )

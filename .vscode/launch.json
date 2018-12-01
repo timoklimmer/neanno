@@ -15,8 +15,8 @@
                 "--text-column", "text",
                 "--is-annotated-column", "is_text_annotated",
                 "--dataset-target-csv", "sample_data/sample_data.annotated.csv",
-                "--ner-model-source", "en",
-                "--ner-model-target", "models/en_animals"
+                "--spacy-model-source", "en",
+                "--spacy-model-target", "models/en_animals"
             ]
         },
         {
@@ -30,8 +30,8 @@
                 "--text-column", "post_text",
                 "--is-annotated-column", "is_post_annotated",
                 "--dataset-target-csv", "sample_data/sample_posts.annotated.csv",
-                "--ner-model-source", "blank:de",
-                //"--ner-model-target", "de_meals"
+                "--spacy-model-source", "blank:de",
+                //"--spacy-model-target", "de_meals"
             ]
         },
         {
