@@ -1,5 +1,6 @@
 import argparse
 import os
+import sys
 
 import pandas as pd
 from neanno import NamedEntityDefinition, annotate_entities
@@ -84,5 +85,6 @@ def main():
             ner_model_source=ner_model_source,
             ner_model_target=ner_model_target
         )
-    except exception:
-        print(str(exception))
+    except:
+        print("An unhandled error occured: ", sys.exc_info()[0])
+        raise
