@@ -50,6 +50,7 @@ class TextModel(QAbstractTableModel):
 
     def load_and_prepare_ner_model(self, ner_model_source):
         # load model
+        print("Loading NER model...")
         if ner_model_source.startswith("blank:"):
             result = spacy.blank(ner_model_source.replace("blank:", "", 1))
         else:
