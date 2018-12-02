@@ -16,8 +16,10 @@ class TextModel(QAbstractTableModel):
     def __init__(
         self,
         pandas_data_frame,
-        text_column_name,
-        is_annotated_column_name,
+        text_column,
+        is_annotated_column,
+        category_definitions,
+        categories_column,
         named_entity_definitions,
         save_callback=None,
         spacy_model_source=None,
@@ -27,8 +29,10 @@ class TextModel(QAbstractTableModel):
     ):
         super().__init__(parent=None)
         self._df = pandas_data_frame
-        self.text_column_name = text_column_name
-        self.is_annotated_column_name = is_annotated_column_name
+        self.text_column = text_column
+        self.is_annotated_column = is_annotated_column
+        self.category_definitions = category_definitions
+        self.categories_column = categories_column
         self.named_entity_definitions = named_entity_definitions
         self.save_callback = save_callback
         self.spacy_model_source = spacy_model_source
@@ -41,11 +45,11 @@ class TextModel(QAbstractTableModel):
             self.spacy_model = self.load_and_prepare_spacy_model(self.spacy_model_source)
 
         # get column indexes and ensure that the data frame has an is annotated column
-        self.text_column_index = self._df.columns.get_loc(text_column_name)
-        if self.is_annotated_column_name not in self._df:
-            self._df[self.is_annotated_column_name] = False
+        self.text_column_index = self._df.columns.get_loc(text_column)
+        if self.is_annotated_column not in self._df:
+            self._df[self.is_annotated_column] = False
         self.is_annotated_column_index = self._df.columns.get_loc(
-            self.is_annotated_column_name
+            self.is_annotated_column
         )
 
     def load_and_prepare_spacy_model(self, spacy_model_source):
@@ -85,8 +89,8 @@ class TextModel(QAbstractTableModel):
             ner.add_label(named_entity_definition.code)
         # prepare the training set
         trainset = (
-            self._df[self._df[self.is_annotated_column_name] == True][
-                self.text_column_name
+            self._df[self._df[self.is_annotated_column] == True][
+                self.text_column
             ]
             .map(lambda text: self.extract_entities_from_nerded_text(text))
             .tolist()
@@ -174,9 +178,9 @@ class TextModel(QAbstractTableModel):
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         if section == 0:
-            return self.text_column_name
+            return self.text_column
         if section == 1:
-            return self.is_annotated_column_name
+            return self.is_annotated_column
         return None
 
     def rowCount(self, parent=QModelIndex()):
@@ -195,19 +199,19 @@ class TextModel(QAbstractTableModel):
             self.saveCompleted.emit()
 
     def annotatedTextsCount(self):
-        return (self._df[self.is_annotated_column_name] == True).sum()
+        return (self._df[self.is_annotated_column] == True).sum()
 
     def nextBestRowIndex(self, currentIndex):
         if self.isTextToAnnotateLeft():
             # return the next text which is not annotated yet
-            return self._df[self.is_annotated_column_name].idxmin()
+            return self._df[self.is_annotated_column].idxmin()
         else:
             # there is no text that is not annotated yet
             # return the next text (might start at the beginning if end of available texts is reads)
             return (currentIndex + 1) % self.rowCount()
 
     def isTextToAnnotateLeft(self):
-        return False in self._df[self.is_annotated_column_name].values
+        return False in self._df[self.is_annotated_column].values
 
     def hasDatasetMetadata(self):
         return (

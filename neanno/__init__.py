@@ -4,6 +4,11 @@ from neanno.models import TextModel
 from neanno.ui import AnnotationDialog
 
 
+class CategoryDefinition:
+    def __init__(self, name):
+        self.name = name
+
+
 class NamedEntityDefinition:
     def __init__(self, code, key_sequence, backcolor):
         self.code = code
@@ -11,11 +16,13 @@ class NamedEntityDefinition:
         self.backcolor = backcolor
 
 
-def annotate_entities(
+def ask_for_annotations(
     dataframe_to_edit,
-    text_column_name,
-    is_annotated_column_name,
+    text_column,
+    is_annotated_column,
     named_entity_defs,
+    category_defs,
+    categories_column,
     save_callback,
     dataset_source_friendly,
     dataset_target_friendly,
@@ -23,7 +30,7 @@ def annotate_entities(
     spacy_model_target,
 ):
     # TODO: ensure valid parameters
-    
+
     # compute the named entity definition collection
     named_entity_definitions = []
     default_colors = [
@@ -41,14 +48,24 @@ def annotate_entities(
         items = definition.split(" ")
         code = items[0]
         shortcut = items[1]
-        color = items[2] if len(items) >= 3 else default_colors[index % len(default_colors)]
+        color = (
+            items[2] if len(items) >= 3 else default_colors[index % len(default_colors)]
+        )
         named_entity_definitions.append(NamedEntityDefinition(code, shortcut, color))
         index += 1
 
+    # assemble the category definition collection
+    category_definitions = []
+    for definition in category_defs.split("/"):
+        name = definition
+        category_definitions.append(CategoryDefinition(name))
+
     text_model = TextModel(
         pandas_data_frame=dataframe_to_edit,
-        text_column_name=text_column_name,
-        is_annotated_column_name=is_annotated_column_name,
+        text_column=text_column,
+        is_annotated_column=is_annotated_column,
+        category_definitions=category_definitions,
+        categories_column=categories_column,
         named_entity_definitions=named_entity_definitions,
         save_callback=save_callback,
         spacy_model_source=spacy_model_source,

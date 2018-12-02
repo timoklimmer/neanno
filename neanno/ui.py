@@ -138,11 +138,8 @@ class AnnotationDialog(QMainWindow):
         # categories
         text_categories_list = QListWidget()
         text_categories_list.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        text_categories_list.addItem("Option 1")
-        text_categories_list.addItem("Option 2")
-        text_categories_list.addItem("Option 3")
-        text_categories_list.addItem("Option 4")
-        text_categories_list.addItem("Option 5")
+        for category in self.textmodel.category_definitions:
+            text_categories_list.addItem(category.name)
         text_categories_groupbox_layout = QVBoxLayout()
         text_categories_groupbox_layout.addWidget(text_categories_list)
         text_categories_groupbox = QGroupBox("Categories")

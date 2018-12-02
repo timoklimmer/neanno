@@ -3,7 +3,7 @@ import os
 import sys
 
 import pandas as pd
-from neanno import NamedEntityDefinition, annotate_entities
+from neanno import NamedEntityDefinition, ask_for_annotations
 
 
 def main():
@@ -11,12 +11,7 @@ def main():
         print("Starting neanno...")
 
         parser = argparse.ArgumentParser(
-            description="A tool to annotate named entities and train models to recognize them."
-        )
-        parser.add_argument(
-            "--named-entity-defs",
-            help='Defines the entities to annotate incl. shortcuts and colors. Eg. "PER Alt+P #ff0000/ORG Alt+O #00ff00/LOC Alt+L". If no color is specified, a default color will be assigned.',
-            required=True,
+            description="A tool to annotate texts and train models."
         )
         parser.add_argument(
             "--dataset-source-csv",
@@ -30,13 +25,25 @@ def main():
         )
         parser.add_argument(
             "--is-annotated-column",
-            help="Name of the column which contains a flag showing if the text has been annotated. Will be created if it does not exist.",
+            help="Name of the column which contains a flag showing if the text has been annotated. Will be created if needed and does not exist.",
             required=True,
         )
         parser.add_argument(
             "--dataset-target-csv",
             help="Path to the CSV output file which will contain the annotations. Can be the same as dataset_source_csv.",
             required=True,
+        )
+        parser.add_argument(
+            "--category-defs",
+            help='Defines the categories the texts can have. Eg. "Inquiry/Issue/Information"',
+        )
+        parser.add_argument(
+            "--categories-column",
+            help='Name of the column which contains the categories of the text. Will be created if needed and does not exist."',
+        )
+        parser.add_argument(
+            "--named-entity-defs",
+            help='Defines the entities to annotate incl. shortcuts and colors. Eg. "PER Alt+P #ff0000/ORG Alt+O #00ff00/LOC Alt+L". If no color is specified, a default color will be assigned.',
         )
         parser.add_argument(
             "--spacy-model-source",
@@ -50,20 +57,26 @@ def main():
 
         # get configuration
         print("Getting configuration...")
-        named_entity_defs = args.named_entity_defs
         dataset_source_csv = args.dataset_source_csv
         text_column = args.text_column
         is_annotated_column = args.is_annotated_column
         dataset_target_csv = args.dataset_target_csv
+        named_entity_defs = args.named_entity_defs
+        category_defs = args.category_defs
+        categories_column = args.categories_column
         spacy_model_source = args.spacy_model_source
         spacy_model_target = args.spacy_model_target
 
         # compute friendly data source names
         dataset_source_friendly = (
-            os.path.basename(dataset_source_csv) if dataset_source_csv is not None else None
+            os.path.basename(dataset_source_csv)
+            if dataset_source_csv is not None
+            else None
         )
         dataset_target_friendly = (
-            os.path.basename(dataset_target_csv) if dataset_target_csv is not None else None
+            os.path.basename(dataset_target_csv)
+            if dataset_target_csv is not None
+            else None
         )
 
         # load pandas data frame
@@ -72,18 +85,22 @@ def main():
 
         # run the annotation UI
         print("Showing annotation dialog...")
-        annotate_entities(
+        ask_for_annotations(
             dataframe_to_edit=dataframe_to_edit,
-            text_column_name=text_column,
-            is_annotated_column_name=is_annotated_column,
+            text_column=text_column,
+            is_annotated_column=is_annotated_column,
             named_entity_defs=named_entity_defs,
-            save_callback=lambda df: df.to_csv(dataset_target_csv, index=False, header=True)
+            category_defs=category_defs,
+            categories_column=categories_column,
+            save_callback=lambda df: df.to_csv(
+                dataset_target_csv, index=False, header=True
+            )
             if dataset_target_csv is not None
             else None,
             dataset_source_friendly=dataset_source_friendly,
             dataset_target_friendly=dataset_target_friendly,
             spacy_model_source=spacy_model_source,
-            spacy_model_target=spacy_model_target
+            spacy_model_target=spacy_model_target,
         )
     except:
         print("An unhandled error occured: ", sys.exc_info()[0])
