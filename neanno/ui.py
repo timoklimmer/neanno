@@ -70,19 +70,20 @@ class AnnotationDialog(QMainWindow):
     def __init__(self, textmodel):
         app = QApplication([])
         super().__init__()
-        self.setWindowIcon(
-            QIcon(
-                os.path.join(
-                    os.path.abspath(os.path.dirname(__file__)), "resources/icon.ico"
-                )
-            )
-        )
+        self.setWindowIcon(self.get_icon("icon.ico"))
         self.textmodel = textmodel
         self.layout_controls()
         self.wire_textmodel()
         self.wire_shortcuts()
         self.show()
         app.exec_()
+
+    def get_icon(self, file):
+        return QIcon(
+            os.path.join(
+                os.path.abspath(os.path.dirname(__file__)), "resources/{}".format(file)
+            )
+        )
 
     def layout_controls(self):
         # window
@@ -99,12 +100,24 @@ class AnnotationDialog(QMainWindow):
         self.text_edit.setStyleSheet(
             "font-size: 14pt; font-family: Consolas; color: lightgrey; background-color: black"
         )
-        self.entity_highlighter = _EntityHighlighter(
+        self.entity_highlighter = EntityHighlighter(
             self.text_edit.document(), self.textmodel.named_entity_definitions
         )
 
-        # text categories
-        text_categories_grid = QGridLayout()
+        # navigation buttons
+        self.backward_button = QPushButton(self.get_icon("backward.png"), None)
+        self.forward_button = QPushButton(self.get_icon("forward.png"), None)
+        self.first_button = QPushButton(self.get_icon("first.png"), None)
+        self.previous_button = QPushButton(self.get_icon("previous.png"), None)
+        self.next_button = QPushButton(self.get_icon("next.png"), None)
+        self.last_button = QPushButton(self.get_icon("last.png"), None)
+        self.goto_button = QPushButton(self.get_icon("goto.png"), None)
+
+        # progress bar
+        self.progressbar = QProgressBar()
+        self.progressbar.setValue(0)
+
+        # categories
         text_categories_list = QListWidget()
         text_categories_list.setSelectionMode(QAbstractItemView.ExtendedSelection)
         text_categories_list.addItem("Option 1")
@@ -112,11 +125,12 @@ class AnnotationDialog(QMainWindow):
         text_categories_list.addItem("Option 3")
         text_categories_list.addItem("Option 4")
         text_categories_list.addItem("Option 5")
-        text_categories_grid.addWidget(text_categories_list)
-        text_categories_groupbox = QGroupBox("Text Categories")
-        text_categories_groupbox.setLayout(text_categories_grid)
+        text_categories_groupbox_layout = QVBoxLayout()
+        text_categories_groupbox_layout.addWidget(text_categories_list)
+        text_categories_groupbox = QGroupBox("Categories")
+        text_categories_groupbox.setLayout(text_categories_groupbox_layout)
 
-        # shortcuts
+        # entity shortcuts
         shortcut_legend_grid = QGridLayout()
         row = 0
         for named_entity_definition in self.textmodel.named_entity_definitions:
@@ -135,25 +149,24 @@ class AnnotationDialog(QMainWindow):
 
         # statistics
         statistics_grid = QGridLayout()
-        statistics_grid.addWidget(QLabel("Current Index"), 0, 0)
+        statistics_grid.addWidget(QLabel("Annotated"), 0, 0)
+        statistics_grid.addWidget(self.progressbar, 0, 1)
+        statistics_grid.addWidget(QLabel("Current Index"), 1, 0)
         self.current_text_index_label = QLabel()
-        statistics_grid.addWidget(self.current_text_index_label, 0, 1)
-        statistics_grid.addWidget(QLabel("Is Annotated"), 1, 0)
+        statistics_grid.addWidget(self.current_text_index_label, 1, 1)
+        statistics_grid.addWidget(QLabel("Is Annotated"), 2, 0)
         self.is_annotated_label = QLabel()
-        statistics_grid.addWidget(self.is_annotated_label, 1, 1)
-        statistics_grid.addWidget(QLabel("Annotated Texts"), 2, 0)
+        statistics_grid.addWidget(self.is_annotated_label, 2, 1)
+        statistics_grid.addWidget(QLabel("Annotated Texts"), 3, 0)
         self.annotated_texts_label = QLabel()
-        statistics_grid.addWidget(self.annotated_texts_label, 2, 1)
-        statistics_grid.addWidget(QLabel("Total Texts"), 3, 0)
+        statistics_grid.addWidget(self.annotated_texts_label, 3, 1)
+        statistics_grid.addWidget(QLabel("Total Texts"), 4, 0)
         self.total_texts_label = QLabel()
-        statistics_grid.addWidget(self.total_texts_label, 3, 1)
-        statistics_grid.addWidget(QLabel("Annotated"), 4, 0)
-        self.annotated_percent_label = QLabel()
-        statistics_grid.addWidget(self.annotated_percent_label, 4, 1)
+        statistics_grid.addWidget(self.total_texts_label, 4, 1)
         statistics_groupbox = QGroupBox("Statistics")
         statistics_groupbox.setLayout(statistics_grid)
 
-        # Dataset
+        # dataset
         if self.textmodel.hasDatasetMetadata():
             dataset_grid = QGridLayout()
             if self.textmodel.dataset_source_friendly is not None:
@@ -173,24 +186,22 @@ class AnnotationDialog(QMainWindow):
 
         # spacy model
         if self.textmodel.hasSpacyModel():
-            model_grid = QGridLayout()
-            model_grid.addWidget(QLabel("Source"), 0, 0)
+            spacy_grid = QGridLayout()
+            spacy_grid.addWidget(QLabel("Source"), 0, 0)
             self.spacy_model_source_label = QLabel(self.textmodel.spacy_model_source)
-            model_grid.addWidget(self.spacy_model_source_label, 0, 1)
+            spacy_grid.addWidget(self.spacy_model_source_label, 0, 1)
             retrain_model_button = QPushButton("Retrain")
             retrain_model_button.clicked.connect(self.handle_retrain_button_clicked)
-            model_grid.addWidget(retrain_model_button, 2, 0)
+            spacy_grid.addWidget(retrain_model_button, 2, 0)
 
             if self.textmodel.spacy_model_target is not None:
-                model_grid.addWidget(QLabel("Target"), 1, 0)
-                self.spacy_model_target_label = QLabel(self.textmodel.spacy_model_target)
-                model_grid.addWidget(self.spacy_model_target_label, 1, 1)
-            model_groupbox = QGroupBox("Spacy Model")
-            model_groupbox.setLayout(model_grid)
-
-        # progress bar
-        self.progressbar = QProgressBar()
-        self.progressbar.setValue(0)
+                spacy_grid.addWidget(QLabel("Target"), 1, 0)
+                self.spacy_model_target_label = QLabel(
+                    self.textmodel.spacy_model_target
+                )
+                spacy_grid.addWidget(self.spacy_model_target_label, 1, 1)
+            spacy_groupbox = QGroupBox("Spacy")
+            spacy_groupbox.setLayout(spacy_grid)
 
         # about
         about_button = QPushButton("About")
@@ -204,32 +215,43 @@ class AnnotationDialog(QMainWindow):
         close_button = QPushButton("Close")
         close_button.clicked.connect(self.close)
 
-        # grid and box layouts
-        grid = QGridLayout()
-        grid.setSpacing(10)
-        grid.setColumnStretch(0, 1)
-        grid.setColumnStretch(1, 0)
-        grid.addWidget(self.text_edit, 1, 0, 2, 1)
-        right_column_layout = QVBoxLayout()
-        right_column_layout.addWidget(text_categories_groupbox)
-        right_column_layout.addWidget(entities_groupbox)
-        right_column_layout.addWidget(statistics_groupbox)
+        # layouts
+        navigation_buttons_layout = QHBoxLayout()
+        navigation_buttons_layout.addWidget(self.backward_button)
+        navigation_buttons_layout.addWidget(self.forward_button)
+        navigation_buttons_layout.addStretch()
+        navigation_buttons_layout.addWidget(self.first_button)
+        navigation_buttons_layout.addWidget(self.previous_button)
+        navigation_buttons_layout.addWidget(self.next_button)
+        navigation_buttons_layout.addWidget(self.last_button)
+        navigation_buttons_layout.addWidget(self.goto_button)
+        navigation_buttons_layout.addStretch()
+        navigation_buttons_layout.addWidget(about_button)
+        navigation_buttons_layout.addWidget(shortcuts_button)
+        left_panel_layout = QVBoxLayout()
+        left_panel_layout.addWidget(self.text_edit)
+        right_panel_layout = QVBoxLayout()
+        right_panel_layout.addWidget(text_categories_groupbox)
+        right_panel_layout.addWidget(entities_groupbox)
+        right_panel_layout.addWidget(statistics_groupbox)
         if self.textmodel.hasDatasetMetadata():
-            right_column_layout.addWidget(dataset_groupbox)
+            right_panel_layout.addWidget(dataset_groupbox)
         if self.textmodel.hasSpacyModel():
-            right_column_layout.addWidget(model_groupbox)
-        right_column_layout.addStretch()
-        grid.addLayout(right_column_layout, 1, 1)
-        vbox = QVBoxLayout()
-        vbox.addLayout(grid)
-        hbox = QHBoxLayout()
-        hbox.addWidget(self.progressbar)
-        hbox.addWidget(about_button)
-        hbox.addWidget(shortcuts_button)
-        hbox.addWidget(close_button)
-        vbox.addLayout(hbox)
+            right_panel_layout.addWidget(spacy_groupbox)
+        right_panel_layout.addStretch()
+        right_buttons_layout = QHBoxLayout()
+        right_buttons_layout.addStretch()
+        right_buttons_layout.addWidget(close_button)
+        main_grid = QGridLayout()
+        main_grid.setSpacing(10)
+        main_grid.setColumnStretch(0, 1)
+        main_grid.setColumnStretch(1, 0)
+        main_grid.addLayout(left_panel_layout, 0, 0)
+        main_grid.addLayout(right_panel_layout, 0, 1)
+        main_grid.addLayout(navigation_buttons_layout, 1, 0)
+        main_grid.addLayout(right_buttons_layout, 1, 1)
         central_widget = QWidget()
-        central_widget.setLayout(vbox)
+        central_widget.setLayout(main_grid)
         self.setCentralWidget(central_widget)
 
     def wire_shortcuts(self):
@@ -323,7 +345,7 @@ class AnnotationDialog(QMainWindow):
         shortcut_last.activated.connect(self.remove_all_entities)
 
     def wire_textmodel(self):
-        self.text_navigator = _QDataWidgetMapperWithHistory(self)
+        self.text_navigator = QDataWidgetMapperWithHistory(self)
         self.text_navigator.setSubmitPolicy(QDataWidgetMapper.ManualSubmit)
         self.text_navigator.setModel(self.textmodel)
         self.text_navigator.addMapping(self.text_edit, 0)
@@ -334,6 +356,13 @@ class AnnotationDialog(QMainWindow):
             self.update_statistics_and_progress
         )
         self.text_navigator.setCurrentIndex(self.textmodel.nextBestRowIndex(-1))
+        self.backward_button.clicked.connect(self.text_navigator.backward)        
+        self.forward_button.clicked.connect(self.text_navigator.forward)        
+        self.first_button.clicked.connect(self.text_navigator.toFirst)        
+        self.previous_button.clicked.connect(self.text_navigator.toPrevious)        
+        self.next_button.clicked.connect(self.text_navigator.toNext)        
+        self.last_button.clicked.connect(self.text_navigator.toLast)        
+        self.goto_button.clicked.connect(self.handle_shortcut_goto)
 
     def handle_shortcut_submit_next_best(self):
         # submit changes of old text
@@ -363,18 +392,20 @@ class AnnotationDialog(QMainWindow):
             self.text_navigator.setCurrentIndex(new_index)
 
     def handle_about_button_clicked(self):
-        QMessageBox.information(
-            self,
-            "About neanno",
-            ABOUT_TEXT,
-            QMessageBox.Ok,
-        )
+        QMessageBox.information(self, "About neanno", ABOUT_TEXT, QMessageBox.Ok)
 
     def handle_shortcuts_button_clicked(self):
         def shortcut_fragment(label, shortcut):
-            return "<tr><td style=""padding-right:20"">{}</td><td>{}</td></tr>".format(label, shortcut)
+            return (
+                "<tr><td style="
+                "padding-right:20"
+                ">{}</td><td>{}</td></tr>".format(label, shortcut)
+            )
+
         message = "<table>"
-        message += shortcut_fragment("Submit/Next Best", SHORTCUT_SUBMIT_NEXT_BEST_KEYSEQUENCE)
+        message += shortcut_fragment(
+            "Submit/Next Best", SHORTCUT_SUBMIT_NEXT_BEST_KEYSEQUENCE
+        )
         message += shortcut_fragment("Backward", SHORTCUT_BACKWARD_KEYSEQUENCE)
         message += shortcut_fragment("Forward", SHORTCUT_FORWARD_KEYSEQUENCE)
         message += shortcut_fragment("First", SHORTCUT_FIRST_KEYSEQUENCE)
@@ -385,9 +416,10 @@ class AnnotationDialog(QMainWindow):
         message += shortcut_fragment("Undo", SHORTCUT_UNDO_KEYSEQUENCE)
         message += shortcut_fragment("Redo", SHORTCUT_REDO_KEYSEQUENCE)
         message += shortcut_fragment("Remove label", SHORTCUT_REMOVE_KEYSEQUENCE)
-        message += shortcut_fragment("Remove all labels", SHORTCUT_REMOVE_ALL_KEYSEQUENCE)
+        message += shortcut_fragment(
+            "Remove all labels", SHORTCUT_REMOVE_ALL_KEYSEQUENCE
+        )
         message += "</table>"
-
 
         msg = QMessageBox()
         msg.setTextFormat(Qt.RichText)
@@ -396,13 +428,6 @@ class AnnotationDialog(QMainWindow):
         msg.setWindowTitle("Shortcuts")
         msg.setStandardButtons(QMessageBox.Ok)
         msg.exec_()
-
-        #QMessageBox.information(
-        #    self,
-        #    "Shortcuts",
-        #    message,
-        #    QMessageBox.Ok,
-        #)
 
     def handle_retrain_button_clicked(self):
         self.textmodel.retrain_spacy_model()
@@ -421,10 +446,6 @@ class AnnotationDialog(QMainWindow):
         # total texts count
         total_texts_count = self.textmodel.rowCount()
         self.total_texts_label.setText(str(total_texts_count))
-        # annotated percent
-        self.annotated_percent_label.setText(
-            "{0:.0%}".format(annotated_texts_count / total_texts_count)
-        )
         # remove focus from text control
         self.text_edit.clearFocus()
 
@@ -461,13 +482,13 @@ class AnnotationDialog(QMainWindow):
         self.text_edit.setPlainText(new_text)
 
 
-class _EntityHighlighter(QSyntaxHighlighter):
+class EntityHighlighter(QSyntaxHighlighter):
     highlighting_rules = []
     named_entity_code_format = QTextCharFormat()
     named_entity_code_format_no_text = QTextCharFormat()
 
     def __init__(self, parent, named_entity_definitions):
-        super(_EntityHighlighter, self).__init__(parent)
+        super(EntityHighlighter, self).__init__(parent)
         named_entity_code_background_color = QColor("lightgrey")
         self.named_entity_code_format.setForeground(Qt.black)
         self.named_entity_code_format.setBackground(named_entity_code_background_color)
@@ -544,7 +565,7 @@ class _EntityHighlighter(QSyntaxHighlighter):
                 offset = match.capturedEnd("closingParen")
 
 
-class _QDataWidgetMapperWithHistory(QDataWidgetMapper):
+class QDataWidgetMapperWithHistory(QDataWidgetMapper):
     backward_stack = []
     forward_stack = []
     is_forward_or_backward = False
