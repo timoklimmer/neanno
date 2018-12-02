@@ -104,7 +104,7 @@ class AnnotationDialog(QMainWindow):
             self.text_edit.document(), self.textmodel.named_entity_definitions
         )
 
-        # navigation buttons
+        # navigation / about / shortcuts buttons
         self.backward_button = QPushButton(self.get_icon("backward.png"), None)
         self.forward_button = QPushButton(self.get_icon("forward.png"), None)
         self.first_button = QPushButton(self.get_icon("first.png"), None)
@@ -113,6 +113,23 @@ class AnnotationDialog(QMainWindow):
         self.last_button = QPushButton(self.get_icon("last.png"), None)
         self.goto_button = QPushButton(self.get_icon("goto.png"), None)
         self.submit_next_best_button = QPushButton(self.get_icon("submit_next_best.png"), None)
+        about_button = QPushButton("About")
+        about_button.clicked.connect(self.handle_about_button_clicked)
+        shortcuts_button = QPushButton("Shortcuts")
+        shortcuts_button.clicked.connect(self.handle_shortcuts_button_clicked)
+        navigation_buttons_layout = QHBoxLayout()
+        navigation_buttons_layout.addWidget(self.backward_button)
+        navigation_buttons_layout.addWidget(self.forward_button)
+        navigation_buttons_layout.addStretch()
+        navigation_buttons_layout.addWidget(self.first_button)
+        navigation_buttons_layout.addWidget(self.previous_button)
+        navigation_buttons_layout.addWidget(self.next_button)
+        navigation_buttons_layout.addWidget(self.last_button)
+        navigation_buttons_layout.addWidget(self.goto_button)
+        navigation_buttons_layout.addWidget(self.submit_next_best_button)
+        navigation_buttons_layout.addStretch()
+        navigation_buttons_layout.addWidget(about_button)
+        navigation_buttons_layout.addWidget(shortcuts_button)
 
         # progress bar
         self.progressbar = QProgressBar()
@@ -148,43 +165,6 @@ class AnnotationDialog(QMainWindow):
         entities_groupbox = QGroupBox("Entities")
         entities_groupbox.setLayout(shortcut_legend_grid)
 
-        # statistics
-        statistics_grid = QGridLayout()
-        statistics_grid.addWidget(QLabel("Annotated"), 0, 0)
-        statistics_grid.addWidget(self.progressbar, 0, 1)
-        statistics_grid.addWidget(QLabel("Current Index"), 1, 0)
-        self.current_text_index_label = QLabel()
-        statistics_grid.addWidget(self.current_text_index_label, 1, 1)
-        statistics_grid.addWidget(QLabel("Is Annotated"), 2, 0)
-        self.is_annotated_label = QLabel()
-        statistics_grid.addWidget(self.is_annotated_label, 2, 1)
-        statistics_grid.addWidget(QLabel("Annotated Texts"), 3, 0)
-        self.annotated_texts_label = QLabel()
-        statistics_grid.addWidget(self.annotated_texts_label, 3, 1)
-        statistics_grid.addWidget(QLabel("Total Texts"), 4, 0)
-        self.total_texts_label = QLabel()
-        statistics_grid.addWidget(self.total_texts_label, 4, 1)
-        statistics_groupbox = QGroupBox("Statistics")
-        statistics_groupbox.setLayout(statistics_grid)
-
-        # dataset
-        if self.textmodel.hasDatasetMetadata():
-            dataset_grid = QGridLayout()
-            if self.textmodel.dataset_source_friendly is not None:
-                dataset_grid.addWidget(QLabel("Source"), 0, 0)
-                self.dataset_source_friendly_label = QLabel(
-                    self.textmodel.dataset_source_friendly
-                )
-                dataset_grid.addWidget(self.dataset_source_friendly_label, 0, 1)
-            if self.textmodel.dataset_target_friendly is not None:
-                dataset_grid.addWidget(QLabel("Target"), 1, 0)
-                self.dataset_target_friendly_label = QLabel(
-                    self.textmodel.dataset_target_friendly
-                )
-                dataset_grid.addWidget(self.dataset_target_friendly_label, 1, 1)
-            dataset_groupbox = QGroupBox("Dataset")
-            dataset_groupbox.setLayout(dataset_grid)
-
         # spacy model
         if self.textmodel.hasSpacyModel():
             spacy_grid = QGridLayout()
@@ -204,46 +184,62 @@ class AnnotationDialog(QMainWindow):
             spacy_groupbox = QGroupBox("Spacy")
             spacy_groupbox.setLayout(spacy_grid)
 
-        # about
-        about_button = QPushButton("About")
-        about_button.clicked.connect(self.handle_about_button_clicked)
-
-        # shortcuts button
-        shortcuts_button = QPushButton("Shortcuts")
-        shortcuts_button.clicked.connect(self.handle_shortcuts_button_clicked)
+        # dataset
+        dataset_grid = QGridLayout()
+        dataset_grid.addWidget(QLabel("Annotated"), 0, 0)
+        dataset_grid.addWidget(self.progressbar, 0, 1)
+        dataset_grid.addWidget(QLabel("Current Index"), 1, 0)
+        self.current_text_index_label = QLabel()
+        dataset_grid.addWidget(self.current_text_index_label, 1, 1)
+        dataset_grid.addWidget(QLabel("Is Annotated"), 2, 0)
+        self.is_annotated_label = QLabel()
+        dataset_grid.addWidget(self.is_annotated_label, 2, 1)
+        dataset_grid.addWidget(QLabel("Annotated Texts"), 3, 0)
+        self.annotated_texts_label = QLabel()
+        dataset_grid.addWidget(self.annotated_texts_label, 3, 1)
+        dataset_grid.addWidget(QLabel("Total Texts"), 4, 0)
+        self.total_texts_label = QLabel()
+        dataset_grid.addWidget(self.total_texts_label, 4, 1)
+        if self.textmodel.hasDatasetMetadata():
+            if self.textmodel.dataset_source_friendly is not None:
+                dataset_grid.addWidget(QLabel("Source"), 5, 0)
+                self.dataset_source_friendly_label = QLabel(
+                    self.textmodel.dataset_source_friendly
+                )
+                dataset_grid.addWidget(self.dataset_source_friendly_label, 5, 1)
+            if self.textmodel.dataset_target_friendly is not None:
+                dataset_grid.addWidget(QLabel("Target"), 6, 0)
+                self.dataset_target_friendly_label = QLabel(
+                    self.textmodel.dataset_target_friendly
+                )
+                dataset_grid.addWidget(self.dataset_target_friendly_label, 6, 1)
+        dataset_groupbox = QGroupBox("Dataset")
+        dataset_groupbox.setLayout(dataset_grid)
 
         # close
         close_button = QPushButton("Close")
         close_button.clicked.connect(self.close)
 
-        # layouts
-        navigation_buttons_layout = QHBoxLayout()
-        navigation_buttons_layout.addWidget(self.backward_button)
-        navigation_buttons_layout.addWidget(self.forward_button)
-        navigation_buttons_layout.addStretch()
-        navigation_buttons_layout.addWidget(self.first_button)
-        navigation_buttons_layout.addWidget(self.previous_button)
-        navigation_buttons_layout.addWidget(self.next_button)
-        navigation_buttons_layout.addWidget(self.last_button)
-        navigation_buttons_layout.addWidget(self.goto_button)
-        navigation_buttons_layout.addWidget(self.submit_next_best_button)
-        navigation_buttons_layout.addStretch()
-        navigation_buttons_layout.addWidget(about_button)
-        navigation_buttons_layout.addWidget(shortcuts_button)
+        # remaining layouts
+        # left panel
         left_panel_layout = QVBoxLayout()
         left_panel_layout.addWidget(self.text_edit)
+        # right panel
         right_panel_layout = QVBoxLayout()
-        right_panel_layout.addWidget(text_categories_groupbox)
-        right_panel_layout.addWidget(entities_groupbox)
-        right_panel_layout.addWidget(statistics_groupbox)
-        if self.textmodel.hasDatasetMetadata():
-            right_panel_layout.addWidget(dataset_groupbox)
+        if True:
+            # TODO: complete, show only if categories are relevant
+            right_panel_layout.addWidget(text_categories_groupbox)
+        if True:
+            # TODO: complete, show only if categories are relevant        
+            right_panel_layout.addWidget(entities_groupbox)
+        right_panel_layout.addWidget(dataset_groupbox)
         if self.textmodel.hasSpacyModel():
             right_panel_layout.addWidget(spacy_groupbox)
         right_panel_layout.addStretch()
         right_buttons_layout = QHBoxLayout()
         right_buttons_layout.addStretch()
         right_buttons_layout.addWidget(close_button)
+        # main
         main_grid = QGridLayout()
         main_grid.setSpacing(10)
         main_grid.setColumnStretch(0, 1)
