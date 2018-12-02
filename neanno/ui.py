@@ -112,6 +112,7 @@ class AnnotationDialog(QMainWindow):
         self.next_button = QPushButton(self.get_icon("next.png"), None)
         self.last_button = QPushButton(self.get_icon("last.png"), None)
         self.goto_button = QPushButton(self.get_icon("goto.png"), None)
+        self.submit_next_best_button = QPushButton(self.get_icon("submit_next_best.png"), None)
 
         # progress bar
         self.progressbar = QProgressBar()
@@ -225,6 +226,7 @@ class AnnotationDialog(QMainWindow):
         navigation_buttons_layout.addWidget(self.next_button)
         navigation_buttons_layout.addWidget(self.last_button)
         navigation_buttons_layout.addWidget(self.goto_button)
+        navigation_buttons_layout.addWidget(self.submit_next_best_button)
         navigation_buttons_layout.addStretch()
         navigation_buttons_layout.addWidget(about_button)
         navigation_buttons_layout.addWidget(shortcuts_button)
@@ -363,6 +365,7 @@ class AnnotationDialog(QMainWindow):
         self.next_button.clicked.connect(self.text_navigator.toNext)        
         self.last_button.clicked.connect(self.text_navigator.toLast)        
         self.goto_button.clicked.connect(self.handle_shortcut_goto)
+        self.submit_next_best_button.clicked.connect(self.handle_shortcut_submit_next_best)
 
     def handle_shortcut_submit_next_best(self):
         # submit changes of old text
