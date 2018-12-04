@@ -44,21 +44,23 @@ def ask_for_annotations(
         "#2f4f4f",
     ]
     index = 0
-    for definition in named_entity_defs.split("/"):
-        items = definition.split(" ")
-        code = items[0]
-        shortcut = items[1]
-        color = (
-            items[2] if len(items) >= 3 else default_colors[index % len(default_colors)]
-        )
-        named_entity_definitions.append(NamedEntityDefinition(code, shortcut, color))
-        index += 1
+    if named_entity_defs:
+        for definition in named_entity_defs.split("/"):
+            items = definition.split(" ")
+            code = items[0]
+            shortcut = items[1]
+            color = (
+                items[2] if len(items) >= 3 else default_colors[index % len(default_colors)]
+            )
+            named_entity_definitions.append(NamedEntityDefinition(code, shortcut, color))
+            index += 1
 
     # assemble the category definition collection
     category_definitions = []
-    for definition in category_defs.split("/"):
-        name = definition
-        category_definitions.append(CategoryDefinition(name))
+    if category_defs:
+        for definition in category_defs.split("/"):
+            name = definition
+            category_definitions.append(CategoryDefinition(name))
 
     # run the annotation dialog with respective text model
     AnnotationDialog(

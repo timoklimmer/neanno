@@ -1,6 +1,7 @@
 import pathlib
 import random
 import re
+import string
 
 import pandas as pd
 import spacy
@@ -9,6 +10,7 @@ from spacy.util import compounding, minibatch
 
 
 class TextModel(QAbstractTableModel):
+    random_categories_column_name = None
     saveStarted = pyqtSignal()
     saveCompleted = pyqtSignal()
     spacy_model = None
@@ -44,11 +46,17 @@ class TextModel(QAbstractTableModel):
         # text
         self.text_column_index = self._df.columns.get_loc(text_column)
         # categories
+        # note: if no category column is given, we will create a random column
+        #       to make the code below easier but will drop the column before
+        #       we save the dataframe
+        if not self.categories_column:
+            self.random_categories_column_name = "".join(
+                random.choice(string.ascii_uppercase + string.digits) for _ in range(16)
+            )
+            self.categories_column = self.random_categories_column_name
         if self.categories_column not in self._df:
             self._df[self.categories_column] = ""
-        self.categories_column_index = self._df.columns.get_loc(
-            self.categories_column
-        )
+        self.categories_column_index = self._df.columns.get_loc(self.categories_column)
         # is annotated
         if self.is_annotated_column not in self._df:
             self._df[self.is_annotated_column] = False
@@ -214,7 +222,11 @@ class TextModel(QAbstractTableModel):
     def save(self):
         if not self.save_callback is None:
             self.saveStarted.emit()
-            self.save_callback(self._df)
+            self.save_callback(
+                self._df
+                if not self.random_categories_column_name
+                else self._df.drop([self.random_categories_column_name], axis=1)
+            )
             self.saveCompleted.emit()
 
     def annotatedTextsCount(self):

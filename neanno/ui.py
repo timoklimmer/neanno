@@ -224,11 +224,9 @@ class AnnotationDialog(QMainWindow):
         left_panel_layout.addWidget(self.text_edit)
         # right panel
         right_panel_layout = QVBoxLayout()
-        if True:
-            # TODO: complete, show only if categories are relevant
+        if self.textmodel.hasCategories():
             right_panel_layout.addWidget(text_categories_groupbox)
-        if True:
-            # TODO: complete, show only if categories are relevant
+        if self.textmodel.hasNamedEntities():
             right_panel_layout.addWidget(entities_groupbox)
         right_panel_layout.addWidget(dataset_groupbox)
         if self.textmodel.hasSpacyModel():
@@ -348,11 +346,12 @@ class AnnotationDialog(QMainWindow):
         self.text_navigator.addMapping(
             self.is_annotated_label, 1, QByteArray().insert(0, "text")
         )
-        self.text_navigator.addMapping(
-            self.text_categories_list,
-            2,
-            QByteArray().insert(0, "selectedItemsAsString"),
-        )
+        if self.textmodel.hasCategories():
+            self.text_navigator.addMapping(
+                self.text_categories_list,
+                2,
+                QByteArray().insert(0, "selectedItemsAsString"),
+            )
         self.text_navigator.currentIndexChanged.connect(
             self.update_statistics_and_progress
         )
