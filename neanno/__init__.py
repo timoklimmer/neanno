@@ -18,13 +18,13 @@ class NamedEntityDefinition:
 
 def ask_for_annotations(
     dataframe_to_edit,
+    dataset_source_friendly,
     text_column,
     is_annotated_column,
     named_entity_defs,
     category_defs,
     categories_column,
     save_callback,
-    dataset_source_friendly,
     dataset_target_friendly,
     spacy_model_source,
     spacy_model_target,
@@ -60,17 +60,19 @@ def ask_for_annotations(
         name = definition
         category_definitions.append(CategoryDefinition(name))
 
-    text_model = TextModel(
-        pandas_data_frame=dataframe_to_edit,
-        text_column=text_column,
-        is_annotated_column=is_annotated_column,
-        category_definitions=category_definitions,
-        categories_column=categories_column,
-        named_entity_definitions=named_entity_definitions,
-        save_callback=save_callback,
-        spacy_model_source=spacy_model_source,
-        spacy_model_target=spacy_model_target,
-        dataset_source_friendly=dataset_source_friendly,
-        dataset_target_friendly=dataset_target_friendly,
+    # run the annotation dialog with respective text model
+    AnnotationDialog(
+        TextModel(
+            pandas_data_frame=dataframe_to_edit,
+            dataset_source_friendly=dataset_source_friendly,
+            text_column=text_column,
+            is_annotated_column=is_annotated_column,
+            category_definitions=category_definitions,
+            categories_column=categories_column,
+            named_entity_definitions=named_entity_definitions,
+            save_callback=save_callback,
+            dataset_target_friendly=dataset_target_friendly,
+            spacy_model_source=spacy_model_source,
+            spacy_model_target=spacy_model_target,
+        )
     )
-    AnnotationDialog(text_model)

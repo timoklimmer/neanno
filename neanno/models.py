@@ -16,55 +16,59 @@ class TextModel(QAbstractTableModel):
     def __init__(
         self,
         pandas_data_frame,
+        dataset_source_friendly,
         text_column,
         is_annotated_column,
-        category_definitions,
-        categories_column,
-        named_entity_definitions,
+        category_definitions=None,
+        categories_column=None,
+        named_entity_definitions=None,
         save_callback=None,
+        dataset_target_friendly=None,
         spacy_model_source=None,
         spacy_model_target=None,
-        dataset_source_friendly=None,
-        dataset_target_friendly=None,
     ):
         super().__init__(parent=None)
         self._df = pandas_data_frame
+        self.dataset_source_friendly = dataset_source_friendly
         self.text_column = text_column
         self.is_annotated_column = is_annotated_column
         self.category_definitions = category_definitions
         self.categories_column = categories_column
         self.named_entity_definitions = named_entity_definitions
         self.save_callback = save_callback
+        self.dataset_target_friendly = dataset_target_friendly
         self.spacy_model_source = spacy_model_source
         self.spacy_model_target = spacy_model_target
-        self.dataset_source_friendly = dataset_source_friendly
-        self.dataset_target_friendly = dataset_target_friendly
 
-        # load and prepare spacy model
-        if self.spacy_model_source is not None:
-            self.spacy_model = self.load_and_prepare_spacy_model(self.spacy_model_source)
-
-        # get column indexes and ensure that the data frame has an is annotated column
+        # get column indexes and ensure that the data frame has the required columns
+        # text
         self.text_column_index = self._df.columns.get_loc(text_column)
+        # categories
         if self.categories_column not in self._df:
             self._df[self.categories_column] = ""
         self.categories_column_index = self._df.columns.get_loc(
             self.categories_column
         )
+        # is annotated
         if self.is_annotated_column not in self._df:
             self._df[self.is_annotated_column] = False
         self.is_annotated_column_index = self._df.columns.get_loc(
             self.is_annotated_column
         )
 
+        # load and prepare spacy model
+        if self.hasSpacyModel():
+            self.spacy_model = self.load_and_prepare_spacy_model(
+                self.spacy_model_source
+            )
+
     def load_and_prepare_spacy_model(self, spacy_model_source):
-        # load model
         print("Loading spacy model...")
-        if spacy_model_source.startswith("blank:"):
-            result = spacy.blank(spacy_model_source.replace("blank:", "", 1))
-        else:
-            result = spacy.load(self.spacy_model_source)
-        return result
+        return (
+            spacy.blank(spacy_model_source.replace("blank:", "", 1))
+            if spacy_model_source.startswith("blank:")
+            else spacy.load(self.spacy_model_source)
+        )
 
     def extract_entities_from_nerded_text(self, text):
         # TODO: check if label is actually a configured label
@@ -94,9 +98,7 @@ class TextModel(QAbstractTableModel):
             ner.add_label(named_entity_definition.code)
         # prepare the training set
         trainset = (
-            self._df[self._df[self.is_annotated_column] == True][
-                self.text_column
-            ]
+            self._df[self._df[self.is_annotated_column] == True][self.text_column]
             .map(lambda text: self.extract_entities_from_nerded_text(text))
             .tolist()
         )
@@ -140,15 +142,17 @@ class TextModel(QAbstractTableModel):
         # ensure index is valid
         if not index.isValid():
             return QVariant()
+
         # get is_annotated
         is_annotated = self._df.ix[index.row(), self.is_annotated_column_index]
         is_annotated = str(is_annotated if is_annotated is not None else False)
 
+        # return data for respective columns
         # column 0: text
         if index.column() == 0:
             result = str(self._df.ix[index.row(), self.text_column_index])
-            # add predicted entities if we have a model and no confirmed annotation yet
-            if self.spacy_model is not None and is_annotated == "False":
+            # add predicted entities if needed
+            if not is_annotated and self.hasNamedEntities() and self.hasSpacyModel():
                 doc = self.spacy_model(result)
                 shift = 0
                 for ent in doc.ents:
@@ -163,7 +167,6 @@ class TextModel(QAbstractTableModel):
         # column 1: is_annotated
         if index.column() == 1:
             return is_annotated
-
         # column 2: categories
         if index.column() == 2:
             return str(self._df.ix[index.row(), self.categories_column_index])
@@ -184,7 +187,7 @@ class TextModel(QAbstractTableModel):
                 self._df.iat[row, self.text_column_index] = value
             if index.column() == 2:
                 # categories
-                self._df.iat[row, self.categories_column_index] = value                
+                self._df.iat[row, self.categories_column_index] = value
             self._df.iat[row, self.is_annotated_column_index] = True
             self.save()
             self.dataChanged.emit(index, index)
@@ -229,11 +232,11 @@ class TextModel(QAbstractTableModel):
     def isTextToAnnotateLeft(self):
         return False in self._df[self.is_annotated_column].values
 
-    def hasDatasetMetadata(self):
-        return (
-            self.dataset_source_friendly is not None
-            or self.dataset_target_friendly is not None
-        )
-
     def hasSpacyModel(self):
-        return self.spacy_model_source is not None or self.spacy_model_target is not None
+        return bool(self.spacy_model_source)
+
+    def hasNamedEntities(self):
+        return bool(self.named_entity_definitions)
+
+    def hasCategories(self):
+        return bool(self.categories_column) and len(self.category_definitions)

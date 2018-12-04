@@ -139,7 +139,7 @@ class AnnotationDialog(QMainWindow):
 
         # categories
         self.text_categories_list = MappableQListWidget()
-        self.text_categories_list.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.text_categories_list.setSelectionMode(QAbstractItemView.MultiSelection)
         for category in self.textmodel.category_definitions:
             self.text_categories_list.addItem(category.name)
         text_categories_groupbox_layout = QVBoxLayout()
@@ -199,19 +199,18 @@ class AnnotationDialog(QMainWindow):
         dataset_grid.addWidget(QLabel("Total Texts"), 4, 0)
         self.total_texts_label = QLabel()
         dataset_grid.addWidget(self.total_texts_label, 4, 1)
-        if self.textmodel.hasDatasetMetadata():
-            if self.textmodel.dataset_source_friendly is not None:
-                dataset_grid.addWidget(QLabel("Source"), 5, 0)
-                self.dataset_source_friendly_label = QLabel(
-                    self.textmodel.dataset_source_friendly
-                )
-                dataset_grid.addWidget(self.dataset_source_friendly_label, 5, 1)
-            if self.textmodel.dataset_target_friendly is not None:
-                dataset_grid.addWidget(QLabel("Target"), 6, 0)
-                self.dataset_target_friendly_label = QLabel(
-                    self.textmodel.dataset_target_friendly
-                )
-                dataset_grid.addWidget(self.dataset_target_friendly_label, 6, 1)
+        if self.textmodel.dataset_source_friendly is not None:
+            dataset_grid.addWidget(QLabel("Source"), 5, 0)
+            self.dataset_source_friendly_label = QLabel(
+                self.textmodel.dataset_source_friendly
+            )
+            dataset_grid.addWidget(self.dataset_source_friendly_label, 5, 1)
+        if self.textmodel.dataset_target_friendly is not None:
+            dataset_grid.addWidget(QLabel("Target"), 6, 0)
+            self.dataset_target_friendly_label = QLabel(
+                self.textmodel.dataset_target_friendly
+            )
+            dataset_grid.addWidget(self.dataset_target_friendly_label, 6, 1)
         dataset_groupbox = QGroupBox("Dataset")
         dataset_groupbox.setLayout(dataset_grid)
 
@@ -601,12 +600,8 @@ class QDataWidgetMapperWithHistory(QDataWidgetMapper):
 
 
 class MappableQListWidget(QListWidget):
-    def __init__(self):
-        super().__init__()
-
     def getSelectedItemsAsString(self):
-        result = "|".join([item.text() for item in self.selectedItems()])
-        return result
+        return "|".join([item.text() for item in self.selectedItems()])
 
     def setSelectedItemsAsString(self, value):
         self.clearSelection()
@@ -617,4 +612,3 @@ class MappableQListWidget(QListWidget):
     selectedItemsAsString = pyqtProperty(
         str, fget=getSelectedItemsAsString, fset=setSelectedItemsAsString
     )
-

@@ -68,13 +68,16 @@ def main():
         spacy_model_target = args.spacy_model_target
 
         # compute friendly data source names
-        dataset_source_friendly = (
-            os.path.basename(dataset_source_csv)
-            if dataset_source_csv is not None
-            else None
-        )
+        dataset_source_friendly = os.path.basename(dataset_source_csv)
         dataset_target_friendly = (
             os.path.basename(dataset_target_csv)
+            if dataset_target_csv is not None
+            else None
+        )
+
+        # define a method to save the edited dataset
+        save_callback = (
+            lambda df: df.to_csv(dataset_target_csv, index=False, header=True)
             if dataset_target_csv is not None
             else None
         )
@@ -87,17 +90,13 @@ def main():
         print("Showing annotation dialog...")
         ask_for_annotations(
             dataframe_to_edit=dataframe_to_edit,
+            dataset_source_friendly=dataset_source_friendly,
             text_column=text_column,
             is_annotated_column=is_annotated_column,
             named_entity_defs=named_entity_defs,
             category_defs=category_defs,
             categories_column=categories_column,
-            save_callback=lambda df: df.to_csv(
-                dataset_target_csv, index=False, header=True
-            )
-            if dataset_target_csv is not None
-            else None,
-            dataset_source_friendly=dataset_source_friendly,
+            save_callback=save_callback,
             dataset_target_friendly=dataset_target_friendly,
             spacy_model_source=spacy_model_source,
             spacy_model_target=spacy_model_target,
