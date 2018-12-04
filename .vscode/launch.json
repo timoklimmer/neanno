@@ -10,14 +10,15 @@
             "request": "launch",
             "program": "${workspaceFolder}/neanno.py",
             "args": [
-                "--dataset-source-csv", "sample_data/sample_data.annotated.csv",
+                "--dataset-source-csv", "sample_data/sample_data.csv",
                 "--text-column", "text",
                 "--is-annotated-column", "is_text_annotated",
                 "--named-entity-defs", "ANIMAL Alt+A",
-                "--category-defs", "Category A/Category B/Category C",
+                "--category-defs", "Incident/Inquiry/Information/Spam",
+                "--categories-column", "categories",
                 "--dataset-target-csv", "sample_data/sample_data.annotated.csv",
-                "--spacy-model-source", "en",
-                "--spacy-model-target", "models/en_animals"
+                //"--spacy-model-source", "en",
+                //"--spacy-model-target", "models/en_animals"
             ]
         },
         {
@@ -30,6 +31,7 @@
                 "--text-column", "post_text",
                 "--is-annotated-column", "is_post_annotated",
                 "--category-defs", "Relevant/Not Relevant",
+                "--categories-column", "categories",
                 "--named-entity-defs", "MEAL Alt+M/SIDE Alt+S/APPETIZER Alt+A/DESSERT Alt+D/BEVERAGE Alt+B",
                 "--dataset-target-csv", "sample_data/sample_posts.annotated.csv",
                 "--spacy-model-source", "blank:de",

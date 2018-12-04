@@ -3,7 +3,7 @@ import re
 import sys
 
 from PyQt5 import QtCore
-from PyQt5.QtCore import QByteArray, QRegularExpression, Qt, pyqtSlot
+from PyQt5.QtCore import QByteArray, QRegularExpression, Qt, pyqtProperty, pyqtSlot
 from PyQt5.QtGui import (
     QColor,
     QFont,
@@ -112,7 +112,9 @@ class AnnotationDialog(QMainWindow):
         self.next_button = QPushButton(self.get_icon("next.png"), None)
         self.last_button = QPushButton(self.get_icon("last.png"), None)
         self.goto_button = QPushButton(self.get_icon("goto.png"), None)
-        self.submit_next_best_button = QPushButton(self.get_icon("submit_next_best.png"), None)
+        self.submit_next_best_button = QPushButton(
+            self.get_icon("submit_next_best.png"), None
+        )
         about_button = QPushButton("About")
         about_button.clicked.connect(self.handle_about_button_clicked)
         shortcuts_button = QPushButton("Shortcuts")
@@ -136,12 +138,12 @@ class AnnotationDialog(QMainWindow):
         self.progressbar.setValue(0)
 
         # categories
-        text_categories_list = QListWidget()
-        text_categories_list.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.text_categories_list = MappableQListWidget()
+        self.text_categories_list.setSelectionMode(QAbstractItemView.ExtendedSelection)
         for category in self.textmodel.category_definitions:
-            text_categories_list.addItem(category.name)
+            self.text_categories_list.addItem(category.name)
         text_categories_groupbox_layout = QVBoxLayout()
-        text_categories_groupbox_layout.addWidget(text_categories_list)
+        text_categories_groupbox_layout.addWidget(self.text_categories_list)
         text_categories_groupbox = QGroupBox("Categories")
         text_categories_groupbox.setLayout(text_categories_groupbox_layout)
 
@@ -227,7 +229,7 @@ class AnnotationDialog(QMainWindow):
             # TODO: complete, show only if categories are relevant
             right_panel_layout.addWidget(text_categories_groupbox)
         if True:
-            # TODO: complete, show only if categories are relevant        
+            # TODO: complete, show only if categories are relevant
             right_panel_layout.addWidget(entities_groupbox)
         right_panel_layout.addWidget(dataset_groupbox)
         if self.textmodel.hasSpacyModel():
@@ -347,18 +349,25 @@ class AnnotationDialog(QMainWindow):
         self.text_navigator.addMapping(
             self.is_annotated_label, 1, QByteArray().insert(0, "text")
         )
+        self.text_navigator.addMapping(
+            self.text_categories_list,
+            2,
+            QByteArray().insert(0, "selectedItemsAsString"),
+        )
         self.text_navigator.currentIndexChanged.connect(
             self.update_statistics_and_progress
         )
         self.text_navigator.setCurrentIndex(self.textmodel.nextBestRowIndex(-1))
-        self.backward_button.clicked.connect(self.text_navigator.backward)        
-        self.forward_button.clicked.connect(self.text_navigator.forward)        
-        self.first_button.clicked.connect(self.text_navigator.toFirst)        
-        self.previous_button.clicked.connect(self.text_navigator.toPrevious)        
-        self.next_button.clicked.connect(self.text_navigator.toNext)        
-        self.last_button.clicked.connect(self.text_navigator.toLast)        
+        self.backward_button.clicked.connect(self.text_navigator.backward)
+        self.forward_button.clicked.connect(self.text_navigator.forward)
+        self.first_button.clicked.connect(self.text_navigator.toFirst)
+        self.previous_button.clicked.connect(self.text_navigator.toPrevious)
+        self.next_button.clicked.connect(self.text_navigator.toNext)
+        self.last_button.clicked.connect(self.text_navigator.toLast)
         self.goto_button.clicked.connect(self.handle_shortcut_goto)
-        self.submit_next_best_button.clicked.connect(self.handle_shortcut_submit_next_best)
+        self.submit_next_best_button.clicked.connect(
+            self.handle_shortcut_submit_next_best
+        )
 
     def handle_shortcut_submit_next_best(self):
         # submit changes of old text
@@ -589,3 +598,23 @@ class QDataWidgetMapperWithHistory(QDataWidgetMapper):
             self.is_forward_or_backward = True
             self.setCurrentIndex(self.forward_stack.pop())
             self.is_forward_or_backward = False
+
+
+class MappableQListWidget(QListWidget):
+    def __init__(self):
+        super().__init__()
+
+    def getSelectedItemsAsString(self):
+        result = "|".join([item.text() for item in self.selectedItems()])
+        return result
+
+    def setSelectedItemsAsString(self, value):
+        self.clearSelection()
+        for selectedItem in value.split("|"):
+            for itemToSelect in self.findItems(selectedItem, Qt.MatchExactly):
+                itemToSelect.setSelected(True)
+
+    selectedItemsAsString = pyqtProperty(
+        str, fget=getSelectedItemsAsString, fset=setSelectedItemsAsString
+    )
+

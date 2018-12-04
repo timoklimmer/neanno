@@ -46,6 +46,11 @@ class TextModel(QAbstractTableModel):
 
         # get column indexes and ensure that the data frame has an is annotated column
         self.text_column_index = self._df.columns.get_loc(text_column)
+        if self.categories_column not in self._df:
+            self._df[self.categories_column] = ""
+        self.categories_column_index = self._df.columns.get_loc(
+            self.categories_column
+        )
         if self.is_annotated_column not in self._df:
             self._df[self.is_annotated_column] = False
         self.is_annotated_column_index = self._df.columns.get_loc(
@@ -159,6 +164,10 @@ class TextModel(QAbstractTableModel):
         if index.column() == 1:
             return is_annotated
 
+        # column 2: categories
+        if index.column() == 2:
+            return str(self._df.ix[index.row(), self.categories_column_index])
+
     def setData(self, index, value, role):
         row = index.row()
         col = index.column()
@@ -170,7 +179,12 @@ class TextModel(QAbstractTableModel):
             self.data(index) != value
             or self._df.ix[row, self.is_annotated_column_index] == False
         ):
-            self._df.iat[row, self.text_column_index] = value
+            if index.column() == 0:
+                # text
+                self._df.iat[row, self.text_column_index] = value
+            if index.column() == 2:
+                # categories
+                self._df.iat[row, self.categories_column_index] = value                
             self._df.iat[row, self.is_annotated_column_index] = True
             self.save()
             self.dataChanged.emit(index, index)
@@ -181,13 +195,15 @@ class TextModel(QAbstractTableModel):
             return self.text_column
         if section == 1:
             return self.is_annotated_column
+        if section == 2:
+            return self.categories_column
         return None
 
     def rowCount(self, parent=QModelIndex()):
         return len(self._df.index)
 
     def columnCount(self, parent=QModelIndex()):
-        return 2
+        return 3
 
     def flags(self, index):
         return super().flags(index) | Qt.ItemIsEditable
