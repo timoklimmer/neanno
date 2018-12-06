@@ -167,16 +167,16 @@ class AnnotationDialog(QMainWindow):
         if self.textmodel.has_spacy_model():
             spacy_grid = QGridLayout()
             spacy_grid.addWidget(QLabel("Source"), 0, 0)
-            self.spacy_model_source_label = QLabel(self.textmodel.spacy_model_source)
+            self.spacy_model_source_label = QLabel(config.spacy_model_source)
             spacy_grid.addWidget(self.spacy_model_source_label, 0, 1)
             retrain_model_button = QPushButton("Retrain")
             retrain_model_button.clicked.connect(self.handle_retrain_button_clicked)
             spacy_grid.addWidget(retrain_model_button, 2, 0)
 
-            if self.textmodel.spacy_model_target is not None:
+            if config.spacy_model_target is not None:
                 spacy_grid.addWidget(QLabel("Target"), 1, 0)
                 self.spacy_model_target_label = QLabel(
-                    self.textmodel.spacy_model_target
+                    config.spacy_model_target
                 )
                 spacy_grid.addWidget(self.spacy_model_target_label, 1, 1)
             spacy_groupbox = QGroupBox("Spacy")
