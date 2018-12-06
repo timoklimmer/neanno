@@ -3,7 +3,8 @@ import os
 import sys
 
 import pandas as pd
-from neanno import NamedEntityDefinition, ask_for_annotations
+
+from neanno import ask_for_annotations
 
 
 def main():

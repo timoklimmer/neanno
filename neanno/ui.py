@@ -1,9 +1,8 @@
 import os
 import re
-import sys
 
 from PyQt5 import QtCore
-from PyQt5.QtCore import QByteArray, QRegularExpression, Qt, pyqtProperty, pyqtSlot
+from PyQt5.QtCore import QByteArray, QRegularExpression, Qt
 from PyQt5.QtGui import (
     QColor,
     QFont,
@@ -22,7 +21,6 @@ from PyQt5.QtWidgets import (
     QHBoxLayout,
     QInputDialog,
     QLabel,
-    QListWidget,
     QMainWindow,
     QMessageBox,
     QPlainTextEdit,
@@ -33,24 +31,28 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 
+from neanno.custom_ui_controls import MappableQListWidget, QDataWidgetMapperWithHistory
+
 if hasattr(QtCore.Qt, "AA_UseHighDpiPixmaps"):
     QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
 
-SHORTCUT_SUBMIT_NEXT_BEST_KEYSEQUENCE = "Ctrl+Return"
-SHORTCUT_BACKWARD_KEYSEQUENCE = "Ctrl+Left"
-SHORTCUT_FORWARD_KEYSEQUENCE = "Ctrl+Right"
-SHORTCUT_FIRST_KEYSEQUENCE = "Ctrl+F"
-SHORTCUT_PREVIOUS_KEYSEQUENCE = "Ctrl+P"
-SHORTCUT_NEXT_KEYSEQUENCE = "Ctrl+N"
-SHORTCUT_LAST_KEYSEQUENCE = "Ctrl+L"
-SHORTCUT_GOTO_KEYSEQUENCE = "Ctrl+G"
-SHORTCUT_UNDO_KEYSEQUENCE = "Ctrl+Z"
-SHORTCUT_REDO_KEYSEQUENCE = "Ctrl+Y"
-SHORTCUT_REMOVE_KEYSEQUENCE = "Ctrl+R"
-SHORTCUT_REMOVE_ALL_KEYSEQUENCE = "Ctrl+T"
+if hasattr(QtCore.Qt, "AA_EnableHighDpiScaling"):
+    QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
 
-ABOUT_TEXT = """
-neanno is yet another text annotation tool.
+SHORTCUT_SUBMIT_NEXT_BEST = "Ctrl+Return"
+SHORTCUT_BACKWARD = "Ctrl+Left"
+SHORTCUT_FORWARD = "Ctrl+Right"
+SHORTCUT_FIRST = "Ctrl+F"
+SHORTCUT_PREVIOUS = "Ctrl+P"
+SHORTCUT_NEXT = "Ctrl+N"
+SHORTCUT_LAST = "Ctrl+L"
+SHORTCUT_GOTO = "Ctrl+G"
+SHORTCUT_UNDO = "Ctrl+Z"
+SHORTCUT_REDO = "Ctrl+Y"
+SHORTCUT_REMOVE = "Ctrl+R"
+SHORTCUT_REMOVE_ALL = "Ctrl+T"
+
+ABOUT_TEXT = """neanno is yet another text annotation tool.
 
 There are already several other annotation tools out there but none
 of them really matched my requirements. Hence, I created my own.
@@ -78,7 +80,8 @@ class AnnotationDialog(QMainWindow):
         self.show()
         app.exec_()
 
-    def get_icon(self, file):
+    @staticmethod
+    def get_icon(file):
         return QIcon(
             os.path.join(
                 os.path.abspath(os.path.dirname(__file__)), "resources/{}".format(file)
@@ -165,7 +168,7 @@ class AnnotationDialog(QMainWindow):
         entities_groupbox.setLayout(shortcut_legend_grid)
 
         # spacy model
-        if self.textmodel.hasSpacyModel():
+        if self.textmodel.has_spacy_model():
             spacy_grid = QGridLayout()
             spacy_grid.addWidget(QLabel("Source"), 0, 0)
             self.spacy_model_source_label = QLabel(self.textmodel.spacy_model_source)
@@ -187,18 +190,18 @@ class AnnotationDialog(QMainWindow):
         dataset_grid = QGridLayout()
         dataset_grid.addWidget(QLabel("Annotated"), 0, 0)
         dataset_grid.addWidget(self.progressbar, 0, 1)
-        dataset_grid.addWidget(QLabel("Current Index"), 1, 0)
-        self.current_text_index_label = QLabel()
-        dataset_grid.addWidget(self.current_text_index_label, 1, 1)
-        dataset_grid.addWidget(QLabel("Is Annotated"), 2, 0)
-        self.is_annotated_label = QLabel()
-        dataset_grid.addWidget(self.is_annotated_label, 2, 1)
-        dataset_grid.addWidget(QLabel("Annotated Texts"), 3, 0)
+        dataset_grid.addWidget(QLabel("Annotated Texts"), 1, 0)
         self.annotated_texts_label = QLabel()
-        dataset_grid.addWidget(self.annotated_texts_label, 3, 1)
-        dataset_grid.addWidget(QLabel("Total Texts"), 4, 0)
+        dataset_grid.addWidget(self.annotated_texts_label, 1, 1)
+        dataset_grid.addWidget(QLabel("Total Texts"), 2, 0)
         self.total_texts_label = QLabel()
-        dataset_grid.addWidget(self.total_texts_label, 4, 1)
+        dataset_grid.addWidget(self.total_texts_label, 2, 1)
+        dataset_grid.addWidget(QLabel("Current Index"), 3, 0)
+        self.current_text_index_label = QLabel()
+        dataset_grid.addWidget(self.current_text_index_label, 3, 1)
+        dataset_grid.addWidget(QLabel("Is Annotated"), 4, 0)
+        self.is_annotated_label = QLabel()
+        dataset_grid.addWidget(self.is_annotated_label, 4, 1)
         if self.textmodel.dataset_source_friendly is not None:
             dataset_grid.addWidget(QLabel("Source"), 5, 0)
             self.dataset_source_friendly_label = QLabel(
@@ -224,12 +227,12 @@ class AnnotationDialog(QMainWindow):
         left_panel_layout.addWidget(self.text_edit)
         # right panel
         right_panel_layout = QVBoxLayout()
-        if self.textmodel.hasCategories():
+        if self.textmodel.has_categories():
             right_panel_layout.addWidget(text_categories_groupbox)
-        if self.textmodel.hasNamedEntities():
+        if self.textmodel.has_named_entities():
             right_panel_layout.addWidget(entities_groupbox)
         right_panel_layout.addWidget(dataset_groupbox)
-        if self.textmodel.hasSpacyModel():
+        if self.textmodel.has_spacy_model():
             right_panel_layout.addWidget(spacy_groupbox)
         right_panel_layout.addStretch()
         right_buttons_layout = QHBoxLayout()
@@ -258,7 +261,7 @@ class AnnotationDialog(QMainWindow):
 
         # submit / next best
         shortcut_submit_next_best = QShortcut(
-            QKeySequence(SHORTCUT_SUBMIT_NEXT_BEST_KEYSEQUENCE),
+            QKeySequence(SHORTCUT_SUBMIT_NEXT_BEST),
             self,
             context=Qt.ApplicationShortcut,
         )
@@ -268,73 +271,55 @@ class AnnotationDialog(QMainWindow):
 
         # backward
         shortcut_backward = QShortcut(
-            QKeySequence(SHORTCUT_BACKWARD_KEYSEQUENCE),
-            self,
-            context=Qt.ApplicationShortcut,
+            QKeySequence(SHORTCUT_BACKWARD), self, context=Qt.ApplicationShortcut
         )
         shortcut_backward.activated.connect(self.text_navigator.backward)
 
         # forward
         shortcut_forward = QShortcut(
-            QKeySequence(SHORTCUT_FORWARD_KEYSEQUENCE),
-            self,
-            context=Qt.ApplicationShortcut,
+            QKeySequence(SHORTCUT_FORWARD), self, context=Qt.ApplicationShortcut
         )
         shortcut_forward.activated.connect(self.text_navigator.forward)
 
         # first
         shortcut_first = QShortcut(
-            QKeySequence(SHORTCUT_FIRST_KEYSEQUENCE),
-            self,
-            context=Qt.ApplicationShortcut,
+            QKeySequence(SHORTCUT_FIRST), self, context=Qt.ApplicationShortcut
         )
         shortcut_first.activated.connect(self.text_navigator.toFirst)
 
         # previous
         shortcut_previous = QShortcut(
-            QKeySequence(SHORTCUT_PREVIOUS_KEYSEQUENCE),
-            self,
-            context=Qt.ApplicationShortcut,
+            QKeySequence(SHORTCUT_PREVIOUS), self, context=Qt.ApplicationShortcut
         )
         shortcut_previous.activated.connect(self.text_navigator.toPrevious)
 
         # next
         shortcut_next = QShortcut(
-            QKeySequence(SHORTCUT_NEXT_KEYSEQUENCE),
-            self,
-            context=Qt.ApplicationShortcut,
+            QKeySequence(SHORTCUT_NEXT), self, context=Qt.ApplicationShortcut
         )
         shortcut_next.activated.connect(self.text_navigator.toNext)
 
         # last
         shortcut_last = QShortcut(
-            QKeySequence(SHORTCUT_LAST_KEYSEQUENCE),
-            self,
-            context=Qt.ApplicationShortcut,
+            QKeySequence(SHORTCUT_LAST), self, context=Qt.ApplicationShortcut
         )
         shortcut_last.activated.connect(self.text_navigator.toLast)
 
         # goto
         shortcut_goto = QShortcut(
-            QKeySequence(SHORTCUT_GOTO_KEYSEQUENCE),
-            self,
-            context=Qt.ApplicationShortcut,
+            QKeySequence(SHORTCUT_GOTO), self, context=Qt.ApplicationShortcut
         )
         shortcut_goto.activated.connect(self.handle_shortcut_goto)
 
         # remove
         shortcut_last = QShortcut(
-            QKeySequence(SHORTCUT_REMOVE_KEYSEQUENCE),
-            self,
-            context=Qt.ApplicationShortcut,
+            QKeySequence(SHORTCUT_REMOVE), self, context=Qt.ApplicationShortcut
         )
         shortcut_last.activated.connect(self.remove_entity)
 
         # remove all
         shortcut_last = QShortcut(
-            QKeySequence(SHORTCUT_REMOVE_ALL_KEYSEQUENCE),
-            self,
-            context=Qt.ApplicationShortcut,
+            QKeySequence(SHORTCUT_REMOVE_ALL), self, context=Qt.ApplicationShortcut
         )
         shortcut_last.activated.connect(self.remove_all_entities)
 
@@ -346,7 +331,7 @@ class AnnotationDialog(QMainWindow):
         self.text_navigator.addMapping(
             self.is_annotated_label, 1, QByteArray().insert(0, "text")
         )
-        if self.textmodel.hasCategories():
+        if self.textmodel.has_categories():
             self.text_navigator.addMapping(
                 self.text_categories_list,
                 2,
@@ -355,7 +340,7 @@ class AnnotationDialog(QMainWindow):
         self.text_navigator.currentIndexChanged.connect(
             self.update_statistics_and_progress
         )
-        self.text_navigator.setCurrentIndex(self.textmodel.nextBestRowIndex(-1))
+        self.text_navigator.setCurrentIndex(self.textmodel.get_next_best_row_index(-1))
         self.backward_button.clicked.connect(self.text_navigator.backward)
         self.forward_button.clicked.connect(self.text_navigator.forward)
         self.first_button.clicked.connect(self.text_navigator.toFirst)
@@ -373,7 +358,7 @@ class AnnotationDialog(QMainWindow):
         # update statistics and progress bar
         self.update_statistics_and_progress()
         # show "all messages annotated" if all texts are annotated
-        if not self.textmodel.isTextToAnnotateLeft():
+        if not self.textmodel.is_texts_left_for_annotation():
             QMessageBox.information(
                 self,
                 "Congratulations",
@@ -384,7 +369,7 @@ class AnnotationDialog(QMainWindow):
             )
         # identify and go to next best text
         self.text_navigator.setCurrentIndex(
-            self.textmodel.nextBestRowIndex(self.text_navigator.currentIndex())
+            self.textmodel.get_next_best_row_index(self.text_navigator.currentIndex())
         )
 
     def handle_shortcut_goto(self):
@@ -397,7 +382,8 @@ class AnnotationDialog(QMainWindow):
     def handle_about_button_clicked(self):
         QMessageBox.information(self, "About neanno", ABOUT_TEXT, QMessageBox.Ok)
 
-    def handle_shortcuts_button_clicked(self):
+    @staticmethod
+    def handle_shortcuts_button_clicked():
         def shortcut_fragment(label, shortcut):
             return (
                 "<tr><td style="
@@ -406,22 +392,18 @@ class AnnotationDialog(QMainWindow):
             )
 
         message = "<table>"
-        message += shortcut_fragment(
-            "Submit/Next Best", SHORTCUT_SUBMIT_NEXT_BEST_KEYSEQUENCE
-        )
-        message += shortcut_fragment("Backward", SHORTCUT_BACKWARD_KEYSEQUENCE)
-        message += shortcut_fragment("Forward", SHORTCUT_FORWARD_KEYSEQUENCE)
-        message += shortcut_fragment("First", SHORTCUT_FIRST_KEYSEQUENCE)
-        message += shortcut_fragment("Previous", SHORTCUT_PREVIOUS_KEYSEQUENCE)
-        message += shortcut_fragment("Next", SHORTCUT_NEXT_KEYSEQUENCE)
-        message += shortcut_fragment("Last", SHORTCUT_LAST_KEYSEQUENCE)
-        message += shortcut_fragment("Goto", SHORTCUT_GOTO_KEYSEQUENCE)
-        message += shortcut_fragment("Undo", SHORTCUT_UNDO_KEYSEQUENCE)
-        message += shortcut_fragment("Redo", SHORTCUT_REDO_KEYSEQUENCE)
-        message += shortcut_fragment("Remove label", SHORTCUT_REMOVE_KEYSEQUENCE)
-        message += shortcut_fragment(
-            "Remove all labels", SHORTCUT_REMOVE_ALL_KEYSEQUENCE
-        )
+        message += shortcut_fragment("Submit/Next Best", SHORTCUT_SUBMIT_NEXT_BEST)
+        message += shortcut_fragment("Backward", SHORTCUT_BACKWARD)
+        message += shortcut_fragment("Forward", SHORTCUT_FORWARD)
+        message += shortcut_fragment("First", SHORTCUT_FIRST)
+        message += shortcut_fragment("Previous", SHORTCUT_PREVIOUS)
+        message += shortcut_fragment("Next", SHORTCUT_NEXT)
+        message += shortcut_fragment("Last", SHORTCUT_LAST)
+        message += shortcut_fragment("Goto", SHORTCUT_GOTO)
+        message += shortcut_fragment("Undo", SHORTCUT_UNDO)
+        message += shortcut_fragment("Redo", SHORTCUT_REDO)
+        message += shortcut_fragment("Remove label", SHORTCUT_REMOVE)
+        message += shortcut_fragment("Remove all labels", SHORTCUT_REMOVE_ALL)
         message += "</table>"
 
         msg = QMessageBox()
@@ -438,13 +420,13 @@ class AnnotationDialog(QMainWindow):
     def update_statistics_and_progress(self):
         # progress
         new_progress_value = (
-            self.textmodel.annotatedTextsCount() * 100 / self.textmodel.rowCount()
+            self.textmodel.get_annotated_texts_count() * 100 / self.textmodel.rowCount()
         )
         self.progressbar.setValue(new_progress_value)
         # current index
         self.current_text_index_label.setText(str(self.text_navigator.currentIndex()))
         # annotated texts count
-        annotated_texts_count = self.textmodel.annotatedTextsCount()
+        annotated_texts_count = self.textmodel.get_annotated_texts_count()
         self.annotated_texts_label.setText(str(annotated_texts_count))
         # total texts count
         total_texts_count = self.textmodel.rowCount()
@@ -468,7 +450,7 @@ class AnnotationDialog(QMainWindow):
         new_text = re.sub(
             "\((.*?)\| .+?\)",
             lambda match: match.group(1)
-            if current_cursor_pos > match.start() and current_cursor_pos < match.end()
+            if match.start() < current_cursor_pos < match.end()
             else match.group(0),
             self.text_edit.toPlainText(),
             flags=re.DOTALL,
@@ -566,48 +548,3 @@ class EntityHighlighter(QSyntaxHighlighter):
                     self.named_entity_code_format_no_text,
                 )
                 offset = match.capturedEnd("closingParen")
-
-
-class QDataWidgetMapperWithHistory(QDataWidgetMapper):
-    backward_stack = []
-    forward_stack = []
-    is_forward_or_backward = False
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-
-    def setCurrentIndex(self, index):
-        if self.currentIndex() != index:
-            if not self.is_forward_or_backward:
-                self.forward_stack = []
-                self.backward_stack.append(self.currentIndex())
-            super().setCurrentIndex(index)
-
-    def backward(self):
-        if len(self.backward_stack) > 0:
-            self.forward_stack.append(self.currentIndex())
-            self.is_forward_or_backward = True
-            self.setCurrentIndex(self.backward_stack.pop())
-            self.is_forward_or_backward = False
-
-    def forward(self):
-        if len(self.forward_stack) > 0:
-            self.backward_stack.append(self.currentIndex())
-            self.is_forward_or_backward = True
-            self.setCurrentIndex(self.forward_stack.pop())
-            self.is_forward_or_backward = False
-
-
-class MappableQListWidget(QListWidget):
-    def getSelectedItemsAsString(self):
-        return "|".join([item.text() for item in self.selectedItems()])
-
-    def setSelectedItemsAsString(self, value):
-        self.clearSelection()
-        for selectedItem in value.split("|"):
-            for itemToSelect in self.findItems(selectedItem, Qt.MatchExactly):
-                itemToSelect.setSelected(True)
-
-    selectedItemsAsString = pyqtProperty(
-        str, fget=getSelectedItemsAsString, fset=setSelectedItemsAsString
-    )

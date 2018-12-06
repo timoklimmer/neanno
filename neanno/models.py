@@ -3,7 +3,6 @@ import random
 import re
 import string
 
-import pandas as pd
 import spacy
 from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant, pyqtSignal
 from spacy.util import compounding, minibatch
@@ -65,7 +64,7 @@ class TextModel(QAbstractTableModel):
         )
 
         # load and prepare spacy model
-        if self.hasSpacyModel():
+        if self.has_spacy_model():
             self.spacy_model = self.load_and_prepare_spacy_model(
                 self.spacy_model_source
             )
@@ -78,19 +77,20 @@ class TextModel(QAbstractTableModel):
             else spacy.load(self.spacy_model_source)
         )
 
-    def extract_entities_from_nerded_text(self, text):
+    @staticmethod
+    def extract_entities_from_nerded_text(text):
         # TODO: check if label is actually a configured label
         result = (re.sub("\((?P<text>.+?)\| .+?\)", "\g<text>", text), {"entities": []})
-        workingText = text
+        working_text = text
         while True:
-            match = re.search("\((?P<text>.+?)\| (?P<label>.+?)\)", workingText)
+            match = re.search("\((?P<text>.+?)\| (?P<label>.+?)\)", working_text)
             if match is not None:
                 entity_text = match.group(1)
                 entity_label = match.group(2)
                 result[1]["entities"].append(
                     (match.start(1) - 1, match.end(1) - 1, entity_label)
                 )
-                workingText = re.sub("\(.+?\| .+?\)", entity_text, workingText, 1)
+                working_text = re.sub("\(.+?\| .+?\)", entity_text, working_text, 1)
             else:
                 break
         return result
@@ -160,17 +160,21 @@ class TextModel(QAbstractTableModel):
         if index.column() == 0:
             result = str(self._df.ix[index.row(), self.text_column_index])
             # add predicted entities if needed
-            if not is_annotated and self.hasNamedEntities() and self.hasSpacyModel():
+            if (
+                not is_annotated
+                and self.has_named_entities()
+                and self.has_spacy_model()
+            ):
                 doc = self.spacy_model(result)
                 shift = 0
                 for ent in doc.ents:
-                    oldResultLength = len(result)
+                    old_result_length = len(result)
                     result = "{}{}{}".format(
                         result[: ent.start_char + shift],
                         "({}| {})".format(ent.text, ent.label_),
                         result[ent.end_char + shift :],
                     )
-                    shift += len(result) - oldResultLength
+                    shift += len(result) - old_result_length
             return result
         # column 1: is_annotated
         if index.column() == 1:
@@ -188,7 +192,7 @@ class TextModel(QAbstractTableModel):
         # update _df and save if needed
         if (
             self.data(index) != value
-            or self._df.ix[row, self.is_annotated_column_index] == False
+            or not self._df.ix[row, self.is_annotated_column_index]
         ):
             if index.column() == 0:
                 # text
@@ -220,7 +224,7 @@ class TextModel(QAbstractTableModel):
         return super().flags(index) | Qt.ItemIsEditable
 
     def save(self):
-        if not self.save_callback is None:
+        if self.save_callback is not None:
             self.saveStarted.emit()
             self.save_callback(
                 self._df
@@ -229,26 +233,26 @@ class TextModel(QAbstractTableModel):
             )
             self.saveCompleted.emit()
 
-    def annotatedTextsCount(self):
-        return (self._df[self.is_annotated_column] == True).sum()
+    def get_annotated_texts_count(self):
+        return self._df[self.is_annotated_column].sum()
 
-    def nextBestRowIndex(self, currentIndex):
-        if self.isTextToAnnotateLeft():
+    def get_next_best_row_index(self, current_index):
+        if self.is_texts_left_for_annotation():
             # return the next text which is not annotated yet
             return self._df[self.is_annotated_column].idxmin()
         else:
             # there is no text that is not annotated yet
             # return the next text (might start at the beginning if end of available texts is reads)
-            return (currentIndex + 1) % self.rowCount()
+            return (current_index + 1) % self.rowCount()
 
-    def isTextToAnnotateLeft(self):
+    def is_texts_left_for_annotation(self):
         return False in self._df[self.is_annotated_column].values
 
-    def hasSpacyModel(self):
+    def has_spacy_model(self):
         return bool(self.spacy_model_source)
 
-    def hasNamedEntities(self):
+    def has_named_entities(self):
         return bool(self.named_entity_definitions)
 
-    def hasCategories(self):
+    def has_categories(self):
         return bool(self.categories_column) and len(self.category_definitions)

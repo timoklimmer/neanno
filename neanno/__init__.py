@@ -1,19 +1,6 @@
-import pandas as pd
-
+from neanno.definitions import CategoryDefinition, NamedEntityDefinition
 from neanno.models import TextModel
 from neanno.ui import AnnotationDialog
-
-
-class CategoryDefinition:
-    def __init__(self, name):
-        self.name = name
-
-
-class NamedEntityDefinition:
-    def __init__(self, code, key_sequence, backcolor):
-        self.code = code
-        self.key_sequence = key_sequence
-        self.backcolor = backcolor
 
 
 def ask_for_annotations(
@@ -33,26 +20,30 @@ def ask_for_annotations(
 
     # compute the named entity definition collection
     named_entity_definitions = []
-    default_colors = [
-        "#153465",
-        "#67160e",
-        "#135714",
-        "#341b4d",
-        "#b45c18",
-        "#b0984f",
-        "#838b83",
-        "#2f4f4f",
-    ]
-    index = 0
     if named_entity_defs:
+        default_colors = [
+            "#153465",
+            "#67160e",
+            "#135714",
+            "#341b4d",
+            "#b45c18",
+            "#b0984f",
+            "#838b83",
+            "#2f4f4f",
+        ]
+        index = 0
         for definition in named_entity_defs.split("/"):
             items = definition.split(" ")
             code = items[0]
             shortcut = items[1]
             color = (
-                items[2] if len(items) >= 3 else default_colors[index % len(default_colors)]
+                items[2]
+                if len(items) >= 3
+                else default_colors[index % len(default_colors)]
             )
-            named_entity_definitions.append(NamedEntityDefinition(code, shortcut, color))
+            named_entity_definitions.append(
+                NamedEntityDefinition(code, shortcut, color)
+            )
             index += 1
 
     # assemble the category definition collection

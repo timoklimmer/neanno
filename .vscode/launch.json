@@ -34,7 +34,7 @@
                 "--categories-column", "categories",
                 "--named-entity-defs", "MEAL Alt+M/SIDE Alt+S/APPETIZER Alt+A/DESSERT Alt+D/BEVERAGE Alt+B",
                 "--dataset-target-csv", "sample_data/sample_posts.annotated.csv",
-                "--spacy-model-source", "blank:de",
+                //"--spacy-model-source", "blank:de",
                 //"--spacy-model-target", "de_meals"
             ]
         },

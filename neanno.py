@@ -1,4 +1,4 @@
-from neanno.neanno import main
- 
+import neanno.neanno
+
 if __name__ == '__main__':
-    main()
+    neanno.neanno.main()
