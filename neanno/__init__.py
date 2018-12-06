@@ -4,6 +4,9 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication
 
 
+print("Initializing neanno...")
+
+
 if hasattr(QtCore.Qt, "AA_UseHighDpiPixmaps"):
     QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
 

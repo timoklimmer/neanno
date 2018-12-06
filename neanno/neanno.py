@@ -9,8 +9,7 @@ from neanno.ui import AnnotationDialog
 
 def main():
     try:
-        # print start message and run the annotation dialog
-        print("Starting neanno...")
+        # run the annotation dialog
         AnnotationDialog(TextModel())
     except:
         print("An unhandled error occured: ", sys.exc_info()[0])

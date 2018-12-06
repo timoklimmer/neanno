@@ -22,7 +22,9 @@ class TextModel(QAbstractTableModel):
 
         # get column indexes and ensure that the data frame has the required columns
         # text
-        self.text_column_index = config.dataframe_to_edit.columns.get_loc(config.text_column)
+        self.text_column_index = config.dataframe_to_edit.columns.get_loc(
+            config.text_column
+        )
         # categories
         # note: if no category column is given, we will create a random column
         #       to make the code below easier but will drop the column before
@@ -59,18 +61,23 @@ class TextModel(QAbstractTableModel):
         )
 
     @staticmethod
-    def extract_entities_from_nerded_text(text):
-        # TODO: check if label is actually a configured label
+    def extract_entities_from_nerded_text(text, allowed_entities=None):
+        # get "empty" result without having entity positions
         result = (re.sub("\((?P<text>.+?)\| .+?\)", "\g<text>", text), {"entities": []})
+        # add entity positions
         working_text = text
         while True:
-            match = re.search("\((?P<text>.+?)\| (?P<label>.+?)\)", working_text)
+            find_entities_pattern = "\((?P<text>.+?)\| (?P<label>.+?)\)"
+            match = re.search(find_entities_pattern, working_text)
             if match is not None:
                 entity_text = match.group(1)
                 entity_label = match.group(2)
-                result[1]["entities"].append(
-                    (match.start(1) - 1, match.end(1) - 1, entity_label)
-                )
+                if allowed_entities is None or (
+                    allowed_entities is not None and entity_label in allowed_entities
+                ):
+                    result[1]["entities"].append(
+                        (match.start(1) - 1, match.end(1) - 1, entity_label)
+                    )
                 working_text = re.sub("\(.+?\| .+?\)", entity_text, working_text, 1)
             else:
                 break
@@ -86,11 +93,15 @@ class TextModel(QAbstractTableModel):
         for named_entity_definition in config.named_entity_definitions:
             ner.add_label(named_entity_definition.code)
         # prepare the training set
+        allowed_entities = [
+            named_entity_definition.code
+            for named_entity_definition in config.named_entity_definitions
+        ]
         trainset = (
-            config.dataframe_to_edit[config.dataframe_to_edit[config.is_annotated_column] == True][
-                config.text_column
-            ]
-            .map(lambda text: self.extract_entities_from_nerded_text(text))
+            config.dataframe_to_edit[
+                config.dataframe_to_edit[config.is_annotated_column] == True
+            ][config.text_column]
+            .map(lambda text: self.extract_entities_from_nerded_text(text, allowed_entities))
             .tolist()
         )
 
@@ -135,13 +146,17 @@ class TextModel(QAbstractTableModel):
             return QVariant()
 
         # get is_annotated
-        is_annotated = config.dataframe_to_edit.ix[index.row(), self.is_annotated_column_index]
+        is_annotated = config.dataframe_to_edit.ix[
+            index.row(), self.is_annotated_column_index
+        ]
         is_annotated = str(is_annotated if is_annotated is not None else False)
 
         # return data for respective columns
         # column 0: text
         if index.column() == 0:
-            result = str(config.dataframe_to_edit.ix[index.row(), self.text_column_index])
+            result = str(
+                config.dataframe_to_edit.ix[index.row(), self.text_column_index]
+            )
             # add predicted entities if needed
             if (
                 not is_annotated
@@ -164,7 +179,9 @@ class TextModel(QAbstractTableModel):
             return is_annotated
         # column 2: categories
         if index.column() == 2:
-            return str(config.dataframe_to_edit.ix[index.row(), self.categories_column_index])
+            return str(
+                config.dataframe_to_edit.ix[index.row(), self.categories_column_index]
+            )
 
     def setData(self, index, value, role):
         row = index.row()
@@ -212,7 +229,9 @@ class TextModel(QAbstractTableModel):
             config.save_callback(
                 config.dataframe_to_edit
                 if not self.random_categories_column_name
-                else config.dataframe_to_edit.drop([self.random_categories_column_name], axis=1)
+                else config.dataframe_to_edit.drop(
+                    [self.random_categories_column_name], axis=1
+                )
             )
             self.saveCompleted.emit()
 
@@ -238,7 +257,5 @@ class TextModel(QAbstractTableModel):
         return bool(config.named_entity_definitions)
 
     def has_categories(self):
-        return bool(config.categories_column) and len(
-            config.category_definitions
-        )
+        return bool(config.categories_column) and len(config.category_definitions)
 
