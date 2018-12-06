@@ -31,13 +31,8 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 
+import config
 from neanno.custom_ui_controls import MappableQListWidget, QDataWidgetMapperWithHistory
-
-if hasattr(QtCore.Qt, "AA_UseHighDpiPixmaps"):
-    QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
-
-if hasattr(QtCore.Qt, "AA_EnableHighDpiScaling"):
-    QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
 
 SHORTCUT_SUBMIT_NEXT_BEST = "Ctrl+Return"
 SHORTCUT_BACKWARD = "Ctrl+Left"
@@ -70,6 +65,7 @@ Written in 2018 by Timo Klimmer, timo.klimmer@microsoft.com.
 
 class AnnotationDialog(QMainWindow):
     def __init__(self, textmodel):
+        print("Showing annotation dialog...")
         app = QApplication([])
         super().__init__()
         self.setWindowIcon(self.get_icon("icon.ico"))
@@ -104,7 +100,7 @@ class AnnotationDialog(QMainWindow):
             "font-size: 14pt; font-family: Consolas; color: lightgrey; background-color: black"
         )
         self.entity_highlighter = EntityHighlighter(
-            self.text_edit.document(), self.textmodel.named_entity_definitions
+            self.text_edit.document(), config.named_entity_definitions
         )
 
         # navigation / about / shortcuts buttons
@@ -143,7 +139,7 @@ class AnnotationDialog(QMainWindow):
         # categories
         self.text_categories_list = MappableQListWidget()
         self.text_categories_list.setSelectionMode(QAbstractItemView.MultiSelection)
-        for category in self.textmodel.category_definitions:
+        for category in config.category_definitions:
             self.text_categories_list.addItem(category.name)
         text_categories_groupbox_layout = QVBoxLayout()
         text_categories_groupbox_layout.addWidget(self.text_categories_list)
@@ -153,7 +149,7 @@ class AnnotationDialog(QMainWindow):
         # entity shortcuts
         shortcut_legend_grid = QGridLayout()
         row = 0
-        for named_entity_definition in self.textmodel.named_entity_definitions:
+        for named_entity_definition in config.named_entity_definitions:
             color_widget = QLabel(" " + named_entity_definition.code)
             color_widget.setStyleSheet(
                 "font-size: 10pt; color: white; background-color: %s"
@@ -202,16 +198,16 @@ class AnnotationDialog(QMainWindow):
         dataset_grid.addWidget(QLabel("Is Annotated"), 4, 0)
         self.is_annotated_label = QLabel()
         dataset_grid.addWidget(self.is_annotated_label, 4, 1)
-        if self.textmodel.dataset_source_friendly is not None:
+        if config.dataset_source_friendly is not None:
             dataset_grid.addWidget(QLabel("Source"), 5, 0)
             self.dataset_source_friendly_label = QLabel(
-                self.textmodel.dataset_source_friendly
+                config.dataset_source_friendly
             )
             dataset_grid.addWidget(self.dataset_source_friendly_label, 5, 1)
-        if self.textmodel.dataset_target_friendly is not None:
+        if config.dataset_target_friendly is not None:
             dataset_grid.addWidget(QLabel("Target"), 6, 0)
             self.dataset_target_friendly_label = QLabel(
-                self.textmodel.dataset_target_friendly
+                config.dataset_target_friendly
             )
             dataset_grid.addWidget(self.dataset_target_friendly_label, 6, 1)
         dataset_groupbox = QGroupBox("Dataset")
@@ -253,7 +249,7 @@ class AnnotationDialog(QMainWindow):
 
     def wire_shortcuts(self):
         # named entities
-        for named_entity_definition in self.textmodel.named_entity_definitions:
+        for named_entity_definition in config.named_entity_definitions:
             shortcut = QShortcut(
                 QKeySequence(named_entity_definition.key_sequence), self
             )
@@ -439,7 +435,7 @@ class AnnotationDialog(QMainWindow):
         if text_cursor.hasSelection():
             key_sequence = self.sender().key().toString()
             code = ""
-            for named_entity_definition in self.textmodel.named_entity_definitions:
+            for named_entity_definition in config.named_entity_definitions:
                 if named_entity_definition.key_sequence == key_sequence:
                     code = named_entity_definition.code
                     break

@@ -7,6 +7,8 @@ import spacy
 from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant, pyqtSignal
 from spacy.util import compounding, minibatch
 
+import config
+
 
 class TextModel(QAbstractTableModel):
     random_categories_column_name = None
@@ -14,59 +16,38 @@ class TextModel(QAbstractTableModel):
     saveCompleted = pyqtSignal()
     spacy_model = None
 
-    def __init__(
-        self,
-        pandas_data_frame,
-        dataset_source_friendly,
-        text_column,
-        is_annotated_column,
-        category_definitions=None,
-        categories_column=None,
-        named_entity_definitions=None,
-        save_callback=None,
-        dataset_target_friendly=None,
-        spacy_model_source=None,
-        spacy_model_target=None,
-    ):
+    def __init__(self):
         super().__init__(parent=None)
-        self._df = pandas_data_frame
-        self.dataset_source_friendly = dataset_source_friendly
-        self.text_column = text_column
-        self.is_annotated_column = is_annotated_column
-        self.category_definitions = category_definitions
-        self.categories_column = categories_column
-        self.named_entity_definitions = named_entity_definitions
-        self.save_callback = save_callback
-        self.dataset_target_friendly = dataset_target_friendly
-        self.spacy_model_source = spacy_model_source
-        self.spacy_model_target = spacy_model_target
+        config.dataframe_to_edit = config.dataframe_to_edit
 
         # get column indexes and ensure that the data frame has the required columns
         # text
-        self.text_column_index = self._df.columns.get_loc(text_column)
+        self.text_column_index = config.dataframe_to_edit.columns.get_loc(config.text_column)
         # categories
         # note: if no category column is given, we will create a random column
         #       to make the code below easier but will drop the column before
         #       we save the dataframe
-        if not self.categories_column:
+        if not config.categories_column:
             self.random_categories_column_name = "".join(
                 random.choice(string.ascii_uppercase + string.digits) for _ in range(16)
             )
-            self.categories_column = self.random_categories_column_name
-        if self.categories_column not in self._df:
-            self._df[self.categories_column] = ""
-        self.categories_column_index = self._df.columns.get_loc(self.categories_column)
+            config.categories_column = self.random_categories_column_name
+        if config.categories_column not in config.dataframe_to_edit:
+            config.dataframe_to_edit[config.categories_column] = ""
+        self.categories_column_index = config.dataframe_to_edit.columns.get_loc(
+            config.categories_column
+        )
         # is annotated
-        if self.is_annotated_column not in self._df:
-            self._df[self.is_annotated_column] = False
-        self.is_annotated_column_index = self._df.columns.get_loc(
-            self.is_annotated_column
+        if config.is_annotated_column not in config.dataframe_to_edit:
+            config.dataframe_to_edit[config.is_annotated_column] = False
+        self.is_annotated_column_index = config.dataframe_to_edit.columns.get_loc(
+            config.is_annotated_column
         )
 
         # load and prepare spacy model
         if self.has_spacy_model():
             self.spacy_model = self.load_and_prepare_spacy_model(
-                self.spacy_model_source
+                config.spacy_model_source
             )
 
     def load_and_prepare_spacy_model(self, spacy_model_source):
@@ -102,11 +83,13 @@ class TextModel(QAbstractTableModel):
             self.spacy_model.add_pipe(self.spacy_model.create_pipe("ner"), last=True)
         ner = self.spacy_model.get_pipe("ner")
         # ensure we have all configured labels also configured in the model
-        for named_entity_definition in self.named_entity_definitions:
+        for named_entity_definition in config.named_entity_definitions:
             ner.add_label(named_entity_definition.code)
         # prepare the training set
         trainset = (
-            self._df[self._df[self.is_annotated_column] == True][self.text_column]
+            config.dataframe_to_edit[config.dataframe_to_edit[config.is_annotated_column] == True][
+                config.text_column
+            ]
             .map(lambda text: self.extract_entities_from_nerded_text(text))
             .tolist()
         )
@@ -136,11 +119,11 @@ class TextModel(QAbstractTableModel):
         #    print(ent.label_, ent.text)
 
         # save model to output directory
-        if self.spacy_model_target is not None:
-            output_dir = pathlib.Path(self.spacy_model_target)
+        if config.spacy_model_target is not None:
+            output_dir = pathlib.Path(config.spacy_model_target)
             if not output_dir.exists():
                 output_dir.mkdir()
-            self.spacy_model.meta["name"] = self.spacy_model_target
+            self.spacy_model.meta["name"] = config.spacy_model_target
             self.spacy_model.to_disk(output_dir)
             print("Retraining completed. Saved model to folder '{}'".format(output_dir))
         else:
@@ -152,13 +135,13 @@ class TextModel(QAbstractTableModel):
             return QVariant()
 
         # get is_annotated
-        is_annotated = self._df.ix[index.row(), self.is_annotated_column_index]
+        is_annotated = config.dataframe_to_edit.ix[index.row(), self.is_annotated_column_index]
         is_annotated = str(is_annotated if is_annotated is not None else False)
 
         # return data for respective columns
         # column 0: text
         if index.column() == 0:
-            result = str(self._df.ix[index.row(), self.text_column_index])
+            result = str(config.dataframe_to_edit.ix[index.row(), self.text_column_index])
             # add predicted entities if needed
             if (
                 not is_annotated
@@ -181,7 +164,7 @@ class TextModel(QAbstractTableModel):
             return is_annotated
         # column 2: categories
         if index.column() == 2:
-            return str(self._df.ix[index.row(), self.categories_column_index])
+            return str(config.dataframe_to_edit.ix[index.row(), self.categories_column_index])
 
     def setData(self, index, value, role):
         row = index.row()
@@ -192,30 +175,30 @@ class TextModel(QAbstractTableModel):
         # update _df and save if needed
         if (
             self.data(index) != value
-            or not self._df.ix[row, self.is_annotated_column_index]
+            or not config.dataframe_to_edit.ix[row, self.is_annotated_column_index]
         ):
             if index.column() == 0:
                 # text
-                self._df.iat[row, self.text_column_index] = value
+                config.dataframe_to_edit.iat[row, self.text_column_index] = value
             if index.column() == 2:
                 # categories
-                self._df.iat[row, self.categories_column_index] = value
-            self._df.iat[row, self.is_annotated_column_index] = True
+                config.dataframe_to_edit.iat[row, self.categories_column_index] = value
+            config.dataframe_to_edit.iat[row, self.is_annotated_column_index] = True
             self.save()
             self.dataChanged.emit(index, index)
         return True
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         if section == 0:
-            return self.text_column
+            return config.text_column
         if section == 1:
-            return self.is_annotated_column
+            return config.is_annotated_column
         if section == 2:
-            return self.categories_column
+            return config.categories_column
         return None
 
     def rowCount(self, parent=QModelIndex()):
-        return len(self._df.index)
+        return len(config.dataframe_to_edit.index)
 
     def columnCount(self, parent=QModelIndex()):
         return 3
@@ -224,35 +207,38 @@ class TextModel(QAbstractTableModel):
         return super().flags(index) | Qt.ItemIsEditable
 
     def save(self):
-        if self.save_callback is not None:
+        if config.save_callback is not None:
             self.saveStarted.emit()
-            self.save_callback(
-                self._df
+            config.save_callback(
+                config.dataframe_to_edit
                 if not self.random_categories_column_name
-                else self._df.drop([self.random_categories_column_name], axis=1)
+                else config.dataframe_to_edit.drop([self.random_categories_column_name], axis=1)
             )
             self.saveCompleted.emit()
 
     def get_annotated_texts_count(self):
-        return self._df[self.is_annotated_column].sum()
+        return config.dataframe_to_edit[config.is_annotated_column].sum()
 
     def get_next_best_row_index(self, current_index):
         if self.is_texts_left_for_annotation():
             # return the next text which is not annotated yet
-            return self._df[self.is_annotated_column].idxmin()
+            return config.dataframe_to_edit[config.is_annotated_column].idxmin()
         else:
             # there is no text that is not annotated yet
             # return the next text (might start at the beginning if end of available texts is reads)
             return (current_index + 1) % self.rowCount()
 
     def is_texts_left_for_annotation(self):
-        return False in self._df[self.is_annotated_column].values
+        return False in config.dataframe_to_edit[config.is_annotated_column].values
 
     def has_spacy_model(self):
-        return bool(self.spacy_model_source)
+        return bool(config.spacy_model_source)
 
     def has_named_entities(self):
-        return bool(self.named_entity_definitions)
+        return bool(config.named_entity_definitions)
 
     def has_categories(self):
-        return bool(self.categories_column) and len(self.category_definitions)
+        return bool(config.categories_column) and len(
+            config.category_definitions
+        )
+
