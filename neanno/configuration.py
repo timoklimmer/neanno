@@ -7,7 +7,7 @@ from neanno.definitions import CategoryDefinition, NamedEntityDefinition
 import config
 
 
-class Configuration:
+class ConfigurationInitializer:
     """Collects all configuration settings and provides configuration-related objects to neanno."""
 
     def __init__(self):

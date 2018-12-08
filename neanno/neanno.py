@@ -3,7 +3,6 @@ import sys
 
 import pandas as pd
 
-from neanno.configuration import Configuration
 from neanno.models import TextModel
 from neanno.ui import AnnotationDialog
 
