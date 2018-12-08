@@ -90,6 +90,9 @@ class Configuration:
         print("Loading data frame with texts to annotate...")
         config.dataframe_to_edit = pd.read_csv(config.dataset_source_csv)
 
+        # determine is_named_entities_enabled
+        config.is_named_entities_enabled = bool(config.named_entity_defs)
+
         # compute the named entity definition collection
         config.named_entity_definitions = []
         if config.named_entity_defs:
@@ -118,9 +121,15 @@ class Configuration:
                 )
                 index += 1
 
+        # determine is_named_entities_enabled
+        config.is_categories_enabled = bool(config.category_defs)
+
         # assemble the category definition collection
         config.category_definitions = []
         if config.category_defs:
             for definition in config.category_defs.split("/"):
                 name = definition
                 config.category_definitions.append(CategoryDefinition(name))
+
+        # determine is_spacy_enabled
+        config.is_spacy_enabled = bool(config.spacy_model_source)

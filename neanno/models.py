@@ -30,7 +30,7 @@ class TextModel(QAbstractTableModel):
         # note: if no category column is given, we will create a random column
         #       to make the code below easier but will drop the column before
         #       we save the dataframe
-        if not config.categories_column:
+        if not config.is_categories_enabled:
             self.random_categories_column_name = "".join(
                 random.choice(string.ascii_uppercase + string.digits) for _ in range(16)
             )
@@ -48,7 +48,7 @@ class TextModel(QAbstractTableModel):
         )
 
         # load and prepare spacy model
-        if self.has_spacy_model():
+        if config.is_spacy_enabled:
             self.spacy_model = self.load_and_prepare_spacy_model(
                 config.spacy_model_source
             )
@@ -56,9 +56,9 @@ class TextModel(QAbstractTableModel):
     def load_and_prepare_spacy_model(self, spacy_model_source):
         print("Loading spacy model...")
         return (
-            spacy.blank(spacy_model_source.replace("blank:", "", 1))
-            if spacy_model_source.startswith("blank:")
-            else spacy.load(self.spacy_model_source)
+            spacy.blank(config.spacy_model_source.replace("blank:", "", 1))
+            if config.spacy_model_source.startswith("blank:")
+            else spacy.load(config.spacy_model_source)
         )
 
     @staticmethod
@@ -141,7 +141,7 @@ class TextModel(QAbstractTableModel):
                 output_dir.mkdir()
             self.spacy_model.meta["name"] = config.spacy_model_target
             self.spacy_model.to_disk(output_dir)
-            print("Retraining completed. Saved model to folder '{}'".format(output_dir))
+            print("Retraining completed. Saved model to folder '{}'.".format(output_dir))
         else:
             print("Retraining completed.")
 
@@ -165,8 +165,8 @@ class TextModel(QAbstractTableModel):
             # add predicted entities if needed
             if (
                 not is_annotated
-                and self.has_named_entities()
-                and self.has_spacy_model()
+                and config.is_named_entities_enabled
+                and config.is_spacy_enabled
             ):
                 doc = self.spacy_model(result)
                 shift = 0
@@ -254,12 +254,3 @@ class TextModel(QAbstractTableModel):
 
     def is_texts_left_for_annotation(self):
         return False in config.dataframe_to_edit[config.is_annotated_column].values
-
-    def has_spacy_model(self):
-        return bool(config.spacy_model_source)
-
-    def has_named_entities(self):
-        return bool(config.named_entity_definitions)
-
-    def has_categories(self):
-        return bool(config.categories_column) and len(config.category_definitions)

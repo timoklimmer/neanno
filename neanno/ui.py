@@ -166,7 +166,7 @@ class AnnotationDialog(QMainWindow):
         entities_groupbox.setLayout(shortcut_legend_grid)
 
         # spacy model
-        if self.textmodel.has_spacy_model():
+        if config.is_spacy_enabled:
             spacy_grid = QGridLayout()
             spacy_grid.addWidget(QLabel("Source"), 0, 0)
             self.spacy_model_source_label = QLabel(config.spacy_model_source)
@@ -219,12 +219,12 @@ class AnnotationDialog(QMainWindow):
         left_panel_layout.addWidget(self.text_edit)
         # right panel
         right_panel_layout = QVBoxLayout()
-        if self.textmodel.has_categories():
+        if config.is_categories_enabled:
             right_panel_layout.addWidget(text_categories_groupbox)
-        if self.textmodel.has_named_entities():
+        if config.is_named_entities_enabled:
             right_panel_layout.addWidget(entities_groupbox)
         right_panel_layout.addWidget(dataset_groupbox)
-        if self.textmodel.has_spacy_model():
+        if config.is_spacy_enabled:
             right_panel_layout.addWidget(spacy_groupbox)
         right_panel_layout.addStretch()
         right_buttons_layout = QHBoxLayout()
@@ -323,7 +323,7 @@ class AnnotationDialog(QMainWindow):
         self.text_navigator.addMapping(
             self.is_annotated_label, 1, QByteArray().insert(0, "text")
         )
-        if self.textmodel.has_categories():
+        if config.is_categories_enabled:
             self.text_navigator.addMapping(
                 self.text_categories_list,
                 2,
