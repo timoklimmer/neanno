@@ -3,14 +3,15 @@ import random
 import re
 import string
 
+import config
 import spacy
 from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant, pyqtSignal
 from spacy.util import compounding, minibatch
 
-import config
-
 
 class TextModel(QAbstractTableModel):
+    """Provides data to the annotation dialog / data widget mapper and triggers the saving of new annotated data."""
+
     random_categories_column_name = None
     saveStarted = pyqtSignal()
     saveCompleted = pyqtSignal()
@@ -101,7 +102,11 @@ class TextModel(QAbstractTableModel):
             config.dataframe_to_edit[
                 config.dataframe_to_edit[config.is_annotated_column] == True
             ][config.text_column]
-            .map(lambda text: self.extract_entities_from_nerded_text(text, allowed_entities))
+            .map(
+                lambda text: self.extract_entities_from_nerded_text(
+                    text, allowed_entities
+                )
+            )
             .tolist()
         )
 
@@ -258,4 +263,3 @@ class TextModel(QAbstractTableModel):
 
     def has_categories(self):
         return bool(config.categories_column) and len(config.category_definitions)
-

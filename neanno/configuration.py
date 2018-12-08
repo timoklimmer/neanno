@@ -2,12 +2,14 @@ import argparse
 import os
 
 import pandas as pd
-from neanno.definitions import (CategoryDefinition, NamedEntityDefinition)
+from neanno.definitions import CategoryDefinition, NamedEntityDefinition
 
 import config
 
 
 class Configuration:
+    """Collects all configuration settings and provides configuration-related objects to neanno."""
+
     def __init__(self):
         print("Getting configuration...")
 

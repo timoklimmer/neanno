@@ -1,8 +1,10 @@
 from PyQt5.QtCore import Qt, pyqtProperty
-from PyQt5.QtWidgets import (QDataWidgetMapper, QListWidget)
+from PyQt5.QtWidgets import QDataWidgetMapper, QListWidget
 
 
 class QDataWidgetMapperWithHistory(QDataWidgetMapper):
+    """ A QDataWidgetMapper which additionally lets users navigate backwards and forwards."""
+
     backward_stack = []
     forward_stack = []
     is_forward_or_backward = False
@@ -33,6 +35,13 @@ class QDataWidgetMapperWithHistory(QDataWidgetMapper):
 
 
 class MappableQListWidget(QListWidget):
+    """
+    A QListWidget that has a property to give and take its selected items as string.
+
+    Name of the property: selected_items_as_string.
+    Format: SomeSelectedItem|AnotherSelectedItem.
+    """
+
     def get_selected_items_as_string(self):
         return "|".join([item.text() for item in self.selectedItems()])
 
@@ -42,6 +51,6 @@ class MappableQListWidget(QListWidget):
             for itemToSelect in self.findItems(selectedItem, Qt.MatchExactly):
                 itemToSelect.setSelected(True)
 
-    selectedItemsAsString = pyqtProperty(
+    selected_items_as_string = pyqtProperty(
         str, fget=get_selected_items_as_string, fset=set_selected_items_as_string
     )

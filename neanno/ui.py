@@ -64,6 +64,8 @@ Written in 2018 by Timo Klimmer, timo.klimmer@microsoft.com.
 
 
 class AnnotationDialog(QMainWindow):
+    """ The dialog shown to the user to do the annotation/labeling."""
+
     def __init__(self, textmodel):
         print("Showing annotation dialog...")
         app = QApplication([])
@@ -175,9 +177,7 @@ class AnnotationDialog(QMainWindow):
 
             if config.spacy_model_target is not None:
                 spacy_grid.addWidget(QLabel("Target"), 1, 0)
-                self.spacy_model_target_label = QLabel(
-                    config.spacy_model_target
-                )
+                self.spacy_model_target_label = QLabel(config.spacy_model_target)
                 spacy_grid.addWidget(self.spacy_model_target_label, 1, 1)
             spacy_groupbox = QGroupBox("Spacy")
             spacy_groupbox.setLayout(spacy_grid)
@@ -200,15 +200,11 @@ class AnnotationDialog(QMainWindow):
         dataset_grid.addWidget(self.is_annotated_label, 4, 1)
         if config.dataset_source_friendly is not None:
             dataset_grid.addWidget(QLabel("Source"), 5, 0)
-            self.dataset_source_friendly_label = QLabel(
-                config.dataset_source_friendly
-            )
+            self.dataset_source_friendly_label = QLabel(config.dataset_source_friendly)
             dataset_grid.addWidget(self.dataset_source_friendly_label, 5, 1)
         if config.dataset_target_friendly is not None:
             dataset_grid.addWidget(QLabel("Target"), 6, 0)
-            self.dataset_target_friendly_label = QLabel(
-                config.dataset_target_friendly
-            )
+            self.dataset_target_friendly_label = QLabel(config.dataset_target_friendly)
             dataset_grid.addWidget(self.dataset_target_friendly_label, 6, 1)
         dataset_groupbox = QGroupBox("Dataset")
         dataset_groupbox.setLayout(dataset_grid)
@@ -331,7 +327,7 @@ class AnnotationDialog(QMainWindow):
             self.text_navigator.addMapping(
                 self.text_categories_list,
                 2,
-                QByteArray().insert(0, "selectedItemsAsString"),
+                QByteArray().insert(0, "selected_items_as_string"),
             )
         self.text_navigator.currentIndexChanged.connect(
             self.update_statistics_and_progress
@@ -464,6 +460,8 @@ class AnnotationDialog(QMainWindow):
 
 
 class EntityHighlighter(QSyntaxHighlighter):
+    """Used to highlight the entities in the text field."""
+
     highlighting_rules = []
     named_entity_code_format = QTextCharFormat()
     named_entity_code_format_no_text = QTextCharFormat()
