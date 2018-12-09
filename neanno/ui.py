@@ -330,7 +330,7 @@ class AnnotationDialog(QMainWindow):
                 QByteArray().insert(0, "selected_items_as_string"),
             )
         self.text_navigator.currentIndexChanged.connect(
-            self.update_statistics_and_progress
+            self.update_controls_after_navigation
         )
         self.text_navigator.setCurrentIndex(self.textmodel.get_next_best_row_index(-1))
         self.backward_button.clicked.connect(self.text_navigator.backward)
@@ -348,7 +348,7 @@ class AnnotationDialog(QMainWindow):
         # submit changes of old text
         self.text_navigator.submit()
         # update statistics and progress bar
-        self.update_statistics_and_progress()
+        self.update_controls_after_navigation()
         # show "all messages annotated" if all texts are annotated
         if not self.textmodel.is_texts_left_for_annotation():
             QMessageBox.information(
@@ -409,7 +409,7 @@ class AnnotationDialog(QMainWindow):
     def handle_retrain_button_clicked(self):
         self.textmodel.retrain_spacy_model()
 
-    def update_statistics_and_progress(self):
+    def update_controls_after_navigation(self):
         # progress
         new_progress_value = (
             self.textmodel.get_annotated_texts_count() * 100 / self.textmodel.rowCount()
@@ -425,6 +425,8 @@ class AnnotationDialog(QMainWindow):
         self.total_texts_label.setText(str(total_texts_count))
         # remove focus from text control
         self.text_edit.clearFocus()
+        # remove focus from categories list
+        self.text_categories_list.clearFocus()
 
     def annotate_entity(self):
         text_cursor = self.text_edit.textCursor()
