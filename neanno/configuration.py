@@ -1,19 +1,35 @@
 import argparse
 import os
+import re
 
+import config
 import pandas as pd
 from neanno.definitions import CategoryDefinition, NamedEntityDefinition
 
-import config
 
-
-class ConfigurationInitializer:
+class ConfigInit:
     """Collects all configuration settings and provides configuration-related objects to neanno."""
 
     def __init__(self):
         # specify and parse arguments
+        parser = ConfigInit.specify_and_parse_arguments()
+
+        # derive further configuration objects from specified arguments
+        # dataset source-related
+        ConfigInit.dataset_source(parser)
+        # dataset target-related
+        ConfigInit.dataset_target(parser)
+        # named entities-related
+        ConfigInit.named_entities(parser)
+        # categories-related
+        ConfigInit.categories(parser)
+        # spacy-related
+        ConfigInit.spacy(parser)
+
+    def specify_and_parse_arguments():
         parser = argparse.ArgumentParser(
-            description="A tool to annotate texts and train models.", add_help=False
+            description="A tool to label and annotate texts and train models.",
+            add_help=False,
         )
         required = parser.add_argument_group("required arguments")
         required.add_argument(
@@ -71,38 +87,67 @@ class ConfigurationInitializer:
         config.categories_column = args.categories_column
         config.spacy_model_source = args.spacy_model_source
         config.spacy_model_target = args.spacy_model_target
+        return parser
 
-        # TODO: add validation
-
-        # derive further configuration objects from specified arguments
-        # dataset source-related
+    def dataset_source(parser):
+        # note: depending on the specified prefix = data source type, this will run the respective functions below, eg. dataset_source_csv(...)
         print("Loading data frame with texts to annotate...")
-        getattr(ConfigurationInitializer, "dataset_source_" + config.dataset_source.split(":")[0])()
-        # dataset target-related
-        getattr(ConfigurationInitializer, "dataset_target_" + config.dataset_target.split(":")[0])()
-        # named entities-related
-        ConfigurationInitializer.named_entities()
-        # categories-related
-        ConfigurationInitializer.categories()
-        # spacy-related
-        ConfigurationInitializer.spacy()
+        datasource_type = config.dataset_source.split(":")[0]
+        supported_datasource_types = ["csv"]
+        if datasource_type not in supported_datasource_types:
+            parser.error(
+                "Parameter '--dataset-source' uses a datasource type '{}' which is not supported.".format(
+                    datasource_type
+                )
+            )
+        getattr(ConfigInit, "dataset_source_" + datasource_type)(parser)
 
-    def dataset_source_csv():
+    def dataset_source_csv(parser):
         file_to_load = config.dataset_source.replace("csv:", "", 1)
+        if not os.path.isfile(file_to_load):
+            parser.error(
+                "The file '{}' specified in parameter '--dataset-source' does not exist.".format(
+                    file_to_load
+                )
+            )
         config.dataset_source_friendly = os.path.basename(file_to_load)
         config.dataframe_to_edit = pd.read_csv(file_to_load)
-    
-    def dataset_target_csv():
-        config.dataset_target_csv = config.dataset_target.replace("csv:", "", 1)
-        config.dataset_target_friendly = os.path.basename(config.dataset_target_csv)
+
+    def dataset_target(parser):
+        # note: depending on the specified prefix = data source type, this will run the respective functions below, eg. dataset_target_csv(...)
+        datasource_type = config.dataset_source.split(":")[0]
+        supported_datasource_types = ["csv"]
+        if datasource_type not in supported_datasource_types:
+            parser.error(
+                "Parameter '--dataset-target' uses a datasource type '{}' which is not supported.".format(
+                    datasource_type
+                )
+            )
+        getattr(ConfigInit, "dataset_target_" + datasource_type)(parser)
+
+    def dataset_target_csv(parser):
+        dataset_target_csv = config.dataset_target.replace("csv:", "", 1)
+        config.dataset_target_friendly = os.path.basename(dataset_target_csv)
         config.save_callback = lambda df: df.to_csv(
-            config.dataset_target_csv, index=False, header=True
+            dataset_target_csv, index=False, header=True
         )
 
-    def named_entities():
-        config.is_named_entities_enabled = bool(config.named_entity_defs)
+    def named_entities(parser):
         config.named_entity_definitions = []
-        if config.named_entity_defs:
+        config.is_named_entities_enabled = bool(config.named_entity_defs)
+        if config.is_named_entities_enabled:
+            # validation
+            # ensure named_entity_defs has the expected format
+            if not re.match(
+                "(?i)^[A-Z0-9_]+ Alt\+[A-Z0-9]+( #[A-F0-9]{6}\b| [A-Z]+)?(/[A-Z0-9_]+ Alt\+[A-Z0-9]+( #[A-F0-9]{6}\b| [A-Z]+)?)*$",
+                config.named_entity_defs,
+            ):
+                parser.error(
+                    "The value of parameter '--named-entity-defs' = '{}' does not follow the expected format.".format(
+                        config.named_entity_defs
+                    )
+                )
+            # assemble named entity definitions
             default_colors = [
                 "#153465",
                 "#67160e",
@@ -123,18 +168,61 @@ class ConfigurationInitializer:
                     if len(items) >= 3
                     else default_colors[index % len(default_colors)]
                 )
+                if (
+                    len(
+                        [
+                            named_entity_definition.code
+                            for named_entity_definition in config.named_entity_definitions
+                            if named_entity_definition.code == code
+                        ]
+                    )
+                    > 0
+                ):
+                    parser.error(
+                        "Entity code '{}' is specified multiple times in parameter '--named-entity-defs'.".format(
+                            code
+                        )
+                    )
+                if (
+                    len(
+                        [
+                            named_entity_definition.key_sequence
+                            for named_entity_definition in config.named_entity_definitions
+                            if named_entity_definition.key_sequence == shortcut
+                        ]
+                    )
+                    > 0
+                ):
+                    parser.error(
+                        "Shortcut '{}' is specified multiple times in parameter '--named-entity-defs'.".format(
+                            shortcut
+                        )
+                    )
                 config.named_entity_definitions.append(
                     NamedEntityDefinition(code, shortcut, color)
                 )
                 index += 1
 
-    def categories():
-        config.is_categories_enabled = bool(config.category_defs)
+    def categories(parser):
         config.category_definitions = []
-        if config.category_defs:
+        config.is_categories_enabled = bool(config.category_defs)
+        if config.is_categories_enabled:
+            # validation
+            # ensure --categories-column is set if --category-defs is used
+            if not config.categories_column:
+                parser.error(
+                    "Parameter '--categories-column' is required if parameter '--category-defs' is used."
+                )
+            # assemble category definitions
             for definition in config.category_defs.split("/"):
                 name = definition
                 config.category_definitions.append(CategoryDefinition(name))
 
-    def spacy():
+    def spacy(parser):
+        # ensure that --spacy-model-target is not specified without --spacy-model-source
+        if config.spacy_model_target and not config.spacy_model_source:
+            parser.error(
+                "Parameter '--spacy-model-target' must not be used without parameter '--spacy_model_source'."
+            )
+        # enable spacy
         config.is_spacy_enabled = bool(config.spacy_model_source)
