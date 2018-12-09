@@ -11,57 +11,61 @@ class ConfigurationInitializer:
     """Collects all configuration settings and provides configuration-related objects to neanno."""
 
     def __init__(self):
-        print("Getting configuration...")
-
+        # specify and parse arguments
         parser = argparse.ArgumentParser(
-            description="A tool to annotate texts and train models."
+            description="A tool to annotate texts and train models.", add_help=False
         )
-        parser.add_argument(
-            "--dataset-source-csv",
-            help="Path to a CSV file containing the data to annotate.",
+        required = parser.add_argument_group("required arguments")
+        required.add_argument(
+            "--dataset-source",
+            help='Points to a dataset with the data to annotate. Needs different prefixes depending on data source type. Eg. "csv:sample_data/sample_data.csv" uses the data from the sample_data/sample_data.csv file.',
             required=True,
         )
-        parser.add_argument(
+        required.add_argument(
             "--text-column",
             help="Name of the column which contains the texts to annotate.",
             required=True,
         )
-        parser.add_argument(
+        required.add_argument(
             "--is-annotated-column",
             help="Name of the column which contains a flag showing if the text has been annotated. Will be created if needed and does not exist.",
             required=True,
         )
-        parser.add_argument(
-            "--dataset-target-csv",
-            help="Path to the CSV output file which will contain the annotations. Can be the same as dataset_source_csv.",
+        required.add_argument(
+            "--dataset-target",
+            help='Points to a dataset which will contain the annotations/labels. Needs different prefixes depending on data source type. Eg. "csv:sample_data/sample_data.annotated.csv" will write to the sample_data/sample_data.annotated.csv file.',
             required=True,
         )
-        parser.add_argument(
+        optional = parser.add_argument_group("optional arguments")
+        optional.add_argument(
             "--category-defs",
             help='Defines the categories the texts can have. Eg. "Inquiry/Issue/Information"',
         )
-        parser.add_argument(
+        optional.add_argument(
             "--categories-column",
-            help='Name of the column which contains the categories of the text. Will be created if needed and does not exist."',
+            help="Name of the column which contains the categories of the text. Will be created if needed and does not exist.",
         )
-        parser.add_argument(
+        optional.add_argument(
             "--named-entity-defs",
             help='Defines the entities to annotate incl. shortcuts and colors. Eg. "PER Alt+P #ff0000/ORG Alt+O #00ff00/LOC Alt+L". If no color is specified, a default color will be assigned.',
         )
-        parser.add_argument(
+        optional.add_argument(
             "--spacy-model-source",
             help="Name of the source NER/Spacy model, used as starting point and to recommend labels. If the argument is not specified, no recommendations will be made.",
         )
-        parser.add_argument(
+        optional.add_argument(
             "--spacy-model-target",
             help="Directory where the modified, newly trained NER/spacy model is saved. Can only be used if --spacy-model-source is used.",
         )
+        help = parser.add_argument_group("help arguments")
+        help.add_argument(
+            "-h", "--help", action="help", help="show this help message and exit"
+        )
         args = parser.parse_args()
-
-        config.dataset_source_csv = args.dataset_source_csv
+        config.dataset_source = args.dataset_source
         config.text_column = args.text_column
         config.is_annotated_column = args.is_annotated_column
-        config.dataset_target_csv = args.dataset_target_csv
+        config.dataset_target = args.dataset_target
         config.named_entity_defs = args.named_entity_defs
         config.category_defs = args.category_defs
         config.categories_column = args.categories_column
@@ -69,31 +73,34 @@ class ConfigurationInitializer:
         config.spacy_model_target = args.spacy_model_target
 
         # TODO: add validation
-        # TODO: print config values
 
-        # compute friendly data source names
-        config.dataset_source_friendly = os.path.basename(config.dataset_source_csv)
-        config.dataset_target_friendly = (
-            os.path.basename(config.dataset_target_csv)
-            if config.dataset_target_csv is not None
-            else None
-        )
-
-        # define a method to save the edited dataset
-        config.save_callback = (
-            lambda df: df.to_csv(config.dataset_target_csv, index=False, header=True)
-            if config.dataset_target_csv is not None
-            else None
-        )
-
-        # load pandas data frame
+        # derive further configuration objects from specified arguments
+        # dataset source-related
         print("Loading data frame with texts to annotate...")
-        config.dataframe_to_edit = pd.read_csv(config.dataset_source_csv)
+        getattr(ConfigurationInitializer, "dataset_source_" + config.dataset_source.split(":")[0])()
+        # dataset target-related
+        getattr(ConfigurationInitializer, "dataset_target_" + config.dataset_target.split(":")[0])()
+        # named entities-related
+        ConfigurationInitializer.named_entities()
+        # categories-related
+        ConfigurationInitializer.categories()
+        # spacy-related
+        ConfigurationInitializer.spacy()
 
-        # determine is_named_entities_enabled
+    def dataset_source_csv():
+        file_to_load = config.dataset_source.replace("csv:", "", 1)
+        config.dataset_source_friendly = os.path.basename(file_to_load)
+        config.dataframe_to_edit = pd.read_csv(file_to_load)
+    
+    def dataset_target_csv():
+        config.dataset_target_csv = config.dataset_target.replace("csv:", "", 1)
+        config.dataset_target_friendly = os.path.basename(config.dataset_target_csv)
+        config.save_callback = lambda df: df.to_csv(
+            config.dataset_target_csv, index=False, header=True
+        )
+
+    def named_entities():
         config.is_named_entities_enabled = bool(config.named_entity_defs)
-
-        # compute the named entity definition collection
         config.named_entity_definitions = []
         if config.named_entity_defs:
             default_colors = [
@@ -121,15 +128,13 @@ class ConfigurationInitializer:
                 )
                 index += 1
 
-        # determine is_named_entities_enabled
+    def categories():
         config.is_categories_enabled = bool(config.category_defs)
-
-        # assemble the category definition collection
         config.category_definitions = []
         if config.category_defs:
             for definition in config.category_defs.split("/"):
                 name = definition
                 config.category_definitions.append(CategoryDefinition(name))
 
-        # determine is_spacy_enabled
+    def spacy():
         config.is_spacy_enabled = bool(config.spacy_model_source)

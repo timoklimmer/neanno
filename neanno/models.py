@@ -19,7 +19,6 @@ class TextModel(QAbstractTableModel):
 
     def __init__(self):
         super().__init__(parent=None)
-        config.dataframe_to_edit = config.dataframe_to_edit
 
         # get column indexes and ensure that the data frame has the required columns
         # text
