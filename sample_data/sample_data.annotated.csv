@@ -1,7 +1,7 @@
 text,categories,is_text_annotated
-Horses are too tall and they pretend to care about your feelings,Incident,True
-Do they bite?,Information,True
-horses are too tall and they pretend to care about your feelings,Inquiry,True
-horses pretend to care about your feelings,Incident,True
-"they pretend to care about your feelings, those horses",,False
-horses?,,False
+(Horses| ANIMAL) are too tall and they pretend to care about your feelings,Complete|Statement,True
+Do they bite?,Question,True
+(horses| ANIMAL) are too tall and they pretend to care about your feelings,Complete|Statement,True
+(horses| ANIMAL) pretend to care about your feelings,Complete|Statement,True
+"they pretend to care about your feelings, those (horses| ANIMAL)",Statement|Complete,True
+(horses| ANIMAL)?,Incomplete,True

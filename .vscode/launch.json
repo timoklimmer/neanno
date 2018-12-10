@@ -14,7 +14,7 @@
                 "--text-column", "text",
                 "--is-annotated-column", "is_text_annotated",
                 "--named-entity-defs", "ANIMAL Alt+A",
-                "--category-defs", "Incident/Inquiry/Information/Spam",
+                "--category-defs", "Statement/Question/Complete/Incomplete",
                 "--categories-column", "categories",
                 "--dataset-target", "csv:sample_data/sample_data.annotated.csv",
                 //"--spacy-model-source", "en",
