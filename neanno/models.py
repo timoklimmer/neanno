@@ -8,7 +8,6 @@ import spacy
 from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant, pyqtSignal
 from spacy.util import compounding, minibatch
 
-
 class TextModel(QAbstractTableModel):
     """Provides data to the annotation dialog / data widget mapper and triggers the saving of new annotated data."""
 
@@ -177,6 +176,10 @@ class TextModel(QAbstractTableModel):
                         result[ent.end_char + shift :],
                     )
                     shift += len(result) - old_result_length
+            # autosuggest entities if needed
+            if (config.is_autosuggest_entities_enabled):
+                result = config.flashtext.replace_keywords(result)
+            # return result
             return result
         # column 1: is_annotated
         if index.column() == 1:

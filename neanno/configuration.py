@@ -4,6 +4,8 @@ import re
 
 import config
 import pandas as pd
+from flashtext import KeywordProcessor
+
 from neanno.definitions import CategoryDefinition, NamedEntityDefinition
 
 
@@ -49,7 +51,7 @@ class ConfigInit:
         )
         required.add_argument(
             "--dataset-target",
-            help='Points to a dataset which will contain the annotations/labels. Needs different prefixes depending on data source type. Eg. "csv:sample_data/sample_data.annotated.csv" will write to the sample_data/sample_data.annotated.csv file.',
+            help="Points to a dataset which will contain the annotations/labels. Uses the same datasource type scheme as --dataset-source (supported datasources may differ, however).",
             required=True,
         )
         optional = parser.add_argument_group("optional arguments")
@@ -64,6 +66,10 @@ class ConfigInit:
         optional.add_argument(
             "--named-entity-defs",
             help='Defines the entities to annotate incl. shortcuts and colors. Eg. "PER Alt+P #ff0000/ORG Alt+O #00ff00/LOC Alt+L". If no color is specified, a default color will be assigned.',
+        )
+        optional.add_argument(
+            "--autosuggest-entities-sources",
+            help="Points to a dataset which contains a term and entity_code column. The data provided will then be used to autosuggest entities if strings equal. Uses the same datasource type scheme as --dataset-source (supported datasources may differ, however).",
         )
         optional.add_argument(
             "--spacy-model-source",
@@ -83,6 +89,7 @@ class ConfigInit:
         config.is_annotated_column = args.is_annotated_column
         config.dataset_target = args.dataset_target
         config.named_entity_defs = args.named_entity_defs
+        config.autosuggest_entities_sources = args.autosuggest_entities_sources
         config.category_defs = args.category_defs
         config.categories_column = args.categories_column
         config.spacy_model_source = args.spacy_model_source
@@ -91,33 +98,10 @@ class ConfigInit:
 
     def dataset_source(parser):
         # note: depending on the specified prefix = data source type, this will run the respective functions below, eg. dataset_source_csv(...)
-        print("Loading data frame with texts to annotate...")
-        datasource_type = config.dataset_source.split(":")[0]
-        supported_datasource_types = ["csv"]
-        if datasource_type not in supported_datasource_types:
-            parser.error(
-                "Parameter '--dataset-source' uses a datasource type '{}' which is not supported. Ensure that a valid datasource type is specified. Valid datasource types are: {}.".format(
-                    datasource_type, ", ".join(supported_datasource_types)
-                )
-            )
-        getattr(ConfigInit, "dataset_source_" + datasource_type)(parser)
-
-    def dataset_source_csv(parser):
-        file_to_load = config.dataset_source.replace("csv:", "", 1)
-        if not os.path.isfile(file_to_load):
-            parser.error(
-                "The file '{}' specified in parameter '--dataset-source' does not exist. Ensure that you specify a file which exists.".format(
-                    file_to_load
-                )
-            )
-        config.dataset_source_friendly = os.path.basename(file_to_load)
-        config.dataframe_to_edit = pd.read_csv(file_to_load)
-        if not config.text_column in config.dataframe_to_edit:
-            parser.error(
-                "The specified column '{}' does not exist in the provided dataset. Ensure that you specify an existing column and check if upper and lower case are correct.".format(
-                    config.text_column
-                )
-            )
+        print("Loading dataframe with texts to annotate...")
+        config.dataframe_to_edit, config.dataset_source_friendly = ConfigInit.load_dataset(
+            config.dataset_source, parser, [config.text_column], "--dataset-source"
+        )
 
     def dataset_target(parser):
         # note: depending on the specified prefix = data source type, this will run the respective functions below, eg. dataset_target_csv(...)
@@ -139,10 +123,16 @@ class ConfigInit:
         )
 
     def named_entities(parser):
+        if config.spacy_model_target and not config.spacy_model_source:
+            parser.error(
+                "Parameter '--autosuggest-entities-entities' must not be used without parameter '--named-entity-defs'."
+            )
         config.named_entity_definitions = []
         config.is_named_entities_enabled = bool(config.named_entity_defs)
+        config.is_autosuggest_entities_enabled = bool(
+            config.autosuggest_entities_sources
+        )
         if config.is_named_entities_enabled:
-            # validation
             # ensure named_entity_defs has the expected format
             if not re.match(
                 "(?i)^[A-Z0-9_]+ [A-Z0-9+]+( #[A-F0-9]{6}| [A-Z]+)?(/[A-Z0-9_]+ [A-Z0-9+]+( #[A-F0-9]{6}| [A-Z]+)?)*$",
@@ -208,6 +198,38 @@ class ConfigInit:
                     NamedEntityDefinition(code, shortcut, color)
                 )
                 index += 1
+            # load autosuggest dataset
+            if config.is_autosuggest_entities_enabled:
+                print("Loading autosuggest dataset...")
+                # combine data from multiple datasets
+                autosuggest_entities_dataset = pd.DataFrame(
+                    columns=["term", "entity_code"]
+                )
+                for spec in config.autosuggest_entities_sources.split("//"):
+                    new_data, friendly_dataset_name_never_used = ConfigInit.load_dataset(
+                        spec,
+                        parser,
+                        ["term", "entity_code"],
+                        "--autosuggest-entities-sources",
+                    )
+                    autosuggest_entities_dataset = autosuggest_entities_dataset.append(
+                        new_data
+                    )
+                # setup flashtext for later string replacements
+                config.flashtext = KeywordProcessor()
+                data_for_flashtext = pd.DataFrame(
+                    "("
+                    + autosuggest_entities_dataset["term"]
+                    + "| "
+                    + autosuggest_entities_dataset["entity_code"]
+                    + ")"
+                )
+                data_for_flashtext["replace"] = autosuggest_entities_dataset["term"]
+                data_for_flashtext.columns = ["against", "replace"]
+                dict_for_flashtext = data_for_flashtext.set_index("against").T.to_dict(
+                    "list"
+                )
+                config.flashtext.add_keywords_from_dict(dict_for_flashtext)
 
     def categories(parser):
         config.category_definitions = []
@@ -232,3 +254,40 @@ class ConfigInit:
             )
         # enable spacy
         config.is_spacy_enabled = bool(config.spacy_model_source)
+
+    def load_dataset(spec, parser, required_columns, parameter=None):
+        supported_datasource_types = ["csv"]
+        datasource_type = config.dataset_source.split(":")[0]
+        if datasource_type not in supported_datasource_types:
+            parser.error(
+                "Parameter '{}' uses a datasource type '{}' which is not supported. Ensure that a valid datasource type is specified. Valid datasource types are: {}.".format(
+                    parameter, datasource_type, ", ".join(supported_datasource_types)
+                )
+            )
+        parameter_hint = (
+            " specified in parameter '{}'".format(parameter)
+            if parameter is not None
+            else ""
+        )
+        return getattr(ConfigInit, "load_dataset_" + datasource_type)(
+            spec, parser, required_columns, parameter_hint
+        )
+
+    def load_dataset_csv(spec, parser, required_columns, parameter_hint):
+        file_to_load = spec.replace("csv:", "", 1)
+        if not os.path.isfile(file_to_load):
+            parser.error(
+                "The file '{}'{} does not exist. Ensure that you specify a file which exists.".format(
+                    file_to_load, parameter_hint
+                )
+            )
+        result = pd.read_csv(file_to_load)
+        if not pd.Series(required_columns).isin(result.columns).all():
+            parser.error(
+                "A dataset{} does not return a dataset with the expected columns. Ensure that the dataset includes the following columns (case-sensitive): {}.".format(
+                    parameter_hint, ", ".join(required_columns)
+                )
+            )
+        friendly_dataset_name = os.path.basename(file_to_load)
+        return (result, friendly_dataset_name)
+
