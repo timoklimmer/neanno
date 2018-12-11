@@ -10,13 +10,13 @@
             "request": "launch",
             "program": "${workspaceFolder}/neanno.py",
             "args": [
-                "--dataset-source", "csv:sample_data/sample_data.csv",
-                "--text-column", "text",
+                "--dataset-source", "csv:sample_data/airline_tickets.csv",
+                "--text-column", "Text",
                 "--is-annotated-column", "is_text_annotated",
-                "--named-entity-defs", "ANIMAL Alt+A",
-                "--category-defs", "Incident/Inquiry/Information/Spam",
+                "--named-entity-defs", "AIRPORT Alt+P #153465/AIRLINE Alt+L/AIRCRAFT Alt+C/TOPIC Alt+T",
+                "--category-defs", "Ticketing/Timing/Service Offering/Mileage Plan/Security/Customs/Legal/Complaint/Misc",
                 "--categories-column", "categories",
-                "--dataset-target", "csv:sample_data/sample_data.annotated.csv",
+                "--dataset-target", "csv:sample_data/airline_tickets.annotated.csv",
                 //"--spacy-model-source", "en",
                 //"--spacy-model-target", "models/en_animals"
             ]
