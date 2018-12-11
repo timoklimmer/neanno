@@ -96,8 +96,8 @@ class ConfigInit:
         supported_datasource_types = ["csv"]
         if datasource_type not in supported_datasource_types:
             parser.error(
-                "Parameter '--dataset-source' uses a datasource type '{}' which is not supported.".format(
-                    datasource_type
+                "Parameter '--dataset-source' uses a datasource type '{}' which is not supported. Ensure that a valid datasource type is specified. Valid datasource types are: {}.".format(
+                    datasource_type, ", ".join(supported_datasource_types)
                 )
             )
         getattr(ConfigInit, "dataset_source_" + datasource_type)(parser)
@@ -106,12 +106,18 @@ class ConfigInit:
         file_to_load = config.dataset_source.replace("csv:", "", 1)
         if not os.path.isfile(file_to_load):
             parser.error(
-                "The file '{}' specified in parameter '--dataset-source' does not exist.".format(
+                "The file '{}' specified in parameter '--dataset-source' does not exist. Ensure that you specify a file which exists.".format(
                     file_to_load
                 )
             )
         config.dataset_source_friendly = os.path.basename(file_to_load)
         config.dataframe_to_edit = pd.read_csv(file_to_load)
+        if not config.text_column in config.dataframe_to_edit:
+            parser.error(
+                "The specified column '{}' does not exist in the provided dataset. Ensure that you specify an existing column and check if upper and lower case are correct.".format(
+                    config.text_column
+                )
+            )
 
     def dataset_target(parser):
         # note: depending on the specified prefix = data source type, this will run the respective functions below, eg. dataset_target_csv(...)
@@ -119,8 +125,8 @@ class ConfigInit:
         supported_datasource_types = ["csv"]
         if datasource_type not in supported_datasource_types:
             parser.error(
-                "Parameter '--dataset-target' uses a datasource type '{}' which is not supported.".format(
-                    datasource_type
+                "Parameter '--dataset-target' uses a datasource type '{}' which is not supported.  Ensure that a valid datasource type is specified. Valid datasource types are: {}.".format(
+                    datasource_type, ", ".join(supported_datasource_types)
                 )
             )
         getattr(ConfigInit, "dataset_target_" + datasource_type)(parser)
@@ -139,7 +145,7 @@ class ConfigInit:
             # validation
             # ensure named_entity_defs has the expected format
             if not re.match(
-                "(?i)^[A-Z0-9_]+ Alt\+[A-Z0-9]+( #[A-F0-9]{6}\b| [A-Z]+)?(/[A-Z0-9_]+ Alt\+[A-Z0-9]+( #[A-F0-9]{6}\b| [A-Z]+)?)*$",
+                "(?i)^[A-Z0-9_]+ [A-Z0-9+]+( #[A-F0-9]{6}| [A-Z]+)?(/[A-Z0-9_]+ [A-Z0-9+]+( #[A-F0-9]{6}| [A-Z]+)?)*$",
                 config.named_entity_defs,
             ):
                 parser.error(
