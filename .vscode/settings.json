@@ -4,5 +4,6 @@
         "--disable-msg",
         "E0611"
     ],
-    "python.linting.pylintEnabled": true
+    "python.linting.pylintEnabled": true,
+    "python.pythonPath": "C:\\ProgramData\\Miniconda3\\envs\\spacy\\python.exe"
 }

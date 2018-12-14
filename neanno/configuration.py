@@ -4,147 +4,117 @@ import re
 
 import config
 import pandas as pd
+import yaml
+from cerberus import Validator
 from flashtext import KeywordProcessor
 
 from neanno.definitions import CategoryDefinition, NamedEntityDefinition
 
 
 class ConfigInit:
-    """Collects all configuration settings and provides configuration-related objects to neanno."""
+    """Collects all configuration settings and provides configuration-related objects to neanno (through config.*)."""
 
     def __init__(self):
-        # specify and parse arguments
-        parser = ConfigInit.specify_and_parse_arguments()
-
+        # specify neanno's args and load/validate the required config file
+        config_yaml, parser = ConfigInit.define_args_and_load_config_yaml()
         # derive further configuration objects from specified arguments
         # dataset source-related
-        ConfigInit.dataset_source(parser)
+        ConfigInit.dataset_source(config_yaml, parser)
         # dataset target-related
-        ConfigInit.dataset_target(parser)
+        ConfigInit.dataset_target(config_yaml, parser)
         # named entities-related
-        ConfigInit.named_entities(parser)
+        ConfigInit.named_entities(config_yaml, parser)
         # categories-related
-        ConfigInit.categories(parser)
+        ConfigInit.categories(config_yaml, parser)
         # spacy-related
-        ConfigInit.spacy(parser)
+        ConfigInit.spacy(config_yaml, parser)
 
-    def specify_and_parse_arguments():
+    def define_args_and_load_config_yaml():
+        # define arguments
         parser = argparse.ArgumentParser(
             description="A tool to label and annotate texts and train models.",
             add_help=False,
         )
         required = parser.add_argument_group("required arguments")
         required.add_argument(
-            "--dataset-source",
-            help='Points to a dataset with the data to annotate. Needs different prefixes depending on data source type. Eg. "csv:sample_data/sample_data.csv" uses the data from the sample_data/sample_data.csv file.',
+            "--config-file",
+            help="Points to a config file for neanno. See the example config files (config.yaml) to learn how to write them.",
             required=True,
-        )
-        required.add_argument(
-            "--text-column",
-            help="Name of the column which contains the texts to annotate.",
-            required=True,
-        )
-        required.add_argument(
-            "--is-annotated-column",
-            help="Name of the column which contains a flag showing if the text has been annotated. Will be created if needed and does not exist.",
-            required=True,
-        )
-        required.add_argument(
-            "--dataset-target",
-            help="Points to a dataset which will contain the annotations/labels. Uses the same datasource type scheme as --dataset-source (supported datasources may differ, however).",
-            required=True,
-        )
-        optional = parser.add_argument_group("optional arguments")
-        optional.add_argument(
-            "--category-defs",
-            help='Defines the categories the texts can have. Eg. "Inquiry/Issue/Information"',
-        )
-        optional.add_argument(
-            "--categories-column",
-            help="Name of the column which contains the categories of the text. Will be created if needed and does not exist.",
-        )
-        optional.add_argument(
-            "--named-entity-defs",
-            help='Defines the entities to annotate incl. shortcuts and colors. Eg. "PER Alt+P #ff0000/ORG Alt+O #00ff00/LOC Alt+L". If no color is specified, a default color will be assigned.',
-        )
-        optional.add_argument(
-            "--autosuggest-entities-sources",
-            help="Points to a dataset which contains a term and entity_code column. The data provided will then be used to autosuggest entities if strings equal. Uses the same datasource type scheme as --dataset-source (supported datasources may differ, however).",
-        )
-        optional.add_argument(
-            "--spacy-model-source",
-            help="Name of the source NER/Spacy model, used as starting point and to recommend labels. If the argument is not specified, no recommendations will be made.",
-        )
-        optional.add_argument(
-            "--spacy-model-target",
-            help="Directory where the modified, newly trained NER/spacy model is saved. Can only be used if --spacy-model-source is used.",
         )
         help = parser.add_argument_group("help arguments")
         help.add_argument(
             "-h", "--help", action="help", help="show this help message and exit"
         )
-        args = parser.parse_args()
-        config.dataset_source = args.dataset_source
-        config.text_column = args.text_column
-        config.is_annotated_column = args.is_annotated_column
-        config.dataset_target = args.dataset_target
-        config.named_entity_defs = args.named_entity_defs
-        config.autosuggest_entities_sources = args.autosuggest_entities_sources
-        config.category_defs = args.category_defs
-        config.categories_column = args.categories_column
-        config.spacy_model_source = args.spacy_model_source
-        config.spacy_model_target = args.spacy_model_target
-        return parser
 
-    def dataset_source(parser):
-        # note: depending on the specified prefix = data source type, this will run the respective functions below, eg. dataset_source_csv(...)
+        # load and validate config file
+        args = parser.parse_args()
+        with open(args.config_file, "r") as config_file:
+            with open(
+                os.path.join(
+                    os.path.abspath(os.path.dirname(__file__)),
+                    "resources",
+                    "config.schema.yaml",
+                )
+            ) as config_schema_file:
+                config_yaml = yaml.load(config_file)
+                config_yaml_schema = yaml.load(config_schema_file)
+                config_yaml_validator = Validator(config_yaml_schema)
+                config_yaml_validator.validate(config_yaml)
+                errors = config_yaml_validator.errors
+                if errors:
+                    parser.error(
+                        yaml.dump(errors)
+                        + os.linesep
+                        + os.linesep
+                        + "The given config file does not follow the required schema. See error message(s) above for more details."
+                    )
+
+        # return config_yaml and parser (so subsequent methods can issue errors too)
+        return (config_yaml, parser)
+
+    def dataset_source(config_yaml, parser):
         print("Loading dataframe with texts to annotate...")
+        config.text_column = config_yaml["dataset"]["text_column"]
+        config.is_annotated_column = config_yaml["dataset"]["is_annotated_column"]
         config.dataframe_to_edit, config.dataset_source_friendly = ConfigInit.load_dataset(
-            config.dataset_source, parser, [config.text_column], "--dataset-source"
+            config_yaml["dataset"]["source"],
+            parser,
+            [config.text_column],
+            "dataset.source",
         )
 
-    def dataset_target(parser):
-        # note: depending on the specified prefix = data source type, this will run the respective functions below, eg. dataset_target_csv(...)
-        datasource_type = config.dataset_source.split(":")[0]
-        supported_datasource_types = ["csv"]
-        if datasource_type not in supported_datasource_types:
-            parser.error(
-                "Parameter '--dataset-target' uses a datasource type '{}' which is not supported.  Ensure that a valid datasource type is specified. Valid datasource types are: {}.".format(
-                    datasource_type, ", ".join(supported_datasource_types)
+    def dataset_target(config_yaml, parser):
+        config.dataset_target_friendly = None
+        if "target" in config_yaml["dataset"].keys():
+            datasource_spec = config_yaml["dataset"]["target"]
+            datasource_type = datasource_spec.split(":")[0]
+            supported_datasource_types = ["csv"]
+            if datasource_type not in supported_datasource_types:
+                parser.error(
+                    "Parameter 'dataset.target' uses a datasource type '{}' which is not supported.  Ensure that a valid datasource type is specified. Valid datasource types are: {}.".format(
+                        datasource_type, ", ".join(supported_datasource_types)
+                    )
                 )
+            getattr(ConfigInit, "dataset_target_" + datasource_type)(
+                config_yaml, parser
             )
-        getattr(ConfigInit, "dataset_target_" + datasource_type)(parser)
 
-    def dataset_target_csv(parser):
-        dataset_target_csv = config.dataset_target.replace("csv:", "", 1)
+    def dataset_target_csv(config_yaml, parser):
+        dataset_target_csv = config_yaml["dataset"]["target"].replace("csv:", "", 1)
         config.dataset_target_friendly = os.path.basename(dataset_target_csv)
         config.save_callback = lambda df: df.to_csv(
             dataset_target_csv, index=False, header=True
         )
 
-    def named_entities(parser):
-        if config.spacy_model_target and not config.spacy_model_source:
-            parser.error(
-                "Parameter '--autosuggest-entities-entities' must not be used without parameter '--named-entity-defs'."
-            )
+    def named_entities(config_yaml, parser):
         config.named_entity_definitions = []
-        config.is_named_entities_enabled = bool(config.named_entity_defs)
-        config.is_autosuggest_entities_enabled = bool(
-            config.autosuggest_entities_sources
+        config.is_named_entities_enabled = "named_entities" in config_yaml.keys()
+        config.is_autosuggest_entities_enabled = (
+            config.is_named_entities_enabled
+            and "auto_suggest" in config_yaml["named_entities"].keys()
         )
         if config.is_named_entities_enabled:
-            # ensure named_entity_defs has the expected format
-            if not re.match(
-                "(?i)^[A-Z0-9_]+ [A-Z0-9+]+( #[A-F0-9]{6}| [A-Z]+)?(/[A-Z0-9_]+ [A-Z0-9+]+( #[A-F0-9]{6}| [A-Z]+)?)*$",
-                config.named_entity_defs,
-            ):
-                parser.error(
-                    "The value of parameter '--named-entity-defs' = '{}' does not follow the expected format.".format(
-                        config.named_entity_defs
-                    )
-                )
-            # assemble named entity definitions
-            default_colors = [
+            DEFAULT_COLOR_PALETTE = [
                 "#153465",
                 "#67160e",
                 "#135714",
@@ -155,62 +125,31 @@ class ConfigInit:
                 "#2f4f4f",
             ]
             index = 0
-            for definition in config.named_entity_defs.split("/"):
-                items = definition.split(" ")
-                code = items[0]
-                shortcut = items[1]
+            for definition in config_yaml["named_entities"]["definitions"]:
+                code = definition["code"]
+                shortcut = definition["shortcut"]
                 color = (
-                    items[2]
-                    if len(items) >= 3
-                    else default_colors[index % len(default_colors)]
+                    definition["color"]
+                    if "color" in definition.keys()
+                    else DEFAULT_COLOR_PALETTE[index % len(DEFAULT_COLOR_PALETTE)]
                 )
-                if (
-                    len(
-                        [
-                            named_entity_definition.code
-                            for named_entity_definition in config.named_entity_definitions
-                            if named_entity_definition.code == code
-                        ]
-                    )
-                    > 0
-                ):
-                    parser.error(
-                        "Entity code '{}' is specified multiple times in parameter '--named-entity-defs'.".format(
-                            code
-                        )
-                    )
-                if (
-                    len(
-                        [
-                            named_entity_definition.key_sequence
-                            for named_entity_definition in config.named_entity_definitions
-                            if named_entity_definition.key_sequence == shortcut
-                        ]
-                    )
-                    > 0
-                ):
-                    parser.error(
-                        "Shortcut '{}' is specified multiple times in parameter '--named-entity-defs'.".format(
-                            shortcut
-                        )
-                    )
                 config.named_entity_definitions.append(
                     NamedEntityDefinition(code, shortcut, color)
                 )
                 index += 1
             # load autosuggest dataset
             if config.is_autosuggest_entities_enabled:
-                print("Loading autosuggest dataset...")
+                print("Loading autosuggest dataset(s)...")
                 # combine data from multiple datasets
                 autosuggest_entities_dataset = pd.DataFrame(
                     columns=["term", "entity_code"]
                 )
-                for spec in config.autosuggest_entities_sources.split("//"):
+                for spec in config_yaml["named_entities"]["auto_suggest"]["sources"]:
                     new_data, friendly_dataset_name_never_used = ConfigInit.load_dataset(
                         spec,
                         parser,
                         ["term", "entity_code"],
-                        "--autosuggest-entities-sources",
+                        "named_entities.auto_suggest.sources",
                     )
                     autosuggest_entities_dataset = autosuggest_entities_dataset.append(
                         new_data
@@ -231,33 +170,25 @@ class ConfigInit:
                 )
                 config.flashtext.add_keywords_from_dict(dict_for_flashtext)
 
-    def categories(parser):
+    def categories(config_yaml, parser):
         config.category_definitions = []
-        config.is_categories_enabled = bool(config.category_defs)
+        config.is_categories_enabled = "categories" in config_yaml.keys()
         if config.is_categories_enabled:
-            # validation
-            # ensure --categories-column is set if --category-defs is used
-            if not config.categories_column:
-                parser.error(
-                    "Parameter '--categories-column' is required if parameter '--category-defs' is used."
-                )
-            # assemble category definitions
-            for definition in config.category_defs.split("/"):
-                name = definition
+            config.categories_column = config_yaml["categories"]["column"]
+            for definition in config_yaml["categories"]["definitions"]:
+                name = definition["name"]
                 config.category_definitions.append(CategoryDefinition(name))
 
-    def spacy(parser):
-        # ensure that --spacy-model-target is not specified without --spacy-model-source
-        if config.spacy_model_target and not config.spacy_model_source:
-            parser.error(
-                "Parameter '--spacy-model-target' must not be used without parameter '--spacy_model_source'."
-            )
-        # enable spacy
-        config.is_spacy_enabled = bool(config.spacy_model_source)
+    def spacy(config_yaml, parser):
+        config.is_spacy_enabled = "spacy" in config_yaml.keys()
+        if config.is_spacy_enabled:
+            config.spacy_model_source = config_yaml["spacy"]["source"]
+            if "target" in config_yaml["spacy"].keys():
+                config.spacy_model_target = config_yaml["spacy"]["target"]
 
     def load_dataset(spec, parser, required_columns, parameter=None):
         supported_datasource_types = ["csv"]
-        datasource_type = config.dataset_source.split(":")[0]
+        datasource_type = spec.split(":")[0]
         if datasource_type not in supported_datasource_types:
             parser.error(
                 "Parameter '{}' uses a datasource type '{}' which is not supported. Ensure that a valid datasource type is specified. Valid datasource types are: {}.".format(
@@ -290,4 +221,3 @@ class ConfigInit:
             )
         friendly_dataset_name = os.path.basename(file_to_load)
         return (result, friendly_dataset_name)
-

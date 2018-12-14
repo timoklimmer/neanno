@@ -1,0 +1,74 @@
+dataset:
+    type: dict
+    schema:
+        source:
+            type: string
+            required: True
+            regex: "^.+?:.+"
+        text_column:
+            type: string
+            required: True
+        is_annotated_column:
+            type: string
+            required: True
+        target:
+            type: string
+            required: False
+            regex: "^.+?:.+"
+    required: True
+
+named_entities:
+    type: dict
+    schema:
+        definitions:
+            type: list
+            schema:
+                type: dict
+                schema:
+                    code:
+                        type: string
+                        required: True
+                    shortcut:
+                        type: string
+                        required: True
+                    color:
+                        type: string
+                        regex: "(?i)^#[A-F0-9]{6}$|^[A-Z]+$"
+                        required: False
+        auto_suggest:
+            type: dict
+            schema:
+                sources:
+                    type: list
+                    schema:
+                        type: string
+                        regex: "^.+?:.+"
+            required: False
+    required: False
+
+categories:
+    type: dict
+    schema:
+        definitions:
+            type: list
+            schema:
+                type: dict
+                schema:
+                    name:
+                        type: string
+                        required: True
+        column:
+            type: string
+            required: True
+    required: False
+
+spacy:
+    type: dict
+    schema:
+        source:
+            type: string
+            required: True
+        target:
+            type: string
+            required: False
+    required: False

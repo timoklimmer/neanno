@@ -198,11 +198,11 @@ class AnnotationDialog(QMainWindow):
         dataset_grid.addWidget(QLabel("Is Annotated"), 4, 0)
         self.is_annotated_label = QLabel()
         dataset_grid.addWidget(self.is_annotated_label, 4, 1)
-        if config.dataset_source_friendly is not None:
+        if config.dataset_source_friendly:
             dataset_grid.addWidget(QLabel("Source"), 5, 0)
             self.dataset_source_friendly_label = QLabel(config.dataset_source_friendly)
             dataset_grid.addWidget(self.dataset_source_friendly_label, 5, 1)
-        if config.dataset_target_friendly is not None:
+        if config.dataset_target_friendly:
             dataset_grid.addWidget(QLabel("Target"), 6, 0)
             self.dataset_target_friendly_label = QLabel(config.dataset_target_friendly)
             dataset_grid.addWidget(self.dataset_target_friendly_label, 6, 1)
@@ -426,7 +426,8 @@ class AnnotationDialog(QMainWindow):
         # remove focus from text control
         self.text_edit.clearFocus()
         # remove focus from categories list
-        self.text_categories_list.clearFocus()
+        if config.is_categories_enabled:
+            self.text_categories_list.clearFocus()
 
     def annotate_entity(self):
         text_cursor = self.text_edit.textCursor()

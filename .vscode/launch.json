@@ -10,16 +10,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/neanno.py",
             "args": [
-                "--dataset-source", "csv:sample_data/airline_tickets/texts.csv",
-                "--text-column", "Text",
-                "--is-annotated-column", "is_text_annotated",
-                "--named-entity-defs", "AIRLINE Alt+L/AIRPORT Alt+P/TOPIC Alt+T",
-                "--autosuggest-entities-sources", "csv:sample_data/airline_tickets/airlines.autosuggest.csv//csv:sample_data/airline_tickets/airport_codes.autosuggest.csv//csv:sample_data/airline_tickets/topics.autosuggest.csv",
-                "--category-defs", "Ticketing/Timing/Service Offering/Mileage Plan/Security/Customs/Legal/Complaint/Misc",
-                "--categories-column", "categories",
-                "--dataset-target", "csv:sample_data/airline_tickets/texts.annotated.csv",
-                //"--spacy-model-source", "en",
-                //"--spacy-model-target", "models/en_animals"
+                "--config", "samples/airline_tickets/airline_tickets.config.yaml"
             ]
         },
         {
@@ -28,15 +19,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/neanno.py",
             "args": [
-                "--dataset-source", "csv:sample_data/meals/sample_posts.annotated.csv",
-                "--text-column", "post_text",
-                "--is-annotated-column", "is_post_annotated",
-                "--category-defs", "Relevant/Not Relevant",
-                "--categories-column", "categories",
-                "--named-entity-defs", "MEAL Alt+M/SIDE Alt+S/APPETIZER Alt+A/DESSERT Alt+D/BEVERAGE Alt+B",
-                "--dataset-target", "csv:sample_data/meals/sample_posts.annotated.csv",
-                //"--spacy-model-source", "blank:de",
-                //"--spacy-model-target", "models/de_meals"
+                "--config", "samples/meals/meals.config.yaml"
             ]
         },
         {
