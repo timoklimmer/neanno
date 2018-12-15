@@ -10,7 +10,7 @@ named_entities:
   definitions:
       - code: AIRLINE
         shortcut: Alt+A
-        # color: "#456789"
+        # color: "#153465"
       - code: AIRCRAFT
         shortcut: Alt+C
       - code: AIRPORT
@@ -24,7 +24,7 @@ named_entities:
       - csv:samples/airline_tickets/topics.autosuggest.csv
     regexes:
       - entity: AIRCRAFT
-        pattern: (A\s*)?3[28]0|(B\s*)?7\d7(-\d{3})?
+        pattern: (A\s*)?3[28]0|(B\s*)?7\d7(-\d{3})|CRJ|MD-\d{2}?
 
 categories:
   definitions:

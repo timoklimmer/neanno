@@ -8,13 +8,15 @@ billing statement,TOPIC
 boarding,TOPIC
 boarding pass,TOPIC
 bottles,TOPIC
+cancelling,TOPIC
+cancelled,TOPIC
+charge,TOPIC
 cigarettes,TOPIC
 compensation,TOPIC
 complaints,TOPIC
 computer,TOPIC
 cost,TOPIC
 costs,TOPIC
-cancelled,TOPIC
 credit,TOPIC
 credit card,TOPIC
 economy,TOPIC
@@ -22,6 +24,7 @@ Economy Plus,TOPIC
 error,TOPIC
 family,TOPIC
 frequent miles number,TOPIC
+group rate,TOPIC
 hotel,TOPIC
 notebook,TOPIC
 laptop,TOPIC
@@ -29,6 +32,7 @@ luggage,TOPIC
 live agent,TOPIC
 food,TOPIC
 football,TOPIC
+in-flight service,TOPIC
 insurance,TOPIC
 iPad,TOPIC
 iPhone,TOPIC

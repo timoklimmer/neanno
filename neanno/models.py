@@ -129,7 +129,6 @@ class TextModel(QAbstractTableModel):
         is_annotated = config.dataframe_to_edit.ix[
             index.row(), self.is_annotated_column_index
         ]
-        is_annotated = str(is_annotated if is_annotated is not None else False)
 
         # return data for respective columns
         # column 0: text
@@ -137,40 +136,38 @@ class TextModel(QAbstractTableModel):
             result = str(
                 config.dataframe_to_edit.ix[index.row(), self.text_column_index]
             )
-            # add predicted entities if needed
-            if (
-                not is_annotated
-                and config.is_named_entities_enabled
-                and config.is_spacy_enabled
-            ):
-                doc = self.spacy_model(result)
-                shift = 0
-                for ent in doc.ents:
-                    old_result_length = len(result)
-                    result = "{}{}{}".format(
-                        result[: ent.start_char + shift],
-                        "({}| {})".format(ent.text, ent.label_),
-                        result[ent.end_char + shift :],
-                    )
-                    shift += len(result) - old_result_length
-            # autosuggest entities if needed
-            if config.is_autosuggest_entities_enabled:
-                # sources
-                if config.is_autosuggest_entities_by_sources_enabled:
-                    result = config.flashtext.replace_keywords(result)
-                # regexes
-                if config.is_autosuggest_entities_by_regexes_enabled:
-                    for autosuggest_regex in config.autosuggest_regexes:
-                        result = re.sub(
-                            "(?P<text>{})".format(autosuggest_regex.pattern),
-                            "({}| {})".format("\g<text>", autosuggest_regex.entity),
-                            result,
+            # add predicted and/or suggested entities if needed
+            if not is_annotated and config.is_named_entities_enabled:
+                # entity predictions from spacy
+                if config.is_spacy_enabled:
+                    doc = self.spacy_model(result)
+                    shift = 0
+                    for ent in doc.ents:
+                        old_result_length = len(result)
+                        result = "{}{}{}".format(
+                            result[: ent.start_char + shift],
+                            "({}| {})".format(ent.text, ent.label_),
+                            result[ent.end_char + shift :],
                         )
+                        shift += len(result) - old_result_length
+                # autosuggest entities
+                if config.is_autosuggest_entities_enabled:
+                    # sources
+                    if config.is_autosuggest_entities_by_sources_enabled:
+                        result = config.flashtext.replace_keywords(result)
+                    # regexes
+                    if config.is_autosuggest_entities_by_regexes_enabled:
+                        for autosuggest_regex in config.autosuggest_regexes:
+                            result = re.sub(
+                                "(?P<text>{})".format(autosuggest_regex.pattern),
+                                "({}| {})".format("\g<text>", autosuggest_regex.entity),
+                                result,
+                            )
             # return result
             return result
         # column 1: is_annotated
         if index.column() == 1:
-            return is_annotated
+            return str(is_annotated if is_annotated is not None else False)
         # column 2: categories
         if index.column() == 2:
             return str(
