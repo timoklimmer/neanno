@@ -5,6 +5,7 @@ import string
 
 import config
 import spacy
+from neanno.textutils import extract_entities_from_nerded_text
 from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant, pyqtSignal
 from spacy.util import compounding, minibatch
 
@@ -60,29 +61,6 @@ class TextModel(QAbstractTableModel):
             else spacy.load(config.spacy_model_source)
         )
 
-    @staticmethod
-    def extract_entities_from_nerded_text(text, allowed_entities=None):
-        # get "empty" result without having entity positions
-        result = (re.sub("\((?P<text>.+?)\| .+?\)", "\g<text>", text), {"entities": []})
-        # add entity positions
-        working_text = text
-        while True:
-            find_entities_pattern = "\((?P<text>.+?)\| (?P<label>.+?)\)"
-            match = re.search(find_entities_pattern, working_text)
-            if match is not None:
-                entity_text = match.group(1)
-                entity_label = match.group(2)
-                if allowed_entities is None or (
-                    allowed_entities is not None and entity_label in allowed_entities
-                ):
-                    result[1]["entities"].append(
-                        (match.start(1) - 1, match.end(1) - 1, entity_label)
-                    )
-                working_text = re.sub("\(.+?\| .+?\)", entity_text, working_text, 1)
-            else:
-                break
-        return result
-
     def retrain_spacy_model(self):
         print("Training spacy model...")
         # ensure and get the ner pipe
@@ -101,11 +79,7 @@ class TextModel(QAbstractTableModel):
             config.dataframe_to_edit[
                 config.dataframe_to_edit[config.is_annotated_column] == True
             ][config.text_column]
-            .map(
-                lambda text: self.extract_entities_from_nerded_text(
-                    text, allowed_entities
-                )
-            )
+            .map(lambda text: extract_entities_from_nerded_text(text, allowed_entities))
             .tolist()
         )
 
