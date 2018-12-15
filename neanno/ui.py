@@ -148,22 +148,13 @@ class AnnotationDialog(QMainWindow):
         text_categories_groupbox = QGroupBox("Categories")
         text_categories_groupbox.setLayout(text_categories_groupbox_layout)
 
-        # entity shortcuts
-        shortcut_legend_grid = QGridLayout()
-        row = 0
-        for named_entity_definition in config.named_entity_definitions:
-            color_widget = QLabel(" " + named_entity_definition.code)
-            color_widget.setStyleSheet(
-                "font-size: 10pt; color: white; background-color: %s"
-                % named_entity_definition.backcolor
-            )
-            label_widget = QLabel(named_entity_definition.key_sequence)
-            label_widget.setStyleSheet("font-size: 10pt;")
-            shortcut_legend_grid.addWidget(color_widget, row, 0)
-            shortcut_legend_grid.addWidget(label_widget, row, 1)
-            row += 1
+        # entity shortcuts / counts
+        entity_infos_layout = QHBoxLayout()
+        self.entity_infos_markup_control = QLabel()
+        self.entity_infos_markup_control.setTextFormat(Qt.RichText)
+        entity_infos_layout.addWidget(self.entity_infos_markup_control)
         entities_groupbox = QGroupBox("Entities")
-        entities_groupbox.setLayout(shortcut_legend_grid)
+        entities_groupbox.setLayout(entity_infos_layout)
 
         # spacy model
         if config.is_spacy_enabled:
@@ -410,11 +401,6 @@ class AnnotationDialog(QMainWindow):
         self.textmodel.retrain_spacy_model()
 
     def update_controls_after_navigation(self):
-        # progress
-        new_progress_value = (
-            self.textmodel.get_annotated_texts_count() * 100 / self.textmodel.rowCount()
-        )
-        self.progressbar.setValue(new_progress_value)
         # current index
         self.current_text_index_label.setText(str(self.text_navigator.currentIndex()))
         # annotated texts count
@@ -423,9 +409,35 @@ class AnnotationDialog(QMainWindow):
         # total texts count
         total_texts_count = self.textmodel.rowCount()
         self.total_texts_label.setText(str(total_texts_count))
-        # remove focus from text control
+        # entity infos markup
+        entity_infos_markup = "<table style='font-size: 10pt;' width='100%'>"
+        # entity_infos_markup += "<colgroup><col span='1'/><col span='1'/><col width='*'/></colgroup>"
+        for named_entity_definition in config.named_entity_definitions:
+            entity_infos_markup += "<tr>"
+            entity_infos_markup += "<td style='color: white; background-color:{}; padding-left: 5'>{}</td>".format(
+                named_entity_definition.backcolor, named_entity_definition.code
+            )
+            entity_infos_markup += "<td style='padding-left: 5'>{}</td>".format(
+                named_entity_definition.key_sequence
+            )
+            entity_infos_markup += "<td style='width: 100%; text-align: right'>{}</td>".format(
+                str(self.textmodel.entity_distribution[named_entity_definition.code])
+                if named_entity_definition.code in self.textmodel.entity_distribution
+                else "0"
+            )
+            entity_infos_markup += "</tr>"
+        entity_infos_markup += "</table>"
+        self.entity_infos_markup_control.setText(entity_infos_markup)
+
+        # progress
+        new_progress_value = (
+            self.textmodel.get_annotated_texts_count() * 100 / self.textmodel.rowCount()
+        )
+        self.progressbar.setValue(new_progress_value)
+        # remove focus from controls
+        # text_edit
         self.text_edit.clearFocus()
-        # remove focus from categories list
+        # text_categories_list
         if config.is_categories_enabled:
             self.text_categories_list.clearFocus()
 

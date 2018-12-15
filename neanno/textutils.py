@@ -1,7 +1,5 @@
 import re
 
-
-@staticmethod
 def extract_entities_from_nerded_text(text, allowed_entities=None):
     """ Returns all entities and their positions from a "nerded" text, eg. This is an (example entity| SOME_ENTITY_TYPE)."""
     # get "empty" result without having entity positions
@@ -23,4 +21,15 @@ def extract_entities_from_nerded_text(text, allowed_entities=None):
             working_text = re.sub("\(.+?\| .+?\)", entity_text, working_text, 1)
         else:
             break
+    return result
+
+def extract_entities_distribution(text):
+    """ Computes the types and frequencies of entities in the specified text."""
+    result = {}
+    find_entities_pattern = "\((?P<text>.+?)\| (?P<label>.+?)\)"
+    for entity in re.findall(find_entities_pattern, text):
+        entity_code = entity[1]
+        if entity_code not in result:
+            result[entity_code] = 0
+        result[entity_code] += 1
     return result

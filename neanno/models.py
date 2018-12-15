@@ -2,10 +2,16 @@ import pathlib
 import random
 import re
 import string
+from functools import reduce
 
 import config
+import pandas as pd
 import spacy
-from neanno.textutils import extract_entities_from_nerded_text
+from neanno.dictutils import mergesum_dict
+from neanno.textutils import (
+    extract_entities_distribution,
+    extract_entities_from_nerded_text,
+)
 from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant, pyqtSignal
 from spacy.util import compounding, minibatch
 
@@ -13,6 +19,7 @@ from spacy.util import compounding, minibatch
 class TextModel(QAbstractTableModel):
     """Provides data to the annotation dialog / data widget mapper and triggers the saving of new annotated data."""
 
+    entity_distribution = {}
     random_categories_column_name = None
     saveStarted = pyqtSignal()
     saveCompleted = pyqtSignal()
@@ -47,11 +54,34 @@ class TextModel(QAbstractTableModel):
             config.is_annotated_column
         )
 
+        # determine entity distribution if entities are enabled
+        if config.is_named_entities_enabled:
+            self.compute_entity_distribution()
+
         # load and prepare spacy model
         if config.is_spacy_enabled:
             self.spacy_model = self.load_and_prepare_spacy_model(
                 config.spacy_model_source
             )
+
+    def compute_entity_distribution(self):
+        annotated_data = self.get_annotated_data()
+        distribution_candidate = (annotated_data[config.text_column]
+            .map(lambda text: extract_entities_distribution(text))
+            .agg(
+                lambda series: reduce(
+                    lambda dist1, dist2: mergesum_dict(dist1, dist2), series
+                )
+            )
+        )
+        self.entity_distribution = (
+            distribution_candidate
+            if not isinstance(distribution_candidate, pd.Series)
+            else {}
+        )
+
+    def get_annotated_data(self):
+        return config.dataframe_to_edit[config.dataframe_to_edit[config.is_annotated_column] == True]
 
     def load_and_prepare_spacy_model(self, spacy_model_source):
         print("Loading spacy model...")
@@ -185,13 +215,16 @@ class TextModel(QAbstractTableModel):
             self.data(index) != value
             or not config.dataframe_to_edit.ix[row, self.is_annotated_column_index]
         ):
+            config.dataframe_to_edit.iat[row, self.is_annotated_column_index] = True
             if index.column() == 0:
                 # text
                 config.dataframe_to_edit.iat[row, self.text_column_index] = value
+                # re-compute entity distribution
+                # TODO: might be made more efficient with deltas instead of complete recomputation all the time
+                self.compute_entity_distribution()
             if index.column() == 2:
                 # categories
-                config.dataframe_to_edit.iat[row, self.categories_column_index] = value
-            config.dataframe_to_edit.iat[row, self.is_annotated_column_index] = True
+                config.dataframe_to_edit.iat[row, self.categories_column_index] = value            
             self.save()
             self.dataChanged.emit(index, index)
         return True
