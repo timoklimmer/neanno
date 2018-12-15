@@ -1,3 +1,25 @@
+class QueryDict(dict):
+    """Helper class to query a dict more conveniently."""
+
+    def get(self, path, default=None):
+        keys = path.split("/")
+        value = None
+        for key in keys:
+            if value:
+                if isinstance(value, list):
+                    value = [
+                        child_value.get(key, default) if child_value else None
+                        for child_value in value
+                    ]
+                else:
+                    value = value.get(key, default)
+            else:
+                value = dict.get(self, key, default)
+            if not value:
+                break
+        return value
+
+
 def mergesum_dict(dict1, dict2):
     """ Assumes two dictionaries with schema key:numeric value and merges them into a single dictionary while summing the numeric values per key."""
     result = {}
@@ -12,6 +34,3 @@ def mergesum_dict(dict1, dict2):
         value = dict2[key]
         result[key] += value
     return result
-
-# TODO: add dict navigator
-#https://www.haykranen.nl/2016/02/13/handling-complex-nested-dicts-in-python/

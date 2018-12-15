@@ -7,12 +7,13 @@ import pandas as pd
 import yaml
 from cerberus import Validator
 from flashtext import KeywordProcessor
-
+from neanno.colors import DEFAULT_ENTITY_COLORS_PALETTE
 from neanno.definitions import (
+    AutoSuggestRegex,
     CategoryDefinition,
     NamedEntityDefinition,
-    AutoSuggestRegex,
 )
+from neanno.dictutils import QueryDict
 
 
 class ConfigInit:
@@ -78,10 +79,11 @@ class ConfigInit:
 
     def dataset_source(config_yaml, parser):
         print("Loading dataframe with texts to annotate...")
-        config.text_column = config_yaml["dataset"]["text_column"]
-        config.is_annotated_column = config_yaml["dataset"]["is_annotated_column"]
+        config.dataset_node = config_yaml["dataset"]
+        config.text_column = config.dataset_node["text_column"]
+        config.is_annotated_column = config.dataset_node["is_annotated_column"]
         config.dataset_to_edit, config.dataset_source_friendly = ConfigInit.load_dataset(
-            config_yaml["dataset"]["source"],
+            config.dataset_node["source"],
             parser,
             [config.text_column],
             "dataset.source",
@@ -92,8 +94,8 @@ class ConfigInit:
 
     def dataset_target(config_yaml, parser):
         config.dataset_target_friendly = None
-        if "target" in config_yaml["dataset"].keys():
-            datasource_spec = config_yaml["dataset"]["target"]
+        if "target" in config.dataset_node:
+            datasource_spec = config.dataset_node["target"]
             datasource_type = datasource_spec.split(":")[0]
             supported_datasource_types = ["csv"]
             if datasource_type not in supported_datasource_types:
@@ -107,7 +109,7 @@ class ConfigInit:
             )
 
     def dataset_target_csv(config_yaml, parser):
-        dataset_target_csv = config_yaml["dataset"]["target"].replace("csv:", "", 1)
+        dataset_target_csv = config.dataset_node["target"].replace("csv:", "", 1)
         config.dataset_target_friendly = os.path.basename(dataset_target_csv)
         config.save_callback = lambda df: df.to_csv(
             dataset_target_csv, index=False, header=True
@@ -115,26 +117,19 @@ class ConfigInit:
 
     def named_entities(config_yaml, parser):
         config.named_entity_definitions = []
-        config.is_named_entities_enabled = "named_entities" in config_yaml.keys()
+        config.is_named_entities_enabled = "named_entities" in config_yaml
         if config.is_named_entities_enabled:
-            DEFAULT_COLOR_PALETTE = [
-                "#153465",
-                "#67160e",
-                "#135714",
-                "#341b4d",
-                "#b45c18",
-                "#b0984f",
-                "#838b83",
-                "#2f4f4f",
-            ]
+            config.named_entities_node = config_yaml["named_entities"]
             index = 0
-            for definition in config_yaml["named_entities"]["definitions"]:
+            for definition in config.named_entities_node["definitions"]:
                 code = definition["code"]
                 shortcut = definition["shortcut"]
                 color = (
                     definition["color"]
                     if "color" in definition.keys()
-                    else DEFAULT_COLOR_PALETTE[index % len(DEFAULT_COLOR_PALETTE)]
+                    else DEFAULT_ENTITY_COLORS_PALETTE[
+                        index % len(DEFAULT_ENTITY_COLORS_PALETTE)
+                    ]
                 )
                 config.named_entity_definitions.append(
                     NamedEntityDefinition(code, shortcut, color)
@@ -143,21 +138,19 @@ class ConfigInit:
             # load autosuggest dataset
             config.is_autosuggest_entities_enabled = (
                 config.is_named_entities_enabled
-                and "auto_suggest" in config_yaml["named_entities"].keys()
+                and "auto_suggest" in config.named_entities_node
             )
             config.is_autosuggest_entities_by_sources_enabled = False
             config.is_autosuggest_entities_by_regexes_enabled = False
             if config.is_autosuggest_entities_enabled:
-                if "sources" in config_yaml["named_entities"]["auto_suggest"].keys():
+                if "sources" in config.named_entities_node["auto_suggest"].keys():
                     config.is_autosuggest_entities_by_sources_enabled = True
                     print("Loading autosuggest dataset(s)...")
                     # combine data from multiple datasets
                     autosuggest_entities_dataset = pd.DataFrame(
                         columns=["term", "entity_code"]
                     )
-                    for spec in config_yaml["named_entities"]["auto_suggest"][
-                        "sources"
-                    ]:
+                    for spec in config.named_entities_node["auto_suggest"]["sources"]:
                         new_data, friendly_dataset_name_never_used = ConfigInit.load_dataset(
                             spec,
                             parser,
@@ -185,11 +178,11 @@ class ConfigInit:
 
                 # provide regexes to config
                 config.autosuggest_regexes = []
-                if "regexes" in config_yaml["named_entities"]["auto_suggest"].keys():
+                if "regexes" in config.named_entities_node["auto_suggest"].keys():
                     config.is_autosuggest_entities_by_regexes_enabled = True
-                    for autosuggest_regex in config_yaml["named_entities"][
-                        "auto_suggest"
-                    ]["regexes"]:
+                    for autosuggest_regex in config.named_entities_node["auto_suggest"][
+                        "regexes"
+                    ]:
                         config.autosuggest_regexes.append(
                             AutoSuggestRegex(
                                 autosuggest_regex["entity"],
@@ -201,8 +194,9 @@ class ConfigInit:
         config.category_definitions = []
         config.is_categories_enabled = "categories" in config_yaml.keys()
         if config.is_categories_enabled:
-            config.categories_column = config_yaml["categories"]["column"]
-            for definition in config_yaml["categories"]["definitions"]:
+            config.categories_node = config_yaml["categories"]
+            config.categories_column = config.categories_node["column"]
+            for definition in config.categories_node["definitions"]:
                 name = definition["name"]
                 config.category_definitions.append(CategoryDefinition(name))
 
