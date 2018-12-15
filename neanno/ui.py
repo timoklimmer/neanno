@@ -12,7 +12,6 @@ from PyQt5.QtGui import (
     QTextCharFormat,
 )
 from PyQt5.QtWidgets import (
-    QAbstractItemView,
     QApplication,
     QDataWidgetMapper,
     QDesktopWidget,
@@ -32,7 +31,7 @@ from PyQt5.QtWidgets import (
 )
 
 import config
-from neanno.custom_ui_controls import MappableQListWidget, QDataWidgetMapperWithHistory
+from neanno.custom_ui_controls import CategoriesTableWidget, QDataWidgetMapperWithHistory
 
 SHORTCUT_SUBMIT_NEXT_BEST = "Ctrl+Return"
 SHORTCUT_BACKWARD = "Ctrl+Left"
@@ -139,12 +138,10 @@ class AnnotationDialog(QMainWindow):
         self.progressbar.setValue(0)
 
         # categories
-        self.text_categories_list = MappableQListWidget()
-        self.text_categories_list.setSelectionMode(QAbstractItemView.MultiSelection)
-        for category in config.category_definitions:
-            self.text_categories_list.addItem(category.name)
+        # note: CategoriesTableWidget populates itself (mostly due to the QTableWidget control, might be improved in future)
+        self.text_categories_table = CategoriesTableWidget()
         text_categories_groupbox_layout = QVBoxLayout()
-        text_categories_groupbox_layout.addWidget(self.text_categories_list)
+        text_categories_groupbox_layout.addWidget(self.text_categories_table)
         text_categories_groupbox = QGroupBox("Categories")
         text_categories_groupbox.setLayout(text_categories_groupbox_layout)
 
@@ -316,9 +313,9 @@ class AnnotationDialog(QMainWindow):
         )
         if config.is_categories_enabled:
             self.text_navigator.addMapping(
-                self.text_categories_list,
+                self.text_categories_table,
                 2,
-                QByteArray().insert(0, "selected_items_as_string"),
+                QByteArray().insert(0, "selected_categories"),
             )
         self.text_navigator.currentIndexChanged.connect(
             self.update_controls_after_navigation
@@ -437,9 +434,9 @@ class AnnotationDialog(QMainWindow):
         # remove focus from controls
         # text_edit
         self.text_edit.clearFocus()
-        # text_categories_list
+        # text_categories_table
         if config.is_categories_enabled:
-            self.text_categories_list.clearFocus()
+            self.text_categories_table.clearFocus()
 
     def annotate_entity(self):
         text_cursor = self.text_edit.textCursor()

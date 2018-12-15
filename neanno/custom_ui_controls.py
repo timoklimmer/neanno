@@ -1,5 +1,13 @@
+import config
 from PyQt5.QtCore import Qt, pyqtProperty
-from PyQt5.QtWidgets import QDataWidgetMapper, QListWidget
+from PyQt5.QtWidgets import (
+    QAbstractItemView,
+    QDataWidgetMapper,
+    QFrame,
+    QHeaderView,
+    QTableWidget,
+    QTableWidgetItem,
+)
 
 
 class QDataWidgetMapperWithHistory(QDataWidgetMapper):
@@ -34,23 +42,62 @@ class QDataWidgetMapperWithHistory(QDataWidgetMapper):
             self.is_forward_or_backward = False
 
 
-class MappableQListWidget(QListWidget):
+class CategoriesTableWidget(QTableWidget):
     """
-    A QListWidget that has a property to give and take its selected items as string.
-
-    Name of the property: selected_items_as_string.
-    Format: SomeSelectedItem|AnotherSelectedItem.
+    A custom QTableWidget used for showing/selecting the categories of a text.
     """
 
-    def get_selected_items_as_string(self):
-        return "|".join([item.text() for item in self.selectedItems()])
+    def __init__(self):
+        super().__init__()
+        self.setColumnCount(2)
+        self.setRowCount(config.categories_count)
+        self.horizontalHeader().hide()
+        self.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.verticalHeader().hide()
+        self.verticalHeader().setDefaultSectionSize(
+            self.verticalHeader().minimumSectionSize()
+        )
+        self.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.setSelectionMode(QAbstractItemView.MultiSelection)
+        self.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.setFocusPolicy(Qt.NoFocus)
+        self.populate_categories()
 
-    def set_selected_items_as_string(self, value):
+    def populate_categories(self):
+        row = 0
+        for category in config.category_definitions:
+            name_item = QTableWidgetItem()
+            name_item.setText(category.name)
+            name_item.setTextAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+            self.setItem(row, 0, name_item)
+            frequency_item = QTableWidgetItem()
+            frequency_item.setText("0")
+            frequency_item.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+            self.setItem(row, 1, frequency_item)
+            row += 1
+
+    def get_selected_categories(self):
+        selected_categories = []
+        for selected_row in self.selectionModel().selectedRows():
+            selected_category = self.item(selected_row.row(), 0).text()
+            selected_categories.append(selected_category)
+        return "|".join(
+            sorted(
+                selected_categories, key=lambda x: config.categories_names_list.index(x)
+            )
+        )
+
+    def set_selected_categories(self, value):
         self.clearSelection()
-        for selectedItem in value.split("|"):
-            for itemToSelect in self.findItems(selectedItem, Qt.MatchExactly):
-                itemToSelect.setSelected(True)
+        for selected_category in value.split("|"):
+            row_indexes_to_select = [
+                found_item.row()
+                for found_item in self.findItems(selected_category, Qt.MatchExactly)
+            ]
+            for row_index_to_select in row_indexes_to_select:
+                for column_index in range(0, self.columnCount()):
+                    self.item(row_index_to_select, column_index).setSelected(True)
 
-    selected_items_as_string = pyqtProperty(
-        str, fget=get_selected_items_as_string, fset=set_selected_items_as_string
+    selected_categories = pyqtProperty(
+        str, fget=get_selected_categories, fset=set_selected_categories
     )

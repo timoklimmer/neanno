@@ -199,6 +199,10 @@ class ConfigInit:
             for definition in config.categories_node["definitions"]:
                 name = definition["name"]
                 config.category_definitions.append(CategoryDefinition(name))
+            config.categories_names_list = [
+                definition.name for definition in config.category_definitions
+            ]
+            config.categories_count = len(config.category_definitions)
 
     def spacy(config_yaml, parser):
         config.is_spacy_enabled = "spacy" in config_yaml.keys()
