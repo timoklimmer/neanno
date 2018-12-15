@@ -30,7 +30,7 @@ class TextModel(QAbstractTableModel):
 
         # get column indexes and ensure that the data frame has the required columns
         # text
-        self.text_column_index = config.dataframe_to_edit.columns.get_loc(
+        self.text_column_index = config.dataset_to_edit.columns.get_loc(
             config.text_column
         )
         # categories
@@ -42,15 +42,15 @@ class TextModel(QAbstractTableModel):
                 random.choice(string.ascii_uppercase + string.digits) for _ in range(16)
             )
             config.categories_column = self.random_categories_column_name
-        if config.categories_column not in config.dataframe_to_edit:
-            config.dataframe_to_edit[config.categories_column] = ""
-        self.categories_column_index = config.dataframe_to_edit.columns.get_loc(
+        if config.categories_column not in config.dataset_to_edit:
+            config.dataset_to_edit[config.categories_column] = ""
+        self.categories_column_index = config.dataset_to_edit.columns.get_loc(
             config.categories_column
         )
         # is annotated
-        if config.is_annotated_column not in config.dataframe_to_edit:
-            config.dataframe_to_edit[config.is_annotated_column] = False
-        self.is_annotated_column_index = config.dataframe_to_edit.columns.get_loc(
+        if config.is_annotated_column not in config.dataset_to_edit:
+            config.dataset_to_edit[config.is_annotated_column] = False
+        self.is_annotated_column_index = config.dataset_to_edit.columns.get_loc(
             config.is_annotated_column
         )
 
@@ -81,7 +81,7 @@ class TextModel(QAbstractTableModel):
         )
 
     def get_annotated_data(self):
-        return config.dataframe_to_edit[config.dataframe_to_edit[config.is_annotated_column] == True]
+        return config.dataset_to_edit[config.dataset_to_edit[config.is_annotated_column] == True]
 
     def load_and_prepare_spacy_model(self, spacy_model_source):
         print("Loading spacy model...")
@@ -106,8 +106,8 @@ class TextModel(QAbstractTableModel):
             for named_entity_definition in config.named_entity_definitions
         ]
         trainset = (
-            config.dataframe_to_edit[
-                config.dataframe_to_edit[config.is_annotated_column] == True
+            config.dataset_to_edit[
+                config.dataset_to_edit[config.is_annotated_column] == True
             ][config.text_column]
             .map(lambda text: extract_entities_from_nerded_text(text, allowed_entities))
             .tolist()
@@ -156,7 +156,7 @@ class TextModel(QAbstractTableModel):
             return QVariant()
 
         # get is_annotated
-        is_annotated = config.dataframe_to_edit.ix[
+        is_annotated = config.dataset_to_edit.ix[
             index.row(), self.is_annotated_column_index
         ]
 
@@ -164,7 +164,7 @@ class TextModel(QAbstractTableModel):
         # column 0: text
         if index.column() == 0:
             result = str(
-                config.dataframe_to_edit.ix[index.row(), self.text_column_index]
+                config.dataset_to_edit.ix[index.row(), self.text_column_index]
             )
             # add predicted and/or suggested entities if needed
             if not is_annotated and config.is_named_entities_enabled:
@@ -201,7 +201,7 @@ class TextModel(QAbstractTableModel):
         # column 2: categories
         if index.column() == 2:
             return str(
-                config.dataframe_to_edit.ix[index.row(), self.categories_column_index]
+                config.dataset_to_edit.ix[index.row(), self.categories_column_index]
             )
 
     def setData(self, index, value, role):
@@ -213,18 +213,18 @@ class TextModel(QAbstractTableModel):
         # update _df and save if needed
         if (
             self.data(index) != value
-            or not config.dataframe_to_edit.ix[row, self.is_annotated_column_index]
+            or not config.dataset_to_edit.ix[row, self.is_annotated_column_index]
         ):
-            config.dataframe_to_edit.iat[row, self.is_annotated_column_index] = True
+            config.dataset_to_edit.iat[row, self.is_annotated_column_index] = True
             if index.column() == 0:
                 # text
-                config.dataframe_to_edit.iat[row, self.text_column_index] = value
+                config.dataset_to_edit.iat[row, self.text_column_index] = value
                 # re-compute entity distribution
                 # TODO: might be made more efficient with deltas instead of complete recomputation all the time
                 self.compute_entity_distribution()
             if index.column() == 2:
                 # categories
-                config.dataframe_to_edit.iat[row, self.categories_column_index] = value            
+                config.dataset_to_edit.iat[row, self.categories_column_index] = value            
             self.save()
             self.dataChanged.emit(index, index)
         return True
@@ -239,7 +239,7 @@ class TextModel(QAbstractTableModel):
         return None
 
     def rowCount(self, parent=QModelIndex()):
-        return len(config.dataframe_to_edit.index)
+        return len(config.dataset_to_edit.index)
 
     def columnCount(self, parent=QModelIndex()):
         return 3
@@ -251,25 +251,25 @@ class TextModel(QAbstractTableModel):
         if config.save_callback is not None:
             self.saveStarted.emit()
             config.save_callback(
-                config.dataframe_to_edit
+                config.dataset_to_edit
                 if not self.random_categories_column_name
-                else config.dataframe_to_edit.drop(
+                else config.dataset_to_edit.drop(
                     [self.random_categories_column_name], axis=1
                 )
             )
             self.saveCompleted.emit()
 
     def get_annotated_texts_count(self):
-        return config.dataframe_to_edit[config.is_annotated_column].sum()
+        return config.dataset_to_edit[config.is_annotated_column].sum()
 
     def get_next_best_row_index(self, current_index):
         if self.is_texts_left_for_annotation():
             # return the next text which is not annotated yet
-            return config.dataframe_to_edit[config.is_annotated_column].idxmin()
+            return config.dataset_to_edit[config.is_annotated_column].idxmin()
         else:
             # there is no text that is not annotated yet
             # return the next text (might start at the beginning if end of available texts is reads)
             return (current_index + 1) % self.rowCount()
 
     def is_texts_left_for_annotation(self):
-        return False in config.dataframe_to_edit[config.is_annotated_column].values
+        return False in config.dataset_to_edit[config.is_annotated_column].values
