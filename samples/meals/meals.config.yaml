@@ -1,3 +1,5 @@
+# neanno config file for meals sample
+
 dataset:
     source: csv:samples/meals/sample_posts.csv
     text_column: post_text

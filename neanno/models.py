@@ -8,6 +8,7 @@ import spacy
 from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant, pyqtSignal
 from spacy.util import compounding, minibatch
 
+
 class TextModel(QAbstractTableModel):
     """Provides data to the annotation dialog / data widget mapper and triggers the saving of new annotated data."""
 
@@ -139,7 +140,9 @@ class TextModel(QAbstractTableModel):
                 output_dir.mkdir()
             self.spacy_model.meta["name"] = config.spacy_model_target
             self.spacy_model.to_disk(output_dir)
-            print("Retraining completed. Saved model to folder '{}'.".format(output_dir))
+            print(
+                "Retraining completed. Saved model to folder '{}'.".format(output_dir)
+            )
         else:
             print("Retraining completed.")
 
@@ -177,8 +180,18 @@ class TextModel(QAbstractTableModel):
                     )
                     shift += len(result) - old_result_length
             # autosuggest entities if needed
-            if (config.is_autosuggest_entities_enabled):
-                result = config.flashtext.replace_keywords(result)
+            if config.is_autosuggest_entities_enabled:
+                # sources
+                if config.is_autosuggest_entities_by_sources_enabled:
+                    result = config.flashtext.replace_keywords(result)
+                # regexes
+                if config.is_autosuggest_entities_by_regexes_enabled:
+                    for autosuggest_regex in config.autosuggest_regexes:
+                        result = re.sub(
+                            "(?P<text>{})".format(autosuggest_regex.pattern),
+                            "({}| {})".format("\g<text>", autosuggest_regex.entity),
+                            result,
+                        )
             # return result
             return result
         # column 1: is_annotated

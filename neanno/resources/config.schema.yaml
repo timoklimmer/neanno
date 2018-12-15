@@ -43,6 +43,18 @@ named_entities:
                     schema:
                         type: string
                         regex: "^.+?:.+"
+                regexes:
+                    type: list
+                    schema:
+                        type: dict
+                        schema:
+                            entity:
+                                type: string
+                                required: True
+                            pattern:
+                                type: string
+                                required: True
+                        required: False
             required: False
     required: False
 
