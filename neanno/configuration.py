@@ -205,9 +205,6 @@ class ConfigInit:
             for definition in config_yaml["categories"]["definitions"]:
                 name = definition["name"]
                 config.category_definitions.append(CategoryDefinition(name))
-            config.dataset_to_edit[
-                config.categories_column
-            ] = config.dataset_to_edit[config.categories_column].astype(str)
 
     def spacy(config_yaml, parser):
         config.is_spacy_enabled = "spacy" in config_yaml.keys()

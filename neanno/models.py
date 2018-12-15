@@ -44,6 +44,7 @@ class TextModel(QAbstractTableModel):
             config.categories_column = self.random_categories_column_name
         if config.categories_column not in config.dataset_to_edit:
             config.dataset_to_edit[config.categories_column] = ""
+        config.dataset_to_edit[config.categories_column] = config.dataset_to_edit[config.categories_column].astype(str)
         self.categories_column_index = config.dataset_to_edit.columns.get_loc(
             config.categories_column
         )
