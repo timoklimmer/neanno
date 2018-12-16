@@ -7,6 +7,7 @@ from PyQt5.QtWidgets import (
     QHeaderView,
     QTableWidget,
     QTableWidgetItem,
+    QSizePolicy
 )
 
 
@@ -62,6 +63,7 @@ class CategoriesTableWidget(QTableWidget):
         self.verticalHeader().setDefaultSectionSize(
             self.verticalHeader().minimumSectionSize()
         )
+        self.setMaximumHeight(self.verticalHeader().minimumSectionSize() * self.rowCount())    
         self.setFrameStyle(QFrame.NoFrame)
         self.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.setSelectionMode(QAbstractItemView.MultiSelection)

@@ -1,6 +1,11 @@
 import os
 import re
 
+import config
+from neanno.custom_ui_controls import (
+    CategoriesTableWidget,
+    QDataWidgetMapperWithHistory,
+)
 from PyQt5 import QtCore
 from PyQt5.QtCore import QByteArray, QRegularExpression, Qt
 from PyQt5.QtGui import (
@@ -20,6 +25,7 @@ from PyQt5.QtWidgets import (
     QHBoxLayout,
     QInputDialog,
     QLabel,
+    QLayout,
     QMainWindow,
     QMessageBox,
     QPlainTextEdit,
@@ -28,12 +34,6 @@ from PyQt5.QtWidgets import (
     QShortcut,
     QVBoxLayout,
     QWidget,
-)
-
-import config
-from neanno.custom_ui_controls import (
-    CategoriesTableWidget,
-    QDataWidgetMapperWithHistory,
 )
 
 SHORTCUT_SUBMIT_NEXT_BEST = "Ctrl+Return"
@@ -143,8 +143,9 @@ class AnnotationDialog(QMainWindow):
         # categories
         # note: CategoriesTableWidget populates itself (mostly due to the QTableWidget control, might be improved in future)
         self.text_categories_table = CategoriesTableWidget(config, self.textmodel)
-        text_categories_groupbox_layout = QVBoxLayout()
+        text_categories_groupbox_layout = QHBoxLayout()
         text_categories_groupbox_layout.addWidget(self.text_categories_table)
+        text_categories_groupbox_layout.setSizeConstraint(QLayout.SetFixedSize)
         text_categories_groupbox = QGroupBox("Categories")
         text_categories_groupbox.setLayout(text_categories_groupbox_layout)
 
@@ -343,7 +344,7 @@ class AnnotationDialog(QMainWindow):
         self.text_navigator.submit()
         # update controls
         self.update_dataset_related_controls()
-        self.update_navigation_related_controls()   
+        self.update_navigation_related_controls()
         # show "all messages annotated" if all texts are annotated
         if not self.textmodel.is_texts_left_for_annotation():
             QMessageBox.information(
@@ -450,7 +451,7 @@ class AnnotationDialog(QMainWindow):
         new_progress_value = (
             self.textmodel.get_annotated_texts_count() * 100 / self.textmodel.rowCount()
         )
-        self.progressbar.setValue(new_progress_value)        
+        self.progressbar.setValue(new_progress_value)
 
     def annotate_entity(self):
         text_cursor = self.text_edit.textCursor()
