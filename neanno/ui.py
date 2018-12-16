@@ -234,6 +234,9 @@ class AnnotationDialog(QMainWindow):
         central_widget.setLayout(main_grid)
         self.setCentralWidget(central_widget)
 
+        # update the dataset-related controls so they show up
+        self.update_dataset_related_controls()
+
     def wire_shortcuts(self):
         # named entities
         for named_entity_definition in config.named_entity_definitions:

@@ -62,6 +62,7 @@ class CategoriesTableWidget(QTableWidget):
         self.verticalHeader().setDefaultSectionSize(
             self.verticalHeader().minimumSectionSize()
         )
+        self.setFrameStyle(QFrame.NoFrame)
         self.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.setSelectionMode(QAbstractItemView.MultiSelection)
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
