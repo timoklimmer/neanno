@@ -31,7 +31,10 @@ from PyQt5.QtWidgets import (
 )
 
 import config
-from neanno.custom_ui_controls import CategoriesTableWidget, QDataWidgetMapperWithHistory
+from neanno.custom_ui_controls import (
+    CategoriesTableWidget,
+    QDataWidgetMapperWithHistory,
+)
 
 SHORTCUT_SUBMIT_NEXT_BEST = "Ctrl+Return"
 SHORTCUT_BACKWARD = "Ctrl+Left"
@@ -139,7 +142,7 @@ class AnnotationDialog(QMainWindow):
 
         # categories
         # note: CategoriesTableWidget populates itself (mostly due to the QTableWidget control, might be improved in future)
-        self.text_categories_table = CategoriesTableWidget()
+        self.text_categories_table = CategoriesTableWidget(config, self.textmodel)
         text_categories_groupbox_layout = QVBoxLayout()
         text_categories_groupbox_layout.addWidget(self.text_categories_table)
         text_categories_groupbox = QGroupBox("Categories")
@@ -318,7 +321,7 @@ class AnnotationDialog(QMainWindow):
                 QByteArray().insert(0, "selected_categories"),
             )
         self.text_navigator.currentIndexChanged.connect(
-            self.update_controls_after_navigation
+            self.update_navigation_related_controls
         )
         self.text_navigator.setCurrentIndex(self.textmodel.get_next_best_row_index(-1))
         self.backward_button.clicked.connect(self.text_navigator.backward)
@@ -335,8 +338,9 @@ class AnnotationDialog(QMainWindow):
     def handle_shortcut_submit_next_best(self):
         # submit changes of old text
         self.text_navigator.submit()
-        # update statistics and progress bar
-        self.update_controls_after_navigation()
+        # update controls
+        self.update_dataset_related_controls()
+        self.update_navigation_related_controls()   
         # show "all messages annotated" if all texts are annotated
         if not self.textmodel.is_texts_left_for_annotation():
             QMessageBox.information(
@@ -397,46 +401,53 @@ class AnnotationDialog(QMainWindow):
     def handle_retrain_button_clicked(self):
         self.textmodel.retrain_spacy_model()
 
-    def update_controls_after_navigation(self):
+    def update_navigation_related_controls(self):
         # current index
         self.current_text_index_label.setText(str(self.text_navigator.currentIndex()))
-        # annotated texts count
-        annotated_texts_count = self.textmodel.get_annotated_texts_count()
-        self.annotated_texts_label.setText(str(annotated_texts_count))
-        # total texts count
-        total_texts_count = self.textmodel.rowCount()
-        self.total_texts_label.setText(str(total_texts_count))
-        # entity infos markup
-        entity_infos_markup = "<table style='font-size: 10pt;' width='100%'>"
-        # entity_infos_markup += "<colgroup><col span='1'/><col span='1'/><col width='*'/></colgroup>"
-        for named_entity_definition in config.named_entity_definitions:
-            entity_infos_markup += "<tr>"
-            entity_infos_markup += "<td style='color: white; background-color:{}; padding-left: 5'>{}</td>".format(
-                named_entity_definition.backcolor, named_entity_definition.code
-            )
-            entity_infos_markup += "<td style='padding-left: 5'>{}</td>".format(
-                named_entity_definition.key_sequence
-            )
-            entity_infos_markup += "<td style='width: 100%; text-align: right'>{}</td>".format(
-                str(self.textmodel.entity_distribution[named_entity_definition.code])
-                if named_entity_definition.code in self.textmodel.entity_distribution
-                else "0"
-            )
-            entity_infos_markup += "</tr>"
-        entity_infos_markup += "</table>"
-        self.entity_infos_markup_control.setText(entity_infos_markup)
-
-        # progress
-        new_progress_value = (
-            self.textmodel.get_annotated_texts_count() * 100 / self.textmodel.rowCount()
-        )
-        self.progressbar.setValue(new_progress_value)
         # remove focus from controls
         # text_edit
         self.text_edit.clearFocus()
         # text_categories_table
         if config.is_categories_enabled:
             self.text_categories_table.clearFocus()
+
+    def update_dataset_related_controls(self):
+        # annotated texts count
+        annotated_texts_count = self.textmodel.get_annotated_texts_count()
+        self.annotated_texts_label.setText(str(annotated_texts_count))
+        # total texts count
+        total_texts_count = self.textmodel.rowCount()
+        self.total_texts_label.setText(str(total_texts_count))
+        # categories frequency
+        if config.is_categories_enabled:
+            self.text_categories_table.update_categories_distribution()
+        # entity infos markup
+        if config.is_named_entities_enabled:
+            entity_infos_markup = "<table style='font-size: 10pt;' width='100%'>"
+            for named_entity_definition in config.named_entity_definitions:
+                entity_infos_markup += "<tr>"
+                entity_infos_markup += "<td style='color: white; background-color:{}; padding-left: 5'>{}</td>".format(
+                    named_entity_definition.backcolor, named_entity_definition.code
+                )
+                entity_infos_markup += "<td style='padding-left: 5'>{}</td>".format(
+                    named_entity_definition.key_sequence
+                )
+                entity_infos_markup += "<td style='width: 100%; text-align: right'>{}</td>".format(
+                    str(
+                        self.textmodel.entity_distribution[named_entity_definition.code]
+                    )
+                    if named_entity_definition.code
+                    in self.textmodel.entity_distribution
+                    else "0"
+                )
+                entity_infos_markup += "</tr>"
+            entity_infos_markup += "</table>"
+            self.entity_infos_markup_control.setText(entity_infos_markup)
+        # progress
+        new_progress_value = (
+            self.textmodel.get_annotated_texts_count() * 100 / self.textmodel.rowCount()
+        )
+        self.progressbar.setValue(new_progress_value)        
 
     def annotate_entity(self):
         text_cursor = self.text_edit.textCursor()

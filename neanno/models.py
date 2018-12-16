@@ -2,6 +2,7 @@ import pathlib
 import random
 import re
 import string
+from collections import Counter
 from functools import reduce
 
 import config
@@ -19,8 +20,9 @@ from spacy.util import compounding, minibatch
 class TextModel(QAbstractTableModel):
     """Provides data to the annotation dialog / data widget mapper and triggers the saving of new annotated data."""
 
-    entity_distribution = {}
     random_categories_column_name = None
+    entity_distribution = {}
+    category_distribution = {}
     saveStarted = pyqtSignal()
     saveCompleted = pyqtSignal()
     spacy_model = None
@@ -44,7 +46,9 @@ class TextModel(QAbstractTableModel):
             config.categories_column = self.random_categories_column_name
         if config.categories_column not in config.dataset_to_edit:
             config.dataset_to_edit[config.categories_column] = ""
-        config.dataset_to_edit[config.categories_column] = config.dataset_to_edit[config.categories_column].astype(str)
+        config.dataset_to_edit[config.categories_column] = config.dataset_to_edit[
+            config.categories_column
+        ].astype(str)
         self.categories_column_index = config.dataset_to_edit.columns.get_loc(
             config.categories_column
         )
@@ -55,9 +59,9 @@ class TextModel(QAbstractTableModel):
             config.is_annotated_column
         )
 
-        # determine entity distribution if entities are enabled
-        if config.is_named_entities_enabled:
-            self.compute_entity_distribution()
+        # compute required distributions
+        self.compute_categories_distribution()
+        self.compute_entities_distribution()
 
         # load and prepare spacy model
         if config.is_spacy_enabled:
@@ -65,24 +69,46 @@ class TextModel(QAbstractTableModel):
                 config.spacy_model_source
             )
 
-    def compute_entity_distribution(self):
-        annotated_data = self.get_annotated_data()
-        distribution_candidate = (annotated_data[config.text_column]
-            .map(lambda text: extract_entities_distribution(text))
-            .agg(
-                lambda series: reduce(
-                    lambda dist1, dist2: mergesum_dict(dist1, dist2), series
+    def compute_entities_distribution(self):        
+        if config.is_named_entities_enabled:
+            annotated_data = self.get_annotated_data()
+            distribution_candidate = (
+                annotated_data[config.text_column]
+                .map(lambda text: extract_entities_distribution(text))
+                .agg(
+                    lambda series: reduce(
+                        lambda dist1, dist2: mergesum_dict(dist1, dist2), series
+                    )
                 )
             )
-        )
-        self.entity_distribution = (
-            distribution_candidate
-            if not isinstance(distribution_candidate, pd.Series)
-            else {}
-        )
+            self.entity_distribution = (
+                distribution_candidate
+                if not isinstance(distribution_candidate, pd.Series)
+                else {}
+            )
+    
+    def compute_categories_distribution(self):        
+        if config.is_categories_enabled:
+            annotated_data = self.get_annotated_data()
+            distribution_candidate = (
+                annotated_data[config.categories_column]
+                .map(lambda categories_text: Counter(categories_text.split("|")))
+                .agg(
+                    lambda series: reduce(
+                        lambda dist1, dist2: mergesum_dict(dist1, dist2), series
+                    )
+                )
+            )
+            self.category_distribution = (
+                dict(distribution_candidate)
+                if not isinstance(distribution_candidate, pd.Series)
+                else {}
+            )
 
     def get_annotated_data(self):
-        return config.dataset_to_edit[config.dataset_to_edit[config.is_annotated_column] == True]
+        return config.dataset_to_edit[
+            config.dataset_to_edit[config.is_annotated_column] == True
+        ]
 
     def load_and_prepare_spacy_model(self, spacy_model_source):
         print("Loading spacy model...")
@@ -164,9 +190,7 @@ class TextModel(QAbstractTableModel):
         # return data for respective columns
         # column 0: text
         if index.column() == 0:
-            result = str(
-                config.dataset_to_edit.ix[index.row(), self.text_column_index]
-            )
+            result = str(config.dataset_to_edit.ix[index.row(), self.text_column_index])
             # add predicted and/or suggested entities if needed
             if not is_annotated and config.is_named_entities_enabled:
                 # entity predictions from spacy
@@ -220,12 +244,13 @@ class TextModel(QAbstractTableModel):
             if index.column() == 0:
                 # text
                 config.dataset_to_edit.iat[row, self.text_column_index] = value
-                # re-compute entity distribution
+                # re-compute distributions
                 # TODO: might be made more efficient with deltas instead of complete recomputation all the time
-                self.compute_entity_distribution()
+                self.compute_entities_distribution()
             if index.column() == 2:
                 # categories
-                config.dataset_to_edit.iat[row, self.categories_column_index] = value            
+                config.dataset_to_edit.iat[row, self.categories_column_index] = value
+                self.compute_categories_distribution()
             self.save()
             self.dataChanged.emit(index, index)
         return True

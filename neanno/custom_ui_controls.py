@@ -47,8 +47,13 @@ class CategoriesTableWidget(QTableWidget):
     A custom QTableWidget used for showing/selecting the categories of a text.
     """
 
-    def __init__(self):
+    config = None
+    textmodel = None
+
+    def __init__(self, config, textmodel):
         super().__init__()
+        self.config = config
+        self.textmodel = textmodel
         self.setColumnCount(2)
         self.setRowCount(config.categories_count)
         self.horizontalHeader().hide()
@@ -81,11 +86,10 @@ class CategoriesTableWidget(QTableWidget):
         for selected_row in self.selectionModel().selectedRows():
             selected_category = self.item(selected_row.row(), 0).text()
             selected_categories.append(selected_category)
-        return "|".join(
-            sorted(
-                selected_categories, key=lambda x: config.categories_names_list.index(x)
-            )
+        selected_categories_sorted = sorted(
+            selected_categories, key=lambda x: config.categories_names_list.index(x)
         )
+        return "|".join(selected_categories_sorted)
 
     def set_selected_categories(self, value):
         self.clearSelection()
@@ -101,3 +105,15 @@ class CategoriesTableWidget(QTableWidget):
     selected_categories = pyqtProperty(
         str, fget=get_selected_categories, fset=set_selected_categories
     )
+
+    def update_categories_distribution(self):
+        for category in self.textmodel.category_distribution:
+            row_indexes_to_update = [
+                found_item.row()
+                for found_item in self.findItems(category, Qt.MatchExactly)
+            ]
+            for row_index_to_update in row_indexes_to_update:
+                self.item(row_index_to_update, 1).setText(
+                    str(self.textmodel.category_distribution[category])
+                )
+                
