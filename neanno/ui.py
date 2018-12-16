@@ -463,12 +463,12 @@ class AnnotationDialog(QMainWindow):
                 if named_entity_definition.key_sequence == key_sequence:
                     code = named_entity_definition.code
                     break
-            text_cursor.insertText("(" + text_cursor.selectedText() + "| " + code + ")")
+            text_cursor.insertText("(" + text_cursor.selectedText() + "|E " + code + ")")
 
     def remove_entity(self):
         current_cursor_pos = self.text_edit.textCursor().position()
         new_text = re.sub(
-            "\((.*?)\| .+?\)",
+            "\((.*?)\|E .+?\)",
             lambda match: match.group(1)
             if match.start() < current_cursor_pos < match.end()
             else match.group(0),
@@ -479,7 +479,7 @@ class AnnotationDialog(QMainWindow):
 
     def remove_all_entities(self):
         new_text = re.sub(
-            "\((.*?)\| .+?\)",
+            "\((.*?)\|E .+?\)",
             lambda match: match.group(1),
             self.text_edit.toPlainText(),
             flags=re.DOTALL,
@@ -526,7 +526,7 @@ class EntityHighlighter(QSyntaxHighlighter):
                     QRegularExpression(
                         r"(?<openParen>\()"
                         + r"(?<text>[^|(]+?)"
-                        + r"(?<pipe>\|)"
+                        + r"(?<pipe>\|E)"
                         + r"(?<entityCode> "
                         + named_entity_definition.code
                         + r")(?<closingParen>\))"

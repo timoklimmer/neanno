@@ -201,7 +201,7 @@ class TextModel(QAbstractTableModel):
                         old_result_length = len(result)
                         result = "{}{}{}".format(
                             result[: ent.start_char + shift],
-                            "({}| {})".format(ent.text, ent.label_),
+                            "({}|E {})".format(ent.text, ent.label_),
                             result[ent.end_char + shift :],
                         )
                         shift += len(result) - old_result_length
@@ -215,7 +215,7 @@ class TextModel(QAbstractTableModel):
                         for autosuggest_regex in config.autosuggest_regexes:
                             result = re.sub(
                                 "(?P<text>{})".format(autosuggest_regex.pattern),
-                                "({}| {})".format("\g<text>", autosuggest_regex.entity),
+                                "({}|E {})".format("\g<text>", autosuggest_regex.entity),
                                 result,
                             )
             # return result

@@ -165,7 +165,7 @@ class ConfigInit:
                     data_for_flashtext = pd.DataFrame(
                         "("
                         + autosuggest_entities_dataset["term"]
-                        + "| "
+                        + "|E "
                         + autosuggest_entities_dataset["entity_code"]
                         + ")"
                     )
