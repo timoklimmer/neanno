@@ -431,8 +431,11 @@ class AnnotationDialog(QMainWindow):
             entity_infos_markup = "<table style='font-size: 10pt;' width='100%'>"
             for named_entity_definition in config.named_entity_definitions:
                 entity_infos_markup += "<tr>"
-                entity_infos_markup += "<td style='color: white; background-color:{}; padding-left: 5'>{}</td>".format(
-                    named_entity_definition.backcolor, named_entity_definition.code
+                entity_infos_markup += "<td style='background-color:{}; padding-left: 5'> </td>".format(
+                    named_entity_definition.forecolor
+                )
+                entity_infos_markup += "<td style='padding-left: 5'>{}</td>".format(
+                    named_entity_definition.code,
                 )
                 entity_infos_markup += "<td style='padding-left: 5'>{}</td>".format(
                     named_entity_definition.key_sequence
@@ -463,7 +466,9 @@ class AnnotationDialog(QMainWindow):
                 if named_entity_definition.key_sequence == key_sequence:
                     code = named_entity_definition.code
                     break
-            text_cursor.insertText("(" + text_cursor.selectedText() + "|E " + code + ")")
+            text_cursor.insertText(
+                "(" + text_cursor.selectedText() + "|E " + code + ")"
+            )
 
     def remove_entity(self):
         current_cursor_pos = self.text_edit.textCursor().position()
@@ -513,7 +518,9 @@ class EntityHighlighter(QSyntaxHighlighter):
             named_entity_text_format.setBackground(
                 QColor(named_entity_definition.backcolor)
             )
-            named_entity_text_format.setForeground(Qt.white)
+            named_entity_text_format.setForeground(
+                QColor(named_entity_definition.forecolor)
+            )
             named_entity_text_format_no_text = QTextCharFormat()
             named_entity_text_format_no_text.setBackground(
                 QColor(named_entity_definition.backcolor)

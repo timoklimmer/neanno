@@ -8,10 +8,11 @@ class CategoryDefinition:
 class NamedEntityDefinition:
     """ Defines a named entity for annotating texts."""
 
-    def __init__(self, code, key_sequence, backcolor):
+    def __init__(self, code, key_sequence, backcolor, forecolor):
         self.code = code
         self.key_sequence = key_sequence
         self.backcolor = backcolor
+        self.forecolor = forecolor
 
 class AutoSuggestRegex:
     """ Defines a regex for autosuggesting entities."""
