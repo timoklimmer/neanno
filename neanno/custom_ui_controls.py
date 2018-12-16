@@ -5,9 +5,9 @@ from PyQt5.QtWidgets import (
     QDataWidgetMapper,
     QFrame,
     QHeaderView,
+    QSizePolicy,
     QTableWidget,
     QTableWidgetItem,
-    QSizePolicy
 )
 
 
@@ -63,7 +63,9 @@ class CategoriesTableWidget(QTableWidget):
         self.verticalHeader().setDefaultSectionSize(
             self.verticalHeader().minimumSectionSize()
         )
-        self.setMaximumHeight(self.verticalHeader().minimumSectionSize() * self.rowCount())    
+        self.setMaximumHeight(
+            self.verticalHeader().minimumSectionSize() * self.rowCount()
+        )
         self.setFrameStyle(QFrame.NoFrame)
         self.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.setSelectionMode(QAbstractItemView.MultiSelection)
@@ -119,4 +121,3 @@ class CategoriesTableWidget(QTableWidget):
                 self.item(row_index_to_update, 1).setText(
                     str(self.textmodel.category_distribution[category])
                 )
-                
