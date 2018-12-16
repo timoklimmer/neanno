@@ -19,12 +19,6 @@ named_entities:
       - code: BEVERAGE
         shortcut: Alt+B
 
-categories:
-  definitions:
-    - name: Relevant
-    - name: Not Relevant
-  column: categories
-
 #spacy:
 #  source: blank:de
 #  target: samples/meals/models

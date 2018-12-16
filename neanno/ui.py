@@ -142,12 +142,13 @@ class AnnotationDialog(QMainWindow):
 
         # categories
         # note: CategoriesTableWidget populates itself (mostly due to the QTableWidget control, might be improved in future)
-        self.text_categories_table = CategoriesTableWidget(config, self.textmodel)
-        text_categories_groupbox_layout = QHBoxLayout()
-        text_categories_groupbox_layout.addWidget(self.text_categories_table)
-        text_categories_groupbox_layout.setSizeConstraint(QLayout.SetFixedSize)
-        text_categories_groupbox = QGroupBox("Categories")
-        text_categories_groupbox.setLayout(text_categories_groupbox_layout)
+        if config.is_categories_enabled:
+            self.text_categories_table = CategoriesTableWidget(config, self.textmodel)
+            text_categories_groupbox_layout = QHBoxLayout()
+            text_categories_groupbox_layout.addWidget(self.text_categories_table)
+            text_categories_groupbox_layout.setSizeConstraint(QLayout.SetFixedSize)
+            text_categories_groupbox = QGroupBox("Categories")
+            text_categories_groupbox.setLayout(text_categories_groupbox_layout)
 
         # entity shortcuts / counts
         entity_infos_layout = QHBoxLayout()
