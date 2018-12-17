@@ -31,7 +31,6 @@ named_entities:
 categories:
   definitions:
     - name: Ticketing
-    - name: Timing
     - name: Service Offering
     - name: Technology
     - name: Mileage Plan

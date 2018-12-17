@@ -1,5 +1,10 @@
+import os
 import config
 from PyQt5.QtCore import Qt, pyqtProperty
+from PyQt5.QtGui import (
+    QColor,
+    QPalette
+)
 from PyQt5.QtWidgets import (
     QAbstractItemView,
     QDataWidgetMapper,
@@ -53,10 +58,12 @@ class CategoriesTableWidget(QTableWidget):
 
     def __init__(self, config, textmodel):
         super().__init__()
+        self.adjust_highlight_color_on_windows()
         self.config = config
         self.textmodel = textmodel
         self.setColumnCount(2)
         self.setRowCount(config.categories_count)
+        self.setShowGrid(False)
         self.horizontalHeader().hide()
         self.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.verticalHeader().hide()
@@ -72,6 +79,16 @@ class CategoriesTableWidget(QTableWidget):
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.setFocusPolicy(Qt.NoFocus)
         self.populate_categories()
+
+    def adjust_highlight_color_on_windows(self):
+        # adjust the colors for highlighted entries if we are on Windows
+        # note: this is required because the highlighted color in Windows
+        #       may be very light, hence make neanno inconvenient to use
+        if os.name == 'nt':
+            new_palette = self.palette()
+            new_palette.setColor(QPalette.Highlight, QColor("#243a5e"))
+            new_palette.setColor(QPalette.HighlightedText, QColor("white"))
+            self.setPalette(new_palette)
 
     def populate_categories(self):
         row = 0

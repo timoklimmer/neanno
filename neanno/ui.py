@@ -15,6 +15,7 @@ from PyQt5.QtGui import (
     QKeySequence,
     QSyntaxHighlighter,
     QTextCharFormat,
+    QPalette
 )
 from PyQt5.QtWidgets import (
     QApplication,
@@ -138,6 +139,8 @@ class AnnotationDialog(QMainWindow):
 
         # progress bar
         self.progressbar = QProgressBar()
+        if os.name == "nt":
+            self.progressbar.setStyleSheet("background-color: #243a5e")
         self.progressbar.setValue(0)
 
         # categories
@@ -435,7 +438,7 @@ class AnnotationDialog(QMainWindow):
                     named_entity_definition.maincolor
                 )
                 entity_infos_markup += "<td style='padding-left: 5'>{}</td>".format(
-                    named_entity_definition.code,
+                    named_entity_definition.code
                 )
                 entity_infos_markup += "<td style='padding-left: 5'>{}</td>".format(
                     named_entity_definition.key_sequence
@@ -502,8 +505,9 @@ class EntityHighlighter(QSyntaxHighlighter):
     def __init__(self, parent, named_entity_definitions):
         super(EntityHighlighter, self).__init__(parent)
         named_entity_code_background_color = QColor("lightgrey")
-        self.named_entity_code_format.setForeground(Qt.black)
-        self.named_entity_code_format.setBackground(named_entity_code_background_color)
+        self.named_entity_code_format = self.get_text_char_format(
+            named_entity_code_background_color, Qt.black
+        )
         self.named_entity_code_format.setFontFamily("Segoe UI")
         self.named_entity_code_format.setFontWeight(QFont.Bold)
         self.named_entity_code_format.setFontPointSize(9)
@@ -513,20 +517,30 @@ class EntityHighlighter(QSyntaxHighlighter):
         self.named_entity_code_format_no_text.setForeground(
             named_entity_code_background_color
         )
+
+        named_entity_text_format = self.get_text_char_format("#333333", "black")
+        named_entity_text_format_no_text = self.get_text_char_format("#333333", "white")
+        self.highlighting_rules.append(
+            (
+                QRegularExpression(
+                    r"(?<openParen>\()"
+                    + r"(?<text>[^|(]+?)"
+                    + r"(?<pipe>\|E)"
+                    + r"(?<entityCode> "
+                    + r".+?"
+                    + r")(?<closingParen>\))"
+                ),
+                named_entity_text_format,
+                named_entity_text_format_no_text,
+            )
+        )
+
         for named_entity_definition in named_entity_definitions:
-            named_entity_text_format = QTextCharFormat()
-            named_entity_text_format.setBackground(
-                QColor(named_entity_definition.backcolor)
+            named_entity_text_format = self.get_text_char_format(
+                named_entity_definition.backcolor, named_entity_definition.forecolor
             )
-            named_entity_text_format.setForeground(
-                QColor(named_entity_definition.forecolor)
-            )
-            named_entity_text_format_no_text = QTextCharFormat()
-            named_entity_text_format_no_text.setBackground(
-                QColor(named_entity_definition.backcolor)
-            )
-            named_entity_text_format_no_text.setForeground(
-                QColor(named_entity_definition.backcolor)
+            named_entity_text_format_no_text = self.get_text_char_format(
+                named_entity_definition.backcolor, named_entity_definition.backcolor
             )
             self.highlighting_rules.append(
                 (
@@ -542,6 +556,12 @@ class EntityHighlighter(QSyntaxHighlighter):
                     named_entity_text_format_no_text,
                 )
             )
+
+    def get_text_char_format(self, backcolor, forecolor):
+        result = QTextCharFormat()
+        result.setBackground(QColor(backcolor))
+        result.setForeground(QColor(forecolor))
+        return result
 
     def highlightBlock(self, text):
         for (
