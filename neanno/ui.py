@@ -15,7 +15,7 @@ from PyQt5.QtGui import (
     QKeySequence,
     QSyntaxHighlighter,
     QTextCharFormat,
-    QPalette
+    QPalette,
 )
 from PyQt5.QtWidgets import (
     QApplication,
@@ -139,8 +139,6 @@ class AnnotationDialog(QMainWindow):
 
         # progress bar
         self.progressbar = QProgressBar()
-        if os.name == "nt":
-            self.progressbar.setStyleSheet("background-color: #243a5e")
         self.progressbar.setValue(0)
 
         # categories
@@ -470,13 +468,13 @@ class AnnotationDialog(QMainWindow):
                     code = named_entity_definition.code
                     break
             text_cursor.insertText(
-                "(" + text_cursor.selectedText() + "|E " + code + ")"
+                "(" + text_cursor.selectedText() + "| " + code + ")"
             )
 
     def remove_entity(self):
         current_cursor_pos = self.text_edit.textCursor().position()
         new_text = re.sub(
-            "\((.*?)\|E .+?\)",
+            "\((.*?)\| .+?\)",
             lambda match: match.group(1)
             if match.start() < current_cursor_pos < match.end()
             else match.group(0),
@@ -487,7 +485,7 @@ class AnnotationDialog(QMainWindow):
 
     def remove_all_entities(self):
         new_text = re.sub(
-            "\((.*?)\|E .+?\)",
+            "\((.*?)\| .+?\)",
             lambda match: match.group(1),
             self.text_edit.toPlainText(),
             flags=re.DOTALL,
@@ -499,47 +497,43 @@ class EntityHighlighter(QSyntaxHighlighter):
     """Used to highlight the entities in the text field."""
 
     highlighting_rules = []
-    named_entity_code_format = QTextCharFormat()
-    named_entity_code_format_no_text = QTextCharFormat()
 
     def __init__(self, parent, named_entity_definitions):
         super(EntityHighlighter, self).__init__(parent)
-        named_entity_code_background_color = QColor("lightgrey")
-        self.named_entity_code_format = self.get_text_char_format(
-            named_entity_code_background_color, Qt.black
+        entity_code_background_color = QColor("lightgrey")
+        self.entity_code_format = self.get_text_char_format(
+            entity_code_background_color, Qt.black
         )
-        self.named_entity_code_format.setFontFamily("Segoe UI")
-        self.named_entity_code_format.setFontWeight(QFont.Bold)
-        self.named_entity_code_format.setFontPointSize(9)
-        self.named_entity_code_format_no_text.setBackground(
-            named_entity_code_background_color
-        )
-        self.named_entity_code_format_no_text.setForeground(
-            named_entity_code_background_color
+        self.entity_code_format.setFontFamily("Segoe UI")
+        self.entity_code_format.setFontWeight(QFont.Bold)
+        self.entity_code_format.setFontPointSize(9)
+        self.entity_code_format_blank = self.get_text_char_format(
+            entity_code_background_color, entity_code_background_color
         )
 
-        named_entity_text_format = self.get_text_char_format("#333333", "black")
-        named_entity_text_format_no_text = self.get_text_char_format("#333333", "white")
+        # default for all unmatched entities and keywords
+        entity_text_format = self.get_text_char_format("#333333", "#cccccc")
+        entity_text_format_blank = self.get_text_char_format("#333333", "#333333")
         self.highlighting_rules.append(
             (
                 QRegularExpression(
                     r"(?<openParen>\()"
-                    + r"(?<text>[^|(]+?)"
-                    + r"(?<pipe>\|E)"
+                    + r"(?<text>[^|()]+?)"
+                    + r"(?<pipe>\|)"
                     + r"(?<entityCode> "
                     + r".+?"
                     + r")(?<closingParen>\))"
                 ),
-                named_entity_text_format,
-                named_entity_text_format_no_text,
+                entity_text_format,
+                entity_text_format_blank,
             )
         )
 
         for named_entity_definition in named_entity_definitions:
-            named_entity_text_format = self.get_text_char_format(
+            entity_text_format = self.get_text_char_format(
                 named_entity_definition.backcolor, named_entity_definition.forecolor
             )
-            named_entity_text_format_no_text = self.get_text_char_format(
+            entity_text_format_blank = self.get_text_char_format(
                 named_entity_definition.backcolor, named_entity_definition.backcolor
             )
             self.highlighting_rules.append(
@@ -547,13 +541,13 @@ class EntityHighlighter(QSyntaxHighlighter):
                     QRegularExpression(
                         r"(?<openParen>\()"
                         + r"(?<text>[^|(]+?)"
-                        + r"(?<pipe>\|E)"
+                        + r"(?<pipe>\|)"
                         + r"(?<entityCode> "
                         + named_entity_definition.code
                         + r")(?<closingParen>\))"
                     ),
-                    named_entity_text_format,
-                    named_entity_text_format_no_text,
+                    entity_text_format,
+                    entity_text_format_blank,
                 )
             )
 
@@ -567,14 +561,14 @@ class EntityHighlighter(QSyntaxHighlighter):
         for (
             pattern,
             entity_text_format,
-            entity_text_format_no_text,
+            entity_text_format_blank,
         ) in self.highlighting_rules:
             expression = QRegularExpression(pattern)
             offset = 0
             while offset >= 0:
                 match = expression.match(text, offset)
                 self.setFormat(
-                    match.capturedStart("openParen"), 1, entity_text_format_no_text
+                    match.capturedStart("openParen"), 1, entity_text_format_blank
                 )
                 self.setFormat(
                     match.capturedStart("text"),
@@ -584,16 +578,16 @@ class EntityHighlighter(QSyntaxHighlighter):
                 self.setFormat(
                     match.capturedStart("pipe"),
                     match.capturedLength("pipe"),
-                    entity_text_format_no_text,
+                    entity_text_format_blank,
                 )
                 self.setFormat(
                     match.capturedStart("entityCode"),
                     match.capturedLength("entityCode"),
-                    self.named_entity_code_format,
+                    self.entity_code_format,
                 )
                 self.setFormat(
                     match.capturedStart("closingParen"),
                     1,
-                    self.named_entity_code_format_no_text,
+                    self.entity_code_format_blank,
                 )
                 offset = match.capturedEnd("closingParen")
