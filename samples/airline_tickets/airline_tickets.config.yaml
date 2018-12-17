@@ -19,22 +19,6 @@ named_entities:
         shortcut: Alt+P
       - code: TOPIC
         shortcut: Alt+T
-      - code: TOPIC1
-        shortcut: Alt+1
-      - code: TOPIC2
-        shortcut: Alt+2
-      - code: TOPIC3
-        shortcut: Alt+3
-      - code: TOPIC4
-        shortcut: Alt+4
-      - code: TOPIC5
-        shortcut: Alt+5
-      - code: TOPIC6
-        shortcut: Alt+6
-      - code: TOPIC7
-        shortcut: Alt+7
-      - code: TOPICX
-        shortcut: Alt+X
   auto_suggest:
     sources:
       - csv:samples/airline_tickets/airlines.autosuggest.csv
