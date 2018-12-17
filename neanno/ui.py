@@ -432,7 +432,7 @@ class AnnotationDialog(QMainWindow):
             for named_entity_definition in config.named_entity_definitions:
                 entity_infos_markup += "<tr>"
                 entity_infos_markup += "<td style='background-color:{}; padding-left: 5'> </td>".format(
-                    named_entity_definition.forecolor
+                    named_entity_definition.maincolor
                 )
                 entity_infos_markup += "<td style='padding-left: 5'>{}</td>".format(
                     named_entity_definition.code,

@@ -124,22 +124,29 @@ class ConfigInit:
             for definition in config.named_entities_node["definitions"]:
                 code = definition["code"]
                 shortcut = definition["shortcut"]
+                maincolor = (
+                    definition["maincolor"]
+                    if "maincolor" in definition.keys()
+                    else DEFAULT_ENTITY_COLORS_PALETTE[
+                        index % len(DEFAULT_ENTITY_COLORS_PALETTE)
+                    ][0]
+                )
                 backcolor = (
                     definition["backcolor"]
                     if "backcolor" in definition.keys()
                     else DEFAULT_ENTITY_COLORS_PALETTE[
                         index % len(DEFAULT_ENTITY_COLORS_PALETTE)
-                    ][0]
+                    ][1]
                 )
                 forecolor = (
                     definition["forecolor"]
                     if "forecolor" in definition.keys()
                     else DEFAULT_ENTITY_COLORS_PALETTE[
                         index % len(DEFAULT_ENTITY_COLORS_PALETTE)
-                    ][1]
+                    ][2]
                 )
                 config.named_entity_definitions.append(
-                    NamedEntityDefinition(code, shortcut, backcolor, forecolor)
+                    NamedEntityDefinition(code, shortcut, maincolor, backcolor, forecolor)
                 )
                 index += 1
             # load autosuggest dataset

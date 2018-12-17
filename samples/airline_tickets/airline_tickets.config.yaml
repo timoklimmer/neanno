@@ -10,8 +10,9 @@ named_entities:
   definitions:
       - code: AIRLINE
         shortcut: Alt+A
-        # backcolor: "#153465"
-        # forecolor: black
+        # maincolor: "#ff8c31"
+        # backcolor: "#333333"
+        # forecolor: "#ff8c31"
       - code: AIRCRAFT
         shortcut: Alt+C
       - code: AIRPORT
