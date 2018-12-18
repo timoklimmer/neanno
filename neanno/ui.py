@@ -541,78 +541,78 @@ class EntityHighlighter(QSyntaxHighlighter):
 
     highlighting_rules = []
 
-    def __init__(self, parent, named_entity_definitions):
+    def __init__(self, parent, named_definitions):
         super(EntityHighlighter, self).__init__(parent)
-        entity_code_background_color = QColor("lightgrey")
-        self.entity_code_format = self.get_text_char_format(
-            entity_code_background_color, Qt.black
-        )
-        self.entity_code_format.setFontFamily("Segoe UI")
-        self.entity_code_format.setFontWeight(QFont.Bold)
-        self.entity_code_format.setFontPointSize(9)
-        self.entity_code_format_blank = self.get_text_char_format(
-            entity_code_background_color, entity_code_background_color
+        postfix_format = self.get_text_char_format(QColor("lightgrey"), Qt.black)
+        postfix_format.setFontFamily("Segoe UI")
+        postfix_format.setFontWeight(QFont.Bold)
+        postfix_format.setFontPointSize(9)
+        postfix_format_blank = self.get_text_char_format(
+            QColor("lightgrey"), QColor("lightgrey")
         )
 
         # append highlighting rules
         # tags
-        entity_text_format = self.get_text_char_format(
+        tag_text_format = self.get_text_char_format(
             config.tagging_backcolor, config.tagging_forecolor
         )
-        entity_text_format_blank = self.get_text_char_format(
+        tag_text_format_blank = self.get_text_char_format(
             config.tagging_backcolor, config.tagging_backcolor
         )
-
         # named tag
         self.highlighting_rules.append(
             (
                 QRegularExpression(
                     r"(?<openParen>\()"
                     + r"(?<text>[^|()]+?)"
-                    + r"(?<pipeAndCode>\|T)"
-                    + r"(?<entityCode> "
+                    + r"(?<pipeAndType>\|T)"
+                    + r"(?<postfix> "
                     + r".*?"
                     + r")(?<closingParen>\))"
                 ),
-                entity_text_format,
-                entity_text_format_blank,
+                tag_text_format,
+                tag_text_format_blank,
+                postfix_format,
+                postfix_format_blank,
             )
         )
-
         # anonymous tag
         self.highlighting_rules.append(
             (
                 QRegularExpression(
                     r"(?<openParen>\()"
                     + r"(?<text>[^|()]+?)"
-                    + r"(?<pipeAndCode>\|A)"
+                    + r"(?<pipeAndType>\|A)"
                     + r"(?<closingParen>\))"
                 ),
-                entity_text_format,
-                entity_text_format_blank,
+                tag_text_format,
+                tag_text_format_blank,
+                tag_text_format_blank,
+                tag_text_format_blank,
             )
         )
-
         # named entities
-        for named_entity_definition in named_entity_definitions:
+        for named_definition in named_definitions:
             entity_text_format = self.get_text_char_format(
-                named_entity_definition.backcolor, named_entity_definition.forecolor
+                named_definition.backcolor, named_definition.forecolor
             )
             entity_text_format_blank = self.get_text_char_format(
-                named_entity_definition.backcolor, named_entity_definition.backcolor
+                named_definition.backcolor, named_definition.backcolor
             )
             self.highlighting_rules.append(
                 (
                     QRegularExpression(
                         r"(?<openParen>\()"
                         + r"(?<text>[^|()]+?)"
-                        + r"(?<pipeAndCode>\|E)"
-                        + r"(?<entityCode> "
-                        + named_entity_definition.code
+                        + r"(?<pipeAndType>\|E)"
+                        + r"(?<postfix> "
+                        + named_definition.code
                         + r")(?<closingParen>\))"
                     ),
                     entity_text_format,
                     entity_text_format_blank,
+                    postfix_format,
+                    postfix_format_blank,
                 )
             )
 
@@ -625,34 +625,32 @@ class EntityHighlighter(QSyntaxHighlighter):
     def highlightBlock(self, text):
         for (
             pattern,
-            entity_text_format,
-            entity_text_format_blank,
+            text_format,
+            text_format_blank,
+            postfix_format,
+            postfix_format_blank,
         ) in self.highlighting_rules:
             expression = QRegularExpression(pattern)
             offset = 0
             while offset >= 0:
                 match = expression.match(text, offset)
-                self.setFormat(
-                    match.capturedStart("openParen"), 1, entity_text_format_blank
-                )
+                self.setFormat(match.capturedStart("openParen"), 1, text_format_blank)
                 self.setFormat(
                     match.capturedStart("text"),
                     match.capturedLength("text"),
-                    entity_text_format,
+                    text_format,
                 )
                 self.setFormat(
-                    match.capturedStart("pipeAndCode"),
-                    match.capturedLength("pipeAndCode"),
-                    entity_text_format_blank,
+                    match.capturedStart("pipeAndType"),
+                    match.capturedLength("pipeAndType"),
+                    text_format_blank,
                 )
                 self.setFormat(
-                    match.capturedStart("entityCode"),
-                    match.capturedLength("entityCode"),
-                    self.entity_code_format,
+                    match.capturedStart("postfix"),
+                    match.capturedLength("postfix"),
+                    postfix_format,
                 )
                 self.setFormat(
-                    match.capturedStart("closingParen"),
-                    1,
-                    self.entity_code_format_blank,
+                    match.capturedStart("closingParen"), 1, postfix_format_blank
                 )
                 offset = match.capturedEnd("closingParen")
