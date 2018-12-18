@@ -36,9 +36,6 @@ categories:
 tagging:
     type: dict
     schema:
-        enabled:
-            type: boolean
-            required: True
         shortcuts:
             type: dict
             schema:
@@ -48,7 +45,15 @@ tagging:
                 anonymous:
                     type: string
                     required: False
-
+        backcolor:
+            type: string
+            regex: "(?i)^#[A-F0-9]{6}$|^[A-Z]+$"
+            required: False
+        forecolor:
+            type: string
+            regex: "(?i)^#[A-F0-9]{6}$|^[A-Z]+$"
+            required: False
+    nullable: True
     required: False
 
 named_entities:

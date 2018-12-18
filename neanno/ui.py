@@ -555,13 +555,12 @@ class EntityHighlighter(QSyntaxHighlighter):
         )
 
         # append highlighting rules
-        # TODO: make color configurable
         # tags
         entity_text_format = self.get_text_char_format(
-            "#333333", "#cccccc"
+            config.tagging_backcolor, config.tagging_forecolor
         )
         entity_text_format_blank = self.get_text_char_format(
-            "#333333", "#333333"
+            config.tagging_backcolor, config.tagging_backcolor
         )
 
         # named tag

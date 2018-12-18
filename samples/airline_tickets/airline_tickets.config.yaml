@@ -20,10 +20,11 @@ categories:
   column: categories
 
 tagging:
-  enabled: True
-  shortcuts:
-    named: Ctrl+W
-    anonymous: Ctrl+E
+  # shortcuts:
+  #   named: Ctrl+W
+  #   anonymous: Ctrl+E
+  # backcolor: "#333333"
+  # forecolor: "#cccccc"
 
 named_entities:
   definitions:
