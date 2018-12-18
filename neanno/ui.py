@@ -48,7 +48,7 @@ SHORTCUT_GOTO = "Ctrl+G"
 SHORTCUT_UNDO = "Ctrl+Z"
 SHORTCUT_REDO = "Ctrl+Y"
 SHORTCUT_REMOVE = "Ctrl+R"
-SHORTCUT_REMOVE_ALL = "Ctrl+T"
+SHORTCUT_REMOVE_ALL = "Ctrl+D"
 
 ABOUT_TEXT = """neanno is yet another text annotation tool.
 
@@ -151,13 +151,27 @@ class AnnotationDialog(QMainWindow):
             text_categories_groupbox = QGroupBox("Categories")
             text_categories_groupbox.setLayout(text_categories_groupbox_layout)
 
+        # tagging
+        if config.is_tagging_enabled:
+            tags_layout = QHBoxLayout()
+            tags_layout.addWidget(
+                QLabel(
+                    "{} to set a named tag.\n{} to set an anonymous tag.".format(
+                        config.tagging_shortcut_named, config.tagging_shortcut_anonymous
+                    )
+                )
+            )
+            tags_groupbox = QGroupBox("Tags")
+            tags_groupbox.setLayout(tags_layout)
+
         # entity shortcuts / counts
-        entity_infos_layout = QHBoxLayout()
-        self.entity_infos_markup_control = QLabel()
-        self.entity_infos_markup_control.setTextFormat(Qt.RichText)
-        entity_infos_layout.addWidget(self.entity_infos_markup_control)
-        entities_groupbox = QGroupBox("Entities")
-        entities_groupbox.setLayout(entity_infos_layout)
+        if config.is_named_entities_enabled:
+            entity_infos_layout = QHBoxLayout()
+            self.entity_infos_markup_control = QLabel()
+            self.entity_infos_markup_control.setTextFormat(Qt.RichText)
+            entity_infos_layout.addWidget(self.entity_infos_markup_control)
+            entities_groupbox = QGroupBox("Entities")
+            entities_groupbox.setLayout(entity_infos_layout)
 
         # spacy model
         if config.is_spacy_enabled:
@@ -215,6 +229,8 @@ class AnnotationDialog(QMainWindow):
         right_panel_layout = QVBoxLayout()
         if config.is_categories_enabled:
             right_panel_layout.addWidget(text_categories_groupbox)
+        if config.is_tagging_enabled:
+            right_panel_layout.addWidget(tags_groupbox)
         if config.is_named_entities_enabled:
             right_panel_layout.addWidget(entities_groupbox)
         right_panel_layout.addWidget(dataset_groupbox)
@@ -241,6 +257,15 @@ class AnnotationDialog(QMainWindow):
         self.update_dataset_related_controls()
 
     def wire_shortcuts(self):
+        # tagging
+        shortcut_tag_named = QShortcut(
+            QKeySequence(config.tagging_shortcut_named), self
+        )
+        shortcut_tag_named.activated.connect(self.place_named_tag)
+        shortcut_tag_anonymous = QShortcut(
+            QKeySequence(config.tagging_shortcut_anonymous), self
+        )
+        shortcut_tag_anonymous.activated.connect(self.place_anonymous_tag)
         # named entities
         for named_entity_definition in config.named_entity_definitions:
             shortcut = QShortcut(
@@ -304,13 +329,13 @@ class AnnotationDialog(QMainWindow):
         shortcut_last = QShortcut(
             QKeySequence(SHORTCUT_REMOVE), self, context=Qt.ApplicationShortcut
         )
-        shortcut_last.activated.connect(self.remove_entity)
+        shortcut_last.activated.connect(self.remove_annotation)
 
         # remove all
         shortcut_last = QShortcut(
             QKeySequence(SHORTCUT_REMOVE_ALL), self, context=Qt.ApplicationShortcut
         )
-        shortcut_last.activated.connect(self.remove_all_entities)
+        shortcut_last.activated.connect(self.remove_all_annotations)
 
     def wire_textmodel(self):
         self.text_navigator = QDataWidgetMapperWithHistory(self)
@@ -471,10 +496,28 @@ class AnnotationDialog(QMainWindow):
                 "(" + text_cursor.selectedText() + "|E " + code + ")"
             )
 
-    def remove_entity(self):
+    def place_named_tag(self):
+        text_cursor = self.text_edit.textCursor()
+        if text_cursor.hasSelection():
+            key_sequence = self.sender().key().toString()
+            text_cursor.insertText(
+                "("
+                + text_cursor.selectedText()
+                + "|T "
+                + "add_your_tags_here_separated_by_comma"
+                + ")"
+            )
+
+    def place_anonymous_tag(self):
+        text_cursor = self.text_edit.textCursor()
+        if text_cursor.hasSelection():
+            key_sequence = self.sender().key().toString()
+            text_cursor.insertText("(" + text_cursor.selectedText() + "|A)")
+
+    def remove_annotation(self):
         current_cursor_pos = self.text_edit.textCursor().position()
         new_text = re.sub(
-            "\((.*?)\|E .+?\)",
+            "\((.*?)\|([ET] |A).+?\)",
             lambda match: match.group(1)
             if match.start() < current_cursor_pos < match.end()
             else match.group(0),
@@ -483,9 +526,9 @@ class AnnotationDialog(QMainWindow):
         )
         self.text_edit.setPlainText(new_text)
 
-    def remove_all_entities(self):
+    def remove_all_annotations(self):
         new_text = re.sub(
-            "\((.*?)\|E .+?\)",
+            "\((.*?)\|([ET] |A).+?\)",
             lambda match: match.group(1),
             self.text_edit.toPlainText(),
             flags=re.DOTALL,
@@ -511,15 +554,23 @@ class EntityHighlighter(QSyntaxHighlighter):
             entity_code_background_color, entity_code_background_color
         )
 
-        # default for all unmatched entities and keywords
-        entity_text_format = self.get_text_char_format("#333333", "#cccccc")
-        entity_text_format_blank = self.get_text_char_format("#333333", "#333333")
+        # append highlighting rules
+        # TODO: make color configurable
+        # tags
+        entity_text_format = self.get_text_char_format(
+            "#333333", "#cccccc"
+        )
+        entity_text_format_blank = self.get_text_char_format(
+            "#333333", "#333333"
+        )
+
+        # named tag
         self.highlighting_rules.append(
             (
                 QRegularExpression(
                     r"(?<openParen>\()"
                     + r"(?<text>[^|()]+?)"
-                    + r"(?<pipe>\|E)"
+                    + r"(?<pipeAndCode>\|T)"
                     + r"(?<entityCode> "
                     + r".*?"
                     + r")(?<closingParen>\))"
@@ -529,6 +580,21 @@ class EntityHighlighter(QSyntaxHighlighter):
             )
         )
 
+        # anonymous tag
+        self.highlighting_rules.append(
+            (
+                QRegularExpression(
+                    r"(?<openParen>\()"
+                    + r"(?<text>[^|()]+?)"
+                    + r"(?<pipeAndCode>\|A)"
+                    + r"(?<closingParen>\))"
+                ),
+                entity_text_format,
+                entity_text_format_blank,
+            )
+        )
+
+        # named entities
         for named_entity_definition in named_entity_definitions:
             entity_text_format = self.get_text_char_format(
                 named_entity_definition.backcolor, named_entity_definition.forecolor
@@ -541,7 +607,7 @@ class EntityHighlighter(QSyntaxHighlighter):
                     QRegularExpression(
                         r"(?<openParen>\()"
                         + r"(?<text>[^|()]+?)"
-                        + r"(?<pipe>\|E)"
+                        + r"(?<pipeAndCode>\|E)"
                         + r"(?<entityCode> "
                         + named_entity_definition.code
                         + r")(?<closingParen>\))"
@@ -576,8 +642,8 @@ class EntityHighlighter(QSyntaxHighlighter):
                     entity_text_format,
                 )
                 self.setFormat(
-                    match.capturedStart("pipe"),
-                    match.capturedLength("pipe"),
+                    match.capturedStart("pipeAndCode"),
+                    match.capturedLength("pipeAndCode"),
                     entity_text_format_blank,
                 )
                 self.setFormat(

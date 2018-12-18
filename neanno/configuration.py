@@ -27,10 +27,12 @@ class ConfigInit:
         ConfigInit.dataset_source(config_yaml, parser)
         # dataset target-related
         ConfigInit.dataset_target(config_yaml, parser)
-        # named entities-related
-        ConfigInit.named_entities(config_yaml, parser)
         # categories-related
         ConfigInit.categories(config_yaml, parser)
+        # tagging-related
+        ConfigInit.tagging(config_yaml, parser)
+        # named entities-related
+        ConfigInit.named_entities(config_yaml, parser)
         # spacy-related
         ConfigInit.spacy(config_yaml, parser)
 
@@ -115,6 +117,21 @@ class ConfigInit:
             dataset_target_csv, index=False, header=True
         )
 
+    def tagging(config_yaml, parser):
+        config.is_tagging_enabled = (
+            "tagging" in config_yaml and config_yaml["tagging"]["enabled"]
+        )
+        config.tagging_shortcut_named = (
+            QueryDict(config_yaml).get("tagging/shortcuts/named")
+            if not None
+            else "Ctrl+W"
+        )
+        config.tagging_shortcut_anonymous = (
+            QueryDict(config_yaml).get("tagging/shortcuts/anonymous")
+            if not None
+            else "Ctrl+E"
+        )
+
     def named_entities(config_yaml, parser):
         config.named_entity_definitions = []
         config.is_named_entities_enabled = "named_entities" in config_yaml
@@ -146,7 +163,9 @@ class ConfigInit:
                     ][2]
                 )
                 config.named_entity_definitions.append(
-                    NamedEntityDefinition(code, shortcut, maincolor, backcolor, forecolor)
+                    NamedEntityDefinition(
+                        code, shortcut, maincolor, backcolor, forecolor
+                    )
                 )
                 index += 1
             # load autosuggest dataset

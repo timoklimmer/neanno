@@ -6,6 +6,25 @@ dataset:
     is_annotated_column: is_text_annotated
     target: csv:samples/airline_tickets/texts.annotated.csv
 
+categories:
+  definitions:
+    - name: Ticketing
+    - name: Service Offering
+    - name: Technology
+    - name: Mileage Plan
+    - name: Security
+    - name: Customs
+    - name: Legal
+    - name: Complaint
+    - name: Misc
+  column: categories
+
+tagging:
+  enabled: True
+  shortcuts:
+    named: Ctrl+W
+    anonymous: Ctrl+E
+
 named_entities:
   definitions:
       - code: AIRLINE
@@ -27,19 +46,6 @@ named_entities:
     regexes:
       - entity: AIRCRAFT
         pattern: (A\s*)?3[28]0|(B\s*)?7\d7(-\d{3})|CRJ|MD-\d{2}?
-
-categories:
-  definitions:
-    - name: Ticketing
-    - name: Service Offering
-    - name: Technology
-    - name: Mileage Plan
-    - name: Security
-    - name: Customs
-    - name: Legal
-    - name: Complaint
-    - name: Misc
-  column: categories
 
 #spacy:
 #  source: blank:en

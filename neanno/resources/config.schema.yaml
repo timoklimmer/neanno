@@ -17,6 +17,40 @@ dataset:
             regex: "^.+?:.+"
     required: True
 
+categories:
+    type: dict
+    schema:
+        definitions:
+            type: list
+            schema:
+                type: dict
+                schema:
+                    name:
+                        type: string
+                        required: True
+        column:
+            type: string
+            required: True
+    required: False
+
+tagging:
+    type: dict
+    schema:
+        enabled:
+            type: boolean
+            required: True
+        shortcuts:
+            type: dict
+            schema:
+                named:
+                    type: string
+                    required: False
+                anonymous:
+                    type: string
+                    required: False
+
+    required: False
+
 named_entities:
     type: dict
     schema:
@@ -56,22 +90,6 @@ named_entities:
                                 required: True
                         required: False
             required: False
-    required: False
-
-categories:
-    type: dict
-    schema:
-        definitions:
-            type: list
-            schema:
-                type: dict
-                schema:
-                    name:
-                        type: string
-                        required: True
-        column:
-            type: string
-            required: True
     required: False
 
 spacy:
