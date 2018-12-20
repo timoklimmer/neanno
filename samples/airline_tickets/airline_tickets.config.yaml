@@ -21,29 +21,31 @@ categories:
 
 tagging:
   # shortcuts:
-  #   named: Ctrl+W
-  #   anonymous: Ctrl+E
-  # backcolor: "#333333"
-  # forecolor: "#cccccc"
+  #   anonymous: Alt+1
+  #   named: Alt+2
+  backcolor: "#333333"
+  forecolor: "#50e6ff"
 
 named_entities:
   definitions:
-      - code: AIRLINE
-        shortcut: Alt+A
+      - code: FROM
+        shortcut: Alt+F
         # maincolor: "#ff8c31"
         # backcolor: "#333333"
         # forecolor: "#ff8c31"
+      - code: TO
+        shortcut: Alt+T
+      - code: AIRLINE
+        shortcut: Alt+A
       - code: AIRCRAFT
         shortcut: Alt+C
       - code: AIRPORT
-        shortcut: Alt+P
-      - code: TOPIC
-        shortcut: Alt+T
+        shortcut: Alt+I
   auto_suggest:
     sources:
       - csv:samples/airline_tickets/airlines.autosuggest.csv
-      - csv:samples/airline_tickets/airport_codes.autosuggest.csv
-      - csv:samples/airline_tickets/topics.autosuggest.csv
+      #- csv:samples/airline_tickets/airport_codes.autosuggest.csv
+      #- csv:samples/airline_tickets/topics.autosuggest.csv
     regexes:
       - entity: AIRCRAFT
         pattern: (A\s*)?3[28]0|(B\s*)?7\d7(-\d{3})|CRJ|MD-\d{2}?

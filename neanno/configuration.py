@@ -79,7 +79,9 @@ class ConfigInit:
     def dataset_source():
         print("Loading dataframe with texts to annotate...")
         config.text_column = ConfigInit.get_config_value("dataset/text_column")
-        config.is_annotated_column = ConfigInit.get_config_value("dataset/is_annotated_column")
+        config.is_annotated_column = ConfigInit.get_config_value(
+            "dataset/is_annotated_column"
+        )
         config.dataset_to_edit, config.dataset_source_friendly = ConfigInit.load_dataset(
             ConfigInit.get_config_value("dataset/source"),
             [config.text_column],
@@ -104,7 +106,9 @@ class ConfigInit:
             getattr(ConfigInit, "dataset_target_" + datasource_type)()
 
     def dataset_target_csv():
-        dataset_target_csv = ConfigInit.get_config_value("dataset/target").replace("csv:", "", 1)
+        dataset_target_csv = ConfigInit.get_config_value("dataset/target").replace(
+            "csv:", "", 1
+        )
         config.dataset_target_friendly = os.path.basename(dataset_target_csv)
         config.save_callback = lambda df: df.to_csv(
             dataset_target_csv, index=False, header=True
@@ -112,10 +116,18 @@ class ConfigInit:
 
     def tagging():
         config.is_tagging_enabled = "tagging" in config.yaml
-        config.tagging_shortcut_named = ConfigInit.get_config_value("tagging/shortcuts/named", "Ctrl+W")
-        config.tagging_shortcut_anonymous = ConfigInit.get_config_value("tagging/shortcuts/anonymous", "Ctrl+E")
-        config.tagging_backcolor = ConfigInit.get_config_value("tagging/backcolor", "#333333")
-        config.tagging_forecolor = ConfigInit.get_config_value("tagging/backcolor", "#cccccc")
+        config.tagging_shortcut_anonymous = ConfigInit.get_config_value(
+            "tagging/shortcuts/anonymous", "Alt+1"
+        )
+        config.tagging_shortcut_named = ConfigInit.get_config_value(
+            "tagging/shortcuts/named", "Alt+2"
+        )
+        config.tagging_backcolor = ConfigInit.get_config_value(
+            "tagging/backcolor", "#fff9ae"
+        )
+        config.tagging_forecolor = ConfigInit.get_config_value(
+            "tagging/forecolor", "#0000cc"
+        )
 
     def named_entities():
         config.named_entity_definitions = []

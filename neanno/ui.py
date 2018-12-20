@@ -156,8 +156,8 @@ class AnnotationDialog(QMainWindow):
             tags_layout = QHBoxLayout()
             tags_layout.addWidget(
                 QLabel(
-                    "{} to set a named tag.\n{} to set an anonymous tag.".format(
-                        config.tagging_shortcut_named, config.tagging_shortcut_anonymous
+                    "{} to set an anonymous tag.\n{} to set a named tag.".format(
+                        config.tagging_shortcut_anonymous, config.tagging_shortcut_named
                     )
                 )
             )
