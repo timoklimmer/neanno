@@ -2,21 +2,8 @@ import os
 import re
 
 import config
-from neanno.custom_ui_controls import (
-    CategoriesSelectorWidget,
-    QDataWidgetMapperWithHistory,
-)
-from PyQt5 import QtCore
-from PyQt5.QtCore import QByteArray, QRegularExpression, Qt
-from PyQt5.QtGui import (
-    QColor,
-    QFont,
-    QIcon,
-    QKeySequence,
-    QSyntaxHighlighter,
-    QTextCharFormat,
-    QPalette,
-)
+from PyQt5.QtCore import QByteArray, Qt
+from PyQt5.QtGui import QIcon, QKeySequence
 from PyQt5.QtWidgets import (
     QApplication,
     QDataWidgetMapper,
@@ -37,6 +24,12 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+
+from neanno.custom_ui_controls import (
+    CategoriesSelectorWidget,
+    QDataWidgetMapperWithHistory,
+)
+from neanno.syntaxhighlighters import TextEditHighlighter
 
 SHORTCUT_SUBMIT_NEXT_BEST = "Ctrl+Return"
 SHORTCUT_BACKWARD = "Ctrl+Left"
@@ -105,7 +98,7 @@ class AnnotationDialog(QMainWindow):
         self.text_edit.setStyleSheet(
             "font-size: 14pt; font-family: Consolas; color: lightgrey; background-color: black"
         )
-        self.text_edit_entity_highlighter = EntityHighlighter(
+        self.text_edit_highlighter = TextEditHighlighter(
             self.text_edit.document(), config.named_entity_definitions
         )
         self.text_edit.textChanged.connect(self.update_tag_monitor)
@@ -115,7 +108,7 @@ class AnnotationDialog(QMainWindow):
         self.tag_monitor.setStyleSheet(
             "font-size: 14pt; font-family: Consolas; color: lightgrey; background-color: black"
         )
-        self.tag_monitor_entity_highlighter = EntityHighlighter(
+        self.tag_monitor_entity_highlighter = TextEditHighlighter(
             self.tag_monitor.document(), config.named_entity_definitions
         )
 
@@ -131,9 +124,9 @@ class AnnotationDialog(QMainWindow):
             self.get_icon("submit_next_best.png"), None
         )
         about_button = QPushButton("About")
-        about_button.clicked.connect(self.handle_about_button_clicked)
+        about_button.clicked.connect(self.show_about_dialog)
         shortcuts_button = QPushButton("Shortcuts")
-        shortcuts_button.clicked.connect(self.handle_shortcuts_button_clicked)
+        shortcuts_button.clicked.connect(self.show_shortcuts_dialog)
         navigation_buttons_layout = QHBoxLayout()
         navigation_buttons_layout.addWidget(self.backward_button)
         navigation_buttons_layout.addWidget(self.forward_button)
@@ -155,17 +148,15 @@ class AnnotationDialog(QMainWindow):
         # categories
         # note: CategoriesSelectorWidget populates itself (mostly due to the QTableWidget control, might be improved in future)
         if config.is_categories_enabled:
-            self.text_categories_selector = CategoriesSelectorWidget(
-                config, self.textmodel
-            )
-            self.text_categories_selector.selectionModel().selectionChanged.connect(
+            self.categories_selector = CategoriesSelectorWidget(config, self.textmodel)
+            self.categories_selector.selectionModel().selectionChanged.connect(
                 self.update_tag_monitor
             )
-            text_categories_groupbox_layout = QHBoxLayout()
-            text_categories_groupbox_layout.addWidget(self.text_categories_selector)
-            text_categories_groupbox_layout.setSizeConstraint(QLayout.SetFixedSize)
-            text_categories_groupbox = QGroupBox("Categories")
-            text_categories_groupbox.setLayout(text_categories_groupbox_layout)
+            categories_groupbox_layout = QHBoxLayout()
+            categories_groupbox_layout.addWidget(self.categories_selector)
+            categories_groupbox_layout.setSizeConstraint(QLayout.SetFixedSize)
+            categories_groupbox = QGroupBox("Categories")
+            categories_groupbox.setLayout(categories_groupbox_layout)
 
         # tagging
         if config.is_tagging_enabled:
@@ -196,7 +187,7 @@ class AnnotationDialog(QMainWindow):
             self.spacy_model_source_label = QLabel(config.spacy_model_source)
             spacy_grid.addWidget(self.spacy_model_source_label, 0, 1)
             retrain_model_button = QPushButton("Retrain")
-            retrain_model_button.clicked.connect(self.handle_retrain_button_clicked)
+            retrain_model_button.clicked.connect(self.retrain_model)
             spacy_grid.addWidget(retrain_model_button, 2, 0)
 
             if config.spacy_model_target is not None:
@@ -248,7 +239,7 @@ class AnnotationDialog(QMainWindow):
         # right panel
         right_panel_layout = QVBoxLayout()
         if config.is_categories_enabled:
-            right_panel_layout.addWidget(text_categories_groupbox)
+            right_panel_layout.addWidget(categories_groupbox)
         if config.is_tagging_enabled:
             right_panel_layout.addWidget(tags_groupbox)
         if config.is_named_entities_enabled:
@@ -277,83 +268,32 @@ class AnnotationDialog(QMainWindow):
         self.update_dataset_related_controls()
 
     def wire_shortcuts(self):
-        # tagging
-        shortcut_tag_named = QShortcut(
-            QKeySequence(config.tagging_shortcut_named), self
+        self.register_shortcut(config.tagging_shortcut_named, self.place_named_tag)
+        self.register_shortcut(
+            config.tagging_shortcut_anonymous, self.place_anonymous_tag
         )
-        shortcut_tag_named.activated.connect(self.place_named_tag)
-        shortcut_tag_anonymous = QShortcut(
-            QKeySequence(config.tagging_shortcut_anonymous), self
-        )
-        shortcut_tag_anonymous.activated.connect(self.place_anonymous_tag)
-        # named entities
         for named_entity_definition in config.named_entity_definitions:
-            shortcut = QShortcut(
-                QKeySequence(named_entity_definition.key_sequence), self
+            self.register_shortcut(
+                named_entity_definition.key_sequence, self.annotate_entity
             )
-            shortcut.activated.connect(self.annotate_entity)
-
-        # submit / next best
-        shortcut_submit_next_best = QShortcut(
-            QKeySequence(SHORTCUT_SUBMIT_NEXT_BEST),
-            self,
-            context=Qt.ApplicationShortcut,
+        self.register_shortcut(
+            SHORTCUT_SUBMIT_NEXT_BEST, self.submit_and_go_to_next_best
         )
-        shortcut_submit_next_best.activated.connect(self.submit_and_go_to_next_best)
+        self.register_shortcut(SHORTCUT_BACKWARD, self.text_navigator.backward)
+        self.register_shortcut(SHORTCUT_FORWARD, self.text_navigator.forward)
+        self.register_shortcut(SHORTCUT_FIRST, self.text_navigator.toFirst)
+        self.register_shortcut(SHORTCUT_PREVIOUS, self.text_navigator.toPrevious)
+        self.register_shortcut(SHORTCUT_NEXT, self.text_navigator.toNext)
+        self.register_shortcut(SHORTCUT_LAST, self.text_navigator.toLast)
+        self.register_shortcut(SHORTCUT_GOTO, self.go_to_index)
+        self.register_shortcut(SHORTCUT_REMOVE, self.remove_annotation)
+        self.register_shortcut(SHORTCUT_REMOVE_ALL, self.remove_all_annotations)
 
-        # backward
-        shortcut_backward = QShortcut(
-            QKeySequence(SHORTCUT_BACKWARD), self, context=Qt.ApplicationShortcut
+    def register_shortcut(self, key_sequence, function):
+        shortcut = QShortcut(
+            QKeySequence(key_sequence), self, context=Qt.ApplicationShortcut
         )
-        shortcut_backward.activated.connect(self.text_navigator.backward)
-
-        # forward
-        shortcut_forward = QShortcut(
-            QKeySequence(SHORTCUT_FORWARD), self, context=Qt.ApplicationShortcut
-        )
-        shortcut_forward.activated.connect(self.text_navigator.forward)
-
-        # first
-        shortcut_first = QShortcut(
-            QKeySequence(SHORTCUT_FIRST), self, context=Qt.ApplicationShortcut
-        )
-        shortcut_first.activated.connect(self.text_navigator.toFirst)
-
-        # previous
-        shortcut_previous = QShortcut(
-            QKeySequence(SHORTCUT_PREVIOUS), self, context=Qt.ApplicationShortcut
-        )
-        shortcut_previous.activated.connect(self.text_navigator.toPrevious)
-
-        # next
-        shortcut_next = QShortcut(
-            QKeySequence(SHORTCUT_NEXT), self, context=Qt.ApplicationShortcut
-        )
-        shortcut_next.activated.connect(self.text_navigator.toNext)
-
-        # last
-        shortcut_last = QShortcut(
-            QKeySequence(SHORTCUT_LAST), self, context=Qt.ApplicationShortcut
-        )
-        shortcut_last.activated.connect(self.text_navigator.toLast)
-
-        # goto
-        shortcut_goto = QShortcut(
-            QKeySequence(SHORTCUT_GOTO), self, context=Qt.ApplicationShortcut
-        )
-        shortcut_goto.activated.connect(self.handle_shortcut_goto)
-
-        # remove
-        shortcut_last = QShortcut(
-            QKeySequence(SHORTCUT_REMOVE), self, context=Qt.ApplicationShortcut
-        )
-        shortcut_last.activated.connect(self.remove_annotation)
-
-        # remove all
-        shortcut_last = QShortcut(
-            QKeySequence(SHORTCUT_REMOVE_ALL), self, context=Qt.ApplicationShortcut
-        )
-        shortcut_last.activated.connect(self.remove_all_annotations)
+        shortcut.activated.connect(function)
 
     def wire_textmodel(self):
         self.text_navigator = QDataWidgetMapperWithHistory(self)
@@ -365,7 +305,7 @@ class AnnotationDialog(QMainWindow):
         )
         if config.is_categories_enabled:
             self.text_navigator.addMapping(
-                self.text_categories_selector,
+                self.categories_selector,
                 2,
                 QByteArray().insert(0, "selected_categories_text"),
             )
@@ -379,14 +319,14 @@ class AnnotationDialog(QMainWindow):
         self.previous_button.clicked.connect(self.text_navigator.toPrevious)
         self.next_button.clicked.connect(self.text_navigator.toNext)
         self.last_button.clicked.connect(self.text_navigator.toLast)
-        self.goto_button.clicked.connect(self.handle_shortcut_goto)
+        self.goto_button.clicked.connect(self.go_to_index)
         self.submit_next_best_button.clicked.connect(self.submit_and_go_to_next_best)
 
     def update_tag_monitor(self):
         new_tags = []
         # categories
         if config.is_categories_enabled:
-            new_tags.extend(self.text_categories_selector.get_selected_categories())
+            new_tags.extend(self.categories_selector.get_selected_categories())
 
         # entities
         # TODO: sort by configuration sequence
@@ -443,18 +383,18 @@ class AnnotationDialog(QMainWindow):
             self.textmodel.get_next_best_row_index(self.text_navigator.currentIndex())
         )
 
-    def handle_shortcut_goto(self):
+    def go_to_index(self):
         new_index, is_not_canceled = QInputDialog.getInt(
             self, "Goto Index", "Enter an index:"
         )
         if is_not_canceled:
             self.text_navigator.setCurrentIndex(new_index)
 
-    def handle_about_button_clicked(self):
+    def show_about_dialog(self):
         QMessageBox.information(self, "About neanno", ABOUT_TEXT, QMessageBox.Ok)
 
     @staticmethod
-    def handle_shortcuts_button_clicked():
+    def show_shortcuts_dialog():
         def shortcut_fragment(label, shortcut):
             return (
                 "<tr><td style="
@@ -485,7 +425,7 @@ class AnnotationDialog(QMainWindow):
         msg.setStandardButtons(QMessageBox.Ok)
         msg.exec_()
 
-    def handle_retrain_button_clicked(self):
+    def retrain_model(self):
         self.textmodel.retrain_spacy_model()
 
     def update_navigation_related_controls(self):
@@ -494,9 +434,9 @@ class AnnotationDialog(QMainWindow):
         # remove focus from controls
         # text_edit
         self.text_edit.clearFocus()
-        # text_categories_selector
+        # categories_selector
         if config.is_categories_enabled:
-            self.text_categories_selector.clearFocus()
+            self.categories_selector.clearFocus()
 
     def update_dataset_related_controls(self):
         # annotated texts count
@@ -507,7 +447,7 @@ class AnnotationDialog(QMainWindow):
         self.total_texts_label.setText(str(total_texts_count))
         # categories frequency
         if config.is_categories_enabled:
-            self.text_categories_selector.update_categories_distribution()
+            self.categories_selector.update_categories_distribution()
         # entity infos markup
         if config.is_named_entities_enabled:
             entity_infos_markup = "<table style='font-size: 10pt;' width='100%'>"
@@ -548,32 +488,26 @@ class AnnotationDialog(QMainWindow):
                 if named_entity_definition.key_sequence == key_sequence:
                     code = named_entity_definition.code
                     break
-            text_cursor.insertText(
-                "(" + text_cursor.selectedText() + "|E " + code + ")"
-            )
+            text_cursor.insertText("({}|E {})".format(text_cursor.selectedText(), code))
 
     def place_named_tag(self):
         text_cursor = self.text_edit.textCursor()
         if text_cursor.hasSelection():
-            key_sequence = self.sender().key().toString()
             text_cursor.insertText(
-                "("
-                + text_cursor.selectedText()
-                + "|T "
-                + "add_your_tags_here_separated_by_comma"
-                + ")"
+                "({}|T add_your_tags_here_separated_by_comma)".format(
+                    text_cursor.selectedText()
+                )
             )
 
     def place_anonymous_tag(self):
         text_cursor = self.text_edit.textCursor()
         if text_cursor.hasSelection():
-            key_sequence = self.sender().key().toString()
-            text_cursor.insertText("(" + text_cursor.selectedText() + "|A)")
+            text_cursor.insertText("({}|A)".format(text_cursor.selectedText()))
 
     def remove_annotation(self):
         current_cursor_pos = self.text_edit.textCursor().position()
         new_text = re.sub(
-            "\((.*?)\|(([ET] .+?)|(A))\)",
+            r"\((.*?)\|(([ET] .+?)|(A))\)",
             lambda match: match.group(1)
             if match.start() < current_cursor_pos < match.end()
             else match.group(0),
@@ -584,129 +518,9 @@ class AnnotationDialog(QMainWindow):
 
     def remove_all_annotations(self):
         new_text = re.sub(
-            "\((.*?)\|(([ET] .+?)|(A))\)",
+            r"\((.*?)\|(([ET] .+?)|(A))\)",
             lambda match: match.group(1),
             self.text_edit.toPlainText(),
             flags=re.DOTALL,
         )
         self.text_edit.setPlainText(new_text)
-
-
-class EntityHighlighter(QSyntaxHighlighter):
-    """Used to highlight the entities in the text field."""
-
-    highlighting_rules = []
-
-    def __init__(self, parent, named_definitions):
-        super(EntityHighlighter, self).__init__(parent)
-        postfix_format = self.get_text_char_format(QColor("lightgrey"), Qt.black)
-        postfix_format.setFontFamily("Segoe UI")
-        postfix_format.setFontWeight(QFont.Bold)
-        postfix_format.setFontPointSize(9)
-        postfix_format_blank = self.get_text_char_format(
-            QColor("lightgrey"), QColor("lightgrey")
-        )
-
-        # append highlighting rules
-        # tags
-        tag_text_format = self.get_text_char_format(
-            config.tagging_backcolor, config.tagging_forecolor
-        )
-        tag_text_format_blank = self.get_text_char_format(
-            config.tagging_backcolor, config.tagging_backcolor
-        )
-        # named tag
-        self.highlighting_rules.append(
-            (
-                QRegularExpression(
-                    r"(?<openParen>\()"
-                    + r"(?<text>[^|()]+?)"
-                    + r"(?<pipeAndType>\|T)"
-                    + r"(?<postfix> "
-                    + r".*?"
-                    + r")(?<closingParen>\))"
-                ),
-                tag_text_format,
-                tag_text_format_blank,
-                postfix_format,
-                postfix_format_blank,
-            )
-        )
-        # anonymous tag
-        self.highlighting_rules.append(
-            (
-                QRegularExpression(
-                    r"(?<openParen>\()"
-                    + r"(?<text>[^|()]+?)"
-                    + r"(?<pipeAndType>\|A)"
-                    + r"(?<closingParen>\))"
-                ),
-                tag_text_format,
-                tag_text_format_blank,
-                tag_text_format_blank,
-                tag_text_format_blank,
-            )
-        )
-        # named entities
-        for named_definition in named_definitions:
-            entity_text_format = self.get_text_char_format(
-                named_definition.backcolor, named_definition.forecolor
-            )
-            entity_text_format_blank = self.get_text_char_format(
-                named_definition.backcolor, named_definition.backcolor
-            )
-            self.highlighting_rules.append(
-                (
-                    QRegularExpression(
-                        r"(?<openParen>\()"
-                        + r"(?<text>[^|()]+?)"
-                        + r"(?<pipeAndType>\|E)"
-                        + r"(?<postfix> "
-                        + named_definition.code
-                        + r")(?<closingParen>\))"
-                    ),
-                    entity_text_format,
-                    entity_text_format_blank,
-                    postfix_format,
-                    postfix_format_blank,
-                )
-            )
-
-    def get_text_char_format(self, backcolor, forecolor):
-        result = QTextCharFormat()
-        result.setBackground(QColor(backcolor))
-        result.setForeground(QColor(forecolor))
-        return result
-
-    def highlightBlock(self, text):
-        for (
-            pattern,
-            text_format,
-            text_format_blank,
-            postfix_format,
-            postfix_format_blank,
-        ) in self.highlighting_rules:
-            expression = QRegularExpression(pattern)
-            offset = 0
-            while offset >= 0:
-                match = expression.match(text, offset)
-                self.setFormat(match.capturedStart("openParen"), 1, text_format_blank)
-                self.setFormat(
-                    match.capturedStart("text"),
-                    match.capturedLength("text"),
-                    text_format,
-                )
-                self.setFormat(
-                    match.capturedStart("pipeAndType"),
-                    match.capturedLength("pipeAndType"),
-                    text_format_blank,
-                )
-                self.setFormat(
-                    match.capturedStart("postfix"),
-                    match.capturedLength("postfix"),
-                    postfix_format,
-                )
-                self.setFormat(
-                    match.capturedStart("closingParen"), 1, postfix_format_blank
-                )
-                offset = match.capturedEnd("closingParen")
