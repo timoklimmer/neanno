@@ -33,6 +33,7 @@ from PyQt5.QtWidgets import (
     QProgressBar,
     QPushButton,
     QShortcut,
+    QSplitter,
     QVBoxLayout,
     QWidget,
 )
@@ -104,8 +105,18 @@ class AnnotationDialog(QMainWindow):
         self.text_edit.setStyleSheet(
             "font-size: 14pt; font-family: Consolas; color: lightgrey; background-color: black"
         )
-        self.entity_highlighter = EntityHighlighter(
+        self.text_edit_entity_highlighter = EntityHighlighter(
             self.text_edit.document(), config.named_entity_definitions
+        )
+        self.text_edit.textChanged.connect(self.handle_text_edit_textchanged)
+
+        # tag monitor
+        self.tag_monitor = QPlainTextEdit()
+        self.tag_monitor.setStyleSheet(
+            "font-size: 14pt; font-family: Consolas; color: lightgrey; background-color: black"
+        )
+        self.tag_monitor_entity_highlighter = EntityHighlighter(
+            self.tag_monitor.document(), config.named_entity_definitions
         )
 
         # navigation / about / shortcuts buttons
@@ -224,7 +235,11 @@ class AnnotationDialog(QMainWindow):
         # remaining layouts
         # left panel
         left_panel_layout = QVBoxLayout()
-        left_panel_layout.addWidget(self.text_edit)
+        left_panel_layout_splitter = QSplitter(Qt.Vertical)
+        left_panel_layout_splitter.addWidget(self.text_edit)
+        left_panel_layout_splitter.addWidget(self.tag_monitor)
+        left_panel_layout_splitter.setSizes([400, 100])
+        left_panel_layout.addWidget(left_panel_layout_splitter)
         # right panel
         right_panel_layout = QVBoxLayout()
         if config.is_categories_enabled:
@@ -365,6 +380,39 @@ class AnnotationDialog(QMainWindow):
         self.submit_next_best_button.clicked.connect(
             self.handle_shortcut_submit_next_best
         )
+
+    def handle_text_edit_textchanged(self):
+        new_tags = []
+        # entities
+        entities = []
+        for match in re.findall(
+            r"\([^()]+?\|E [^()]*?\)", self.text_edit.toPlainText(), flags=re.DOTALL
+        ):
+            entities.append(match)
+        if len(entities) > 0:
+            entities = sorted(set(entities))
+            new_tags.extend(entities)
+        # named tags
+        named_tags = []
+        for match in re.finditer(
+            r"\([^()]+?\|T (?P<tagName>[^()]*?)\)",
+            self.text_edit.toPlainText(),
+            flags=re.DOTALL,
+        ):
+            named_tags.append("({}|A)".format(match.group('tagName')))
+        if len(named_tags) > 0:
+            named_tags = sorted(set(named_tags))
+            new_tags.extend(named_tags)
+        # anonymous tags
+        anonymous_tags = []
+        for match in re.findall(
+            r"\([^()]+?\|A\)", self.text_edit.toPlainText(), flags=re.DOTALL
+        ):
+            anonymous_tags.append(match)
+        if len(anonymous_tags) > 0:
+            anonymous_tags = sorted(set(anonymous_tags))
+            new_tags.extend(anonymous_tags)
+        self.tag_monitor.setPlainText(" ".join(new_tags))
 
     def handle_shortcut_submit_next_best(self):
         # submit changes of old text
@@ -517,7 +565,7 @@ class AnnotationDialog(QMainWindow):
     def remove_annotation(self):
         current_cursor_pos = self.text_edit.textCursor().position()
         new_text = re.sub(
-            "\((.*?)\|([ET] |A).+?\)",
+            "\((.*?)\|(([ET] .+?)|(A))\)",
             lambda match: match.group(1)
             if match.start() < current_cursor_pos < match.end()
             else match.group(0),
@@ -528,7 +576,7 @@ class AnnotationDialog(QMainWindow):
 
     def remove_all_annotations(self):
         new_text = re.sub(
-            "\((.*?)\|([ET] |A).+?\)",
+            "\((.*?)\|(([ET] .+?)|(A))\)",
             lambda match: match.group(1),
             self.text_edit.toPlainText(),
             flags=re.DOTALL,
