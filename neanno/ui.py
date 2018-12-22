@@ -30,34 +30,8 @@ from neanno.custom_ui_controls import (
     QDataWidgetMapperWithHistory,
 )
 from neanno.syntaxhighlighters import TextEditHighlighter
-
-SHORTCUT_SUBMIT_NEXT_BEST = "Ctrl+Return"
-SHORTCUT_BACKWARD = "Ctrl+Left"
-SHORTCUT_FORWARD = "Ctrl+Right"
-SHORTCUT_FIRST = "Ctrl+F"
-SHORTCUT_PREVIOUS = "Ctrl+P"
-SHORTCUT_NEXT = "Ctrl+N"
-SHORTCUT_LAST = "Ctrl+L"
-SHORTCUT_GOTO = "Ctrl+G"
-SHORTCUT_UNDO = "Ctrl+Z"
-SHORTCUT_REDO = "Ctrl+Y"
-SHORTCUT_REMOVE = "Ctrl+R"
-SHORTCUT_REMOVE_ALL = "Ctrl+D"
-
-ABOUT_TEXT = """neanno is yet another text annotation tool.
-
-There are already several other annotation tools out there but none
-of them really matched my requirements. Hence, I created my own.
-
-This is NOT an official Microsoft product, hence does not come with
-any support or obligations for Microsoft.
-
-Feel free to use but don't blame me if things go wrong.
-
-Get the most updated version from GitHub.
-
-Written in 2018 by Timo Klimmer, timo.klimmer@microsoft.com.
-"""
+from neanno.shortcuts import *
+from neanno.about import show_about_dialog
 
 
 class AnnotationDialog(QMainWindow):
@@ -70,8 +44,8 @@ class AnnotationDialog(QMainWindow):
         self.setWindowIcon(self.get_icon("icon.ico"))
         self.textmodel = textmodel
         self.layout_controls()
-        self.wire_textmodel()
-        self.wire_shortcuts()
+        self.setup_and_wire_navigator()
+        self.setup_and_wire_shortcuts()
         self.show()
         app.exec_()
 
@@ -124,7 +98,7 @@ class AnnotationDialog(QMainWindow):
             self.get_icon("submit_next_best.png"), None
         )
         about_button = QPushButton("About")
-        about_button.clicked.connect(self.show_about_dialog)
+        about_button.clicked.connect(lambda: show_about_dialog(self))
         shortcuts_button = QPushButton("Shortcuts")
         shortcuts_button.clicked.connect(self.show_shortcuts_dialog)
         navigation_buttons_layout = QHBoxLayout()
@@ -267,58 +241,52 @@ class AnnotationDialog(QMainWindow):
         # update the dataset-related controls so they show up
         self.update_dataset_related_controls()
 
-    def wire_shortcuts(self):
-        self.register_shortcut(config.tagging_shortcut_named, self.place_named_tag)
-        self.register_shortcut(
-            config.tagging_shortcut_anonymous, self.place_anonymous_tag
+    def setup_and_wire_shortcuts(self):
+        register_shortcut(self, config.tagging_shortcut_named, self.place_named_tag)
+        register_shortcut(
+            self, config.tagging_shortcut_anonymous, self.place_anonymous_tag
         )
         for named_entity_definition in config.named_entity_definitions:
-            self.register_shortcut(
-                named_entity_definition.key_sequence, self.annotate_entity
+            register_shortcut(
+                self, named_entity_definition.key_sequence, self.annotate_entity
             )
-        self.register_shortcut(
-            SHORTCUT_SUBMIT_NEXT_BEST, self.submit_and_go_to_next_best
+        register_shortcut(
+            self, SHORTCUT_SUBMIT_NEXT_BEST, self.submit_and_go_to_next_best
         )
-        self.register_shortcut(SHORTCUT_BACKWARD, self.text_navigator.backward)
-        self.register_shortcut(SHORTCUT_FORWARD, self.text_navigator.forward)
-        self.register_shortcut(SHORTCUT_FIRST, self.text_navigator.toFirst)
-        self.register_shortcut(SHORTCUT_PREVIOUS, self.text_navigator.toPrevious)
-        self.register_shortcut(SHORTCUT_NEXT, self.text_navigator.toNext)
-        self.register_shortcut(SHORTCUT_LAST, self.text_navigator.toLast)
-        self.register_shortcut(SHORTCUT_GOTO, self.go_to_index)
-        self.register_shortcut(SHORTCUT_REMOVE, self.remove_annotation)
-        self.register_shortcut(SHORTCUT_REMOVE_ALL, self.remove_all_annotations)
+        register_shortcut(self, SHORTCUT_BACKWARD, self.navigator.backward)
+        register_shortcut(self, SHORTCUT_FORWARD, self.navigator.forward)
+        register_shortcut(self, SHORTCUT_FIRST, self.navigator.toFirst)
+        register_shortcut(self, SHORTCUT_PREVIOUS, self.navigator.toPrevious)
+        register_shortcut(self, SHORTCUT_NEXT, self.navigator.toNext)
+        register_shortcut(self, SHORTCUT_LAST, self.navigator.toLast)
+        register_shortcut(self, SHORTCUT_GOTO, self.go_to_index)
+        register_shortcut(self, SHORTCUT_REMOVE, self.remove_annotation)
+        register_shortcut(self, SHORTCUT_REMOVE_ALL, self.remove_all_annotations)
 
-    def register_shortcut(self, key_sequence, function):
-        shortcut = QShortcut(
-            QKeySequence(key_sequence), self, context=Qt.ApplicationShortcut
-        )
-        shortcut.activated.connect(function)
-
-    def wire_textmodel(self):
-        self.text_navigator = QDataWidgetMapperWithHistory(self)
-        self.text_navigator.setSubmitPolicy(QDataWidgetMapper.ManualSubmit)
-        self.text_navigator.setModel(self.textmodel)
-        self.text_navigator.addMapping(self.text_edit, 0)
-        self.text_navigator.addMapping(
+    def setup_and_wire_navigator(self):
+        self.navigator = QDataWidgetMapperWithHistory(self)
+        self.navigator.setSubmitPolicy(QDataWidgetMapper.ManualSubmit)
+        self.navigator.setModel(self.textmodel)
+        self.navigator.addMapping(self.text_edit, 0)
+        self.navigator.addMapping(
             self.is_annotated_label, 1, QByteArray().insert(0, "text")
         )
         if config.is_categories_enabled:
-            self.text_navigator.addMapping(
+            self.navigator.addMapping(
                 self.categories_selector,
                 2,
                 QByteArray().insert(0, "selected_categories_text"),
             )
-        self.text_navigator.currentIndexChanged.connect(
+        self.navigator.currentIndexChanged.connect(
             self.update_navigation_related_controls
         )
-        self.text_navigator.setCurrentIndex(self.textmodel.get_next_best_row_index(-1))
-        self.backward_button.clicked.connect(self.text_navigator.backward)
-        self.forward_button.clicked.connect(self.text_navigator.forward)
-        self.first_button.clicked.connect(self.text_navigator.toFirst)
-        self.previous_button.clicked.connect(self.text_navigator.toPrevious)
-        self.next_button.clicked.connect(self.text_navigator.toNext)
-        self.last_button.clicked.connect(self.text_navigator.toLast)
+        self.navigator.setCurrentIndex(self.textmodel.get_next_best_row_index(-1))
+        self.backward_button.clicked.connect(self.navigator.backward)
+        self.forward_button.clicked.connect(self.navigator.forward)
+        self.first_button.clicked.connect(self.navigator.toFirst)
+        self.previous_button.clicked.connect(self.navigator.toPrevious)
+        self.next_button.clicked.connect(self.navigator.toNext)
+        self.last_button.clicked.connect(self.navigator.toLast)
         self.goto_button.clicked.connect(self.go_to_index)
         self.submit_next_best_button.clicked.connect(self.submit_and_go_to_next_best)
 
@@ -364,7 +332,7 @@ class AnnotationDialog(QMainWindow):
 
     def submit_and_go_to_next_best(self):
         # submit changes of old text
-        self.text_navigator.submit()
+        self.navigator.submit()
         # update controls
         self.update_dataset_related_controls()
         self.update_navigation_related_controls()
@@ -379,8 +347,8 @@ class AnnotationDialog(QMainWindow):
                 QMessageBox.Ok,
             )
         # identify and go to next best text
-        self.text_navigator.setCurrentIndex(
-            self.textmodel.get_next_best_row_index(self.text_navigator.currentIndex())
+        self.navigator.setCurrentIndex(
+            self.textmodel.get_next_best_row_index(self.navigator.currentIndex())
         )
 
     def go_to_index(self):
@@ -388,10 +356,7 @@ class AnnotationDialog(QMainWindow):
             self, "Goto Index", "Enter an index:"
         )
         if is_not_canceled:
-            self.text_navigator.setCurrentIndex(new_index)
-
-    def show_about_dialog(self):
-        QMessageBox.information(self, "About neanno", ABOUT_TEXT, QMessageBox.Ok)
+            self.navigator.setCurrentIndex(new_index)
 
     @staticmethod
     def show_shortcuts_dialog():
@@ -430,7 +395,7 @@ class AnnotationDialog(QMainWindow):
 
     def update_navigation_related_controls(self):
         # current index
-        self.current_text_index_label.setText(str(self.text_navigator.currentIndex()))
+        self.current_text_index_label.setText(str(self.navigator.currentIndex()))
         # remove focus from controls
         # text_edit
         self.text_edit.clearFocus()
