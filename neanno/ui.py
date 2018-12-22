@@ -3,7 +3,7 @@ import re
 
 import config
 from neanno.custom_ui_controls import (
-    CategoriesTableWidget,
+    CategoriesSelectorWidget,
     QDataWidgetMapperWithHistory,
 )
 from PyQt5 import QtCore
@@ -108,7 +108,7 @@ class AnnotationDialog(QMainWindow):
         self.text_edit_entity_highlighter = EntityHighlighter(
             self.text_edit.document(), config.named_entity_definitions
         )
-        self.text_edit.textChanged.connect(self.handle_text_edit_textchanged)
+        self.text_edit.textChanged.connect(self.update_tag_monitor)
 
         # tag monitor
         self.tag_monitor = QPlainTextEdit()
@@ -153,11 +153,16 @@ class AnnotationDialog(QMainWindow):
         self.progressbar.setValue(0)
 
         # categories
-        # note: CategoriesTableWidget populates itself (mostly due to the QTableWidget control, might be improved in future)
+        # note: CategoriesSelectorWidget populates itself (mostly due to the QTableWidget control, might be improved in future)
         if config.is_categories_enabled:
-            self.text_categories_table = CategoriesTableWidget(config, self.textmodel)
+            self.text_categories_selector = CategoriesSelectorWidget(
+                config, self.textmodel
+            )
+            self.text_categories_selector.selectionModel().selectionChanged.connect(
+                self.update_tag_monitor
+            )
             text_categories_groupbox_layout = QHBoxLayout()
-            text_categories_groupbox_layout.addWidget(self.text_categories_table)
+            text_categories_groupbox_layout.addWidget(self.text_categories_selector)
             text_categories_groupbox_layout.setSizeConstraint(QLayout.SetFixedSize)
             text_categories_groupbox = QGroupBox("Categories")
             text_categories_groupbox.setLayout(text_categories_groupbox_layout)
@@ -167,7 +172,7 @@ class AnnotationDialog(QMainWindow):
             tags_layout = QHBoxLayout()
             tags_layout.addWidget(
                 QLabel(
-                    "{} to set an anonymous tag.\n{} to set a named tag.".format(
+                    "{} to highlight the selected term.\n{} to tag the selected term with something.".format(
                         config.tagging_shortcut_anonymous, config.tagging_shortcut_named
                     )
                 )
@@ -294,9 +299,7 @@ class AnnotationDialog(QMainWindow):
             self,
             context=Qt.ApplicationShortcut,
         )
-        shortcut_submit_next_best.activated.connect(
-            self.handle_shortcut_submit_next_best
-        )
+        shortcut_submit_next_best.activated.connect(self.submit_and_go_to_next_best)
 
         # backward
         shortcut_backward = QShortcut(
@@ -362,9 +365,9 @@ class AnnotationDialog(QMainWindow):
         )
         if config.is_categories_enabled:
             self.text_navigator.addMapping(
-                self.text_categories_table,
+                self.text_categories_selector,
                 2,
-                QByteArray().insert(0, "selected_categories"),
+                QByteArray().insert(0, "selected_categories_text"),
             )
         self.text_navigator.currentIndexChanged.connect(
             self.update_navigation_related_controls
@@ -377,44 +380,49 @@ class AnnotationDialog(QMainWindow):
         self.next_button.clicked.connect(self.text_navigator.toNext)
         self.last_button.clicked.connect(self.text_navigator.toLast)
         self.goto_button.clicked.connect(self.handle_shortcut_goto)
-        self.submit_next_best_button.clicked.connect(
-            self.handle_shortcut_submit_next_best
-        )
+        self.submit_next_best_button.clicked.connect(self.submit_and_go_to_next_best)
 
-    def handle_text_edit_textchanged(self):
+    def update_tag_monitor(self):
         new_tags = []
-        # entities
-        entities = []
-        for match in re.findall(
-            r"\([^()]+?\|E [^()]*?\)", self.text_edit.toPlainText(), flags=re.DOTALL
-        ):
-            entities.append(match)
-        if len(entities) > 0:
-            entities = sorted(set(entities))
-            new_tags.extend(entities)
-        # named tags
-        named_tags = []
-        for match in re.finditer(
-            r"\([^()]+?\|T (?P<tagName>[^()]*?)\)",
-            self.text_edit.toPlainText(),
-            flags=re.DOTALL,
-        ):
-            named_tags.append("({}|A)".format(match.group('tagName')))
-        if len(named_tags) > 0:
-            named_tags = sorted(set(named_tags))
-            new_tags.extend(named_tags)
-        # anonymous tags
-        anonymous_tags = []
-        for match in re.findall(
-            r"\([^()]+?\|A\)", self.text_edit.toPlainText(), flags=re.DOTALL
-        ):
-            anonymous_tags.append(match)
-        if len(anonymous_tags) > 0:
-            anonymous_tags = sorted(set(anonymous_tags))
-            new_tags.extend(anonymous_tags)
-        self.tag_monitor.setPlainText(" ".join(new_tags))
+        # categories
+        if config.is_categories_enabled:
+            new_tags.extend(self.text_categories_selector.get_selected_categories())
 
-    def handle_shortcut_submit_next_best(self):
+        # entities
+        # TODO: sort by configuration sequence
+        if config.is_named_entities_enabled:
+            entities = []
+            for match in re.findall(
+                r"\([^()]+?\|E [^()]*?\)", self.text_edit.toPlainText(), flags=re.DOTALL
+            ):
+                entities.append(match)
+            if len(entities) > 0:
+                entities = sorted(set(entities))
+                new_tags.extend(entities)
+        # named tags (highlighted term)
+        if config.is_tagging_enabled:
+            named_tags = []
+            for match in re.finditer(
+                r"\([^()]+?\|T (?P<tagName>[^()]*?)\)",
+                self.text_edit.toPlainText(),
+                flags=re.DOTALL,
+            ):
+                named_tags.append("({}|A)".format(match.group("tagName")))
+            if len(named_tags) > 0:
+                named_tags = sorted(set(named_tags))
+                new_tags.extend(named_tags)
+            # anonymous tags (tagged term)
+            anonymous_tags = []
+            for match in re.findall(
+                r"\([^()]+?\|A\)", self.text_edit.toPlainText(), flags=re.DOTALL
+            ):
+                anonymous_tags.append(match)
+            if len(anonymous_tags) > 0:
+                anonymous_tags = sorted(set(anonymous_tags))
+                new_tags.extend(anonymous_tags)
+        self.tag_monitor.setPlainText(", ".join(new_tags))
+
+    def submit_and_go_to_next_best(self):
         # submit changes of old text
         self.text_navigator.submit()
         # update controls
@@ -486,9 +494,9 @@ class AnnotationDialog(QMainWindow):
         # remove focus from controls
         # text_edit
         self.text_edit.clearFocus()
-        # text_categories_table
+        # text_categories_selector
         if config.is_categories_enabled:
-            self.text_categories_table.clearFocus()
+            self.text_categories_selector.clearFocus()
 
     def update_dataset_related_controls(self):
         # annotated texts count
@@ -499,7 +507,7 @@ class AnnotationDialog(QMainWindow):
         self.total_texts_label.setText(str(total_texts_count))
         # categories frequency
         if config.is_categories_enabled:
-            self.text_categories_table.update_categories_distribution()
+            self.text_categories_selector.update_categories_distribution()
         # entity infos markup
         if config.is_named_entities_enabled:
             entity_infos_markup = "<table style='font-size: 10pt;' width='100%'>"

@@ -48,7 +48,7 @@ class QDataWidgetMapperWithHistory(QDataWidgetMapper):
             self.is_forward_or_backward = False
 
 
-class CategoriesTableWidget(QTableWidget):
+class CategoriesSelectorWidget(QTableWidget):
     """
     A custom QTableWidget used for showing/selecting the categories of a text.
     """
@@ -111,11 +111,14 @@ class CategoriesTableWidget(QTableWidget):
         selected_categories_sorted = sorted(
             selected_categories, key=lambda x: config.categories_names_list.index(x)
         )
-        return "|".join(selected_categories_sorted)
+        return selected_categories_sorted
+
+    def get_selected_categories_as_text(self):
+        return "|".join(self.get_selected_categories())
 
     def set_selected_categories(self, value):
         self.clearSelection()
-        for selected_category in value.split("|"):
+        for selected_category in value:
             row_indexes_to_select = [
                 found_item.row()
                 for found_item in self.findItems(selected_category, Qt.MatchExactly)
@@ -124,8 +127,13 @@ class CategoriesTableWidget(QTableWidget):
                 for column_index in range(0, self.columnCount()):
                     self.item(row_index_to_select, column_index).setSelected(True)
 
-    selected_categories = pyqtProperty(
-        str, fget=get_selected_categories, fset=set_selected_categories
+    def set_selected_categories_by_text(self, value):
+        self.clearSelection()
+        if value != '':
+            self.set_selected_categories(value.split("|"))
+
+    selected_categories_text = pyqtProperty(
+        str, fget=get_selected_categories_as_text, fset=set_selected_categories_by_text
     )
 
     def update_categories_distribution(self):
