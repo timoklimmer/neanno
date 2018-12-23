@@ -25,12 +25,27 @@ class TextEditHighlighter(QSyntaxHighlighter):
 
         # append highlighting rules
         term_text_format = self.get_text_char_format(
-            config.tagging_backcolor, config.tagging_forecolor
+            config.key_terms_backcolor, config.key_terms_forecolor
         )
         term_text_format_blank = self.get_text_char_format(
-            config.tagging_backcolor, config.tagging_backcolor
+            config.key_terms_backcolor, config.key_terms_backcolor
         )
-        # named terms
+        # anonymous key terms
+        self.highlighting_rules.append(
+            (
+                QRegularExpression(
+                    r"(?<openParen>\()"
+                    + r"(?<text>[^|()]+?)"
+                    + r"(?<pipeAndType>\|H)"
+                    + r"(?<closingParen>\))"
+                ),
+                term_text_format,
+                term_text_format_blank,
+                term_text_format_blank,
+                term_text_format_blank,
+            )
+        )
+        # child key terms
         self.highlighting_rules.append(
             (
                 QRegularExpression(
@@ -45,21 +60,6 @@ class TextEditHighlighter(QSyntaxHighlighter):
                 term_text_format_blank,
                 postfix_format,
                 postfix_format_blank,
-            )
-        )
-        # highlighted terms
-        self.highlighting_rules.append(
-            (
-                QRegularExpression(
-                    r"(?<openParen>\()"
-                    + r"(?<text>[^|()]+?)"
-                    + r"(?<pipeAndType>\|H)"
-                    + r"(?<closingParen>\))"
-                ),
-                term_text_format,
-                term_text_format_blank,
-                term_text_format_blank,
-                term_text_format_blank,
             )
         )
         # named entities

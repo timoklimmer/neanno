@@ -33,16 +33,16 @@ categories:
             required: True
     required: False
 
-tagging:
+key_terms:
     type: dict
     schema:
         shortcuts:
             type: dict
             schema:
-                named:
+                anonymous:
                     type: string
                     required: False
-                anonymous:
+                child:
                     type: string
                     required: False
         backcolor:

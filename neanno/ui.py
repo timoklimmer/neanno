@@ -141,18 +141,19 @@ class AnnotationDialog(QMainWindow):
             categories_groupbox = QGroupBox("Categories")
             categories_groupbox.setLayout(categories_groupbox_layout)
 
-        # tagging
-        if config.is_tagging_enabled:
-            tags_layout = QHBoxLayout()
-            tags_layout.addWidget(
+        # key_terms
+        if config.is_key_terms_enabled:
+            key_terms_layout = QHBoxLayout()
+            key_terms_layout.addWidget(
                 QLabel(
-                    "{} to highlight the selected term.\n{} to tag something to the selected term.".format(
-                        config.tagging_shortcut_anonymous, config.tagging_shortcut_named
+                    "Select a text and press\n- {} to mark a key term.\n- {} to mark with consolidating terms.".format(
+                        config.key_terms_shortcut_anonymous,
+                        config.key_terms_shortcut_child,
                     )
                 )
             )
-            tags_groupbox = QGroupBox("Tags")
-            tags_groupbox.setLayout(tags_layout)
+            key_terms_groupbox = QGroupBox("Key Terms")
+            key_terms_groupbox.setLayout(key_terms_layout)
 
         # entity shortcuts / counts
         if config.is_named_entities_enabled:
@@ -223,8 +224,8 @@ class AnnotationDialog(QMainWindow):
         right_panel_layout = QVBoxLayout()
         if config.is_categories_enabled:
             right_panel_layout.addWidget(categories_groupbox)
-        if config.is_tagging_enabled:
-            right_panel_layout.addWidget(tags_groupbox)
+        if config.is_key_terms_enabled:
+            right_panel_layout.addWidget(key_terms_groupbox)
         if config.is_named_entities_enabled:
             right_panel_layout.addWidget(entities_groupbox)
         right_panel_layout.addWidget(dataset_groupbox)
@@ -251,9 +252,11 @@ class AnnotationDialog(QMainWindow):
         self.update_dataset_related_controls()
 
     def setup_and_wire_shortcuts(self):
-        register_shortcut(self, config.tagging_shortcut_named, self.place_named_tag)
         register_shortcut(
-            self, config.tagging_shortcut_anonymous, self.place_anonymous_tag
+            self, config.key_terms_shortcut_child, self.annotate_child_key_term
+        )
+        register_shortcut(
+            self, config.key_terms_shortcut_anonymous, self.annotate_anonymous_key_term
         )
         for named_entity_definition in config.named_entity_definitions:
             register_shortcut(
@@ -304,7 +307,7 @@ class AnnotationDialog(QMainWindow):
         categories_to_add = []
         if config.is_categories_enabled:
             categories_to_add.extend(self.categories_selector.get_selected_categories())
-        # highlighted terms, named terms, named entities
+        # anonymous/child key terms, named entities
         for match in re.finditer(
             r"\((?P<text>[^()]+?)\|(?P<type>[NEH])( (?P<postfix>[^()]+?))?\)",
             self.text_edit.toPlainText(),
@@ -313,7 +316,7 @@ class AnnotationDialog(QMainWindow):
             text = match.group("text")
             type = match.group("type")
             postfix = match.group("postfix")
-            # highlighted term
+            # anonymous key term
             if type == "H":
                 topic_to_add = text
                 if topic_to_add.lower() not in [
@@ -322,7 +325,7 @@ class AnnotationDialog(QMainWindow):
                     category.lower() for category in categories_to_add
                 ]:
                     new_topics.append(topic_to_add)
-            # named term
+            # child key term
             if type == "N":
                 term_topics = []
                 for topic in postfix.split(","):
@@ -443,23 +446,25 @@ class AnnotationDialog(QMainWindow):
                     break
             text_cursor.insertText("({}|E {})".format(text_cursor.selectedText(), code))
 
-    def place_named_tag(self):
+    def annotate_child_key_term(self):
         text_cursor = self.text_edit.textCursor()
         if text_cursor.hasSelection():
-            default_named_tag = "add_your_tags_here_separated_by_comma"
+            default_parent_key_term = (
+                "<add your consolidated terms here, separated by commas>"
+            )
             orig_selection_start = text_cursor.selectionStart()
             new_selection_start = orig_selection_start + len(
                 "({}|N ".format(text_cursor.selectedText())
             )
-            new_selection_end = new_selection_start + len(default_named_tag)
+            new_selection_end = new_selection_start + len(default_parent_key_term)
             text_cursor.insertText(
-                "({}|N {})".format(text_cursor.selectedText(), default_named_tag)
+                "({}|N {})".format(text_cursor.selectedText(), default_parent_key_term)
             )
             text_cursor.setPosition(new_selection_start)
             text_cursor.setPosition(new_selection_end, QTextCursor.KeepAnchor)
             self.text_edit.setTextCursor(text_cursor)
 
-    def place_anonymous_tag(self):
+    def annotate_anonymous_key_term(self):
         text_cursor = self.text_edit.textCursor()
         if text_cursor.hasSelection():
             text_cursor.insertText("({}|H)".format(text_cursor.selectedText()))

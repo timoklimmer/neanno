@@ -29,8 +29,8 @@ class ConfigInit:
         ConfigInit.dataset_target()
         # categories-related
         ConfigInit.categories()
-        # tagging-related
-        ConfigInit.tagging()
+        # key terms-related
+        ConfigInit.key_terms()
         # named entities-related
         ConfigInit.named_entities()
         # spacy-related
@@ -116,19 +116,19 @@ class ConfigInit:
             dataset_target_csv, index=False, header=True
         )
 
-    def tagging():
-        config.is_tagging_enabled = "tagging" in config.yaml
-        config.tagging_shortcut_anonymous = ConfigInit.get_config_value(
-            "tagging/shortcuts/anonymous", "Alt+1"
+    def key_terms():
+        config.is_key_terms_enabled = "key_terms" in config.yaml
+        config.key_terms_shortcut_anonymous = ConfigInit.get_config_value(
+            "key_terms/shortcuts/anonymous", "Alt+1"
         )
-        config.tagging_shortcut_named = ConfigInit.get_config_value(
-            "tagging/shortcuts/named", "Alt+2"
+        config.key_terms_shortcut_child = ConfigInit.get_config_value(
+            "key_terms/shortcuts/child", "Alt+2"
         )
-        config.tagging_backcolor = ConfigInit.get_config_value(
-            "tagging/backcolor", "#fff9ae"
+        config.key_terms_backcolor = ConfigInit.get_config_value(
+            "key_terms/backcolor", "#333333"
         )
-        config.tagging_forecolor = ConfigInit.get_config_value(
-            "tagging/forecolor", "#0000cc"
+        config.key_terms_forecolor = ConfigInit.get_config_value(
+            "key_terms/forecolor", "#50e6ff"
         )
 
     def named_entities():

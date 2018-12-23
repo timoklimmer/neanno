@@ -19,16 +19,16 @@ categories:
     - name: Misc
   column: categories
 
-tagging:
+key_terms:
   # shortcuts:
   #   anonymous: Alt+1
-  #   named: Alt+2
+  #   child: Alt+2
   #TODO: implement
   # auto_suggest:
   #  sources:
   #    - csv:samples/airline_tickets/topics.autosuggest.csv
-  backcolor: "#333333"
-  forecolor: "#50e6ff"
+  #backcolor: "#333333"
+  #forecolor: "#50e6ff"
 
 named_entities:
   definitions:

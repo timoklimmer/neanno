@@ -9,7 +9,7 @@ setup(
     install_requires=["PyQt5", "pandas", "spacy"],
     version="0.1",
     license="MIT",
-    description="Yet another named entity annotation tool.",
+    description="Yet another text annotation tool.",
     long_description=open("README.txt").read(),
     scripts=["neanno.py"],
     include_package_data=True,
