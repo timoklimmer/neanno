@@ -3,7 +3,7 @@ import re
 
 import config
 from PyQt5.QtCore import QByteArray, Qt
-from PyQt5.QtGui import QIcon, QKeySequence
+from PyQt5.QtGui import QIcon, QKeySequence, QTextCursor
 from PyQt5.QtWidgets import (
     QApplication,
     QDataWidgetMapper,
@@ -461,11 +461,18 @@ class AnnotationDialog(QMainWindow):
     def place_named_tag(self):
         text_cursor = self.text_edit.textCursor()
         if text_cursor.hasSelection():
-            text_cursor.insertText(
-                "({}|N add_your_tags_here_separated_by_comma)".format(
-                    text_cursor.selectedText()
-                )
+            default_named_tag = "add_your_tags_here_separated_by_comma"
+            orig_selection_start = text_cursor.selectionStart()            
+            new_selection_start = orig_selection_start + len(
+                "({}|N ".format(text_cursor.selectedText())
             )
+            new_selection_end = new_selection_start + len(default_named_tag)
+            text_cursor.insertText(
+                "({}|N {})".format(text_cursor.selectedText(), default_named_tag)
+            )
+            text_cursor.setPosition(new_selection_start)
+            text_cursor.setPosition(new_selection_end, QTextCursor.KeepAnchor)
+            self.text_edit.setTextCursor(text_cursor)
 
     def place_anonymous_tag(self):
         text_cursor = self.text_edit.textCursor()
