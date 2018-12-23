@@ -148,27 +148,39 @@ class ConfigInit:
                 new_data, friendly_dataset_name_never_used = ConfigInit.load_dataset(
                     spec, ["term", "parent_terms"], "key_terms/auto_suggest/sources"
                 )
+                new_data = new_data.fillna("")
                 new_data = new_data.astype({"term": str, "parent_terms": str})
                 autosuggest_key_terms_dataset = autosuggest_key_terms_dataset.append(
                     new_data
                 )
             # setup flashtext for later string replacements
-            # TODO: complete, support H
-            config.key_terms_autosuggest_flashtext = KeywordProcessor()
-            data_for_flashtext = pd.DataFrame(
+            autosuggest_key_terms_dataset["replace"] = autosuggest_key_terms_dataset[
+                "term"
+            ]
+            autosuggest_key_terms_dataset["against"] = autosuggest_key_terms_dataset[
+                "replace"
+            ]
+            autosuggest_key_terms_dataset.loc[
+                autosuggest_key_terms_dataset["parent_terms"] != "", "against"
+            ] = (
                 "("
                 + autosuggest_key_terms_dataset["term"]
                 + "|N "
                 + autosuggest_key_terms_dataset["parent_terms"]
                 + ")"
             )
-            data_for_flashtext["replace"] = autosuggest_key_terms_dataset["term"]
-            data_for_flashtext.columns = ["against", "replace"]
-            dict_for_flashtext = data_for_flashtext.set_index("against").T.to_dict(
-                "list"
-            )
+            autosuggest_key_terms_dataset.loc[
+                autosuggest_key_terms_dataset["parent_terms"] == "", "against"
+            ] = ("(" + autosuggest_key_terms_dataset["term"] + "|H)")
+            autosuggest_key_terms_dataset = autosuggest_key_terms_dataset[
+                ["replace", "against"]
+            ]
+            autosuggest_key_terms_dataset = autosuggest_key_terms_dataset.set_index(
+                "against"
+            ).T.to_dict("list")
+            config.key_terms_autosuggest_flashtext = KeywordProcessor()
             config.key_terms_autosuggest_flashtext.add_keywords_from_dict(
-                dict_for_flashtext
+                autosuggest_key_terms_dataset
             )
 
         # regexes

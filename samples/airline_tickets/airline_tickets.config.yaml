@@ -24,9 +24,9 @@ key_terms:
     sources:
       - csv:samples/airline_tickets/key_terms.autosuggest.csv
     regexes:
-      - pattern: Hi all
-        parent_terms: Greeting
-      - pattern: \d{1,2}[.:]\d{1,2}
+      - pattern: (?i)Terminal \d+
+    #  - pattern: (Hi|Hey|Hello) all
+    #    parent_terms: Greeting
   # shortcuts:
   #   anonymous: Alt+1
   #   child: Alt+2
@@ -46,9 +46,7 @@ named_entities:
         shortcut: Alt+A
       - code: AIRCRAFT
         shortcut: Alt+C
-      - code: AIRPORT
-        shortcut: Alt+I
-      - code: TERMINAL
+      - code: TIME
         shortcut: Alt+E
   auto_suggest:
     sources:
@@ -56,8 +54,8 @@ named_entities:
     regexes:
       - entity: AIRCRAFT
         pattern: (A\s*)?3[28]0|(B\s*)?7\d7(-\d{3})|CRJ|MD-\d{2}?
-      - entity: TERMINAL
-        pattern: (?i)Terminal \d+
+      - entity: TIME
+        pattern: (January\b|Jan\b|February\b|Feb\b|March\b|Mar\b|April\b|Apr\b|May\b|June\b|Jun\b|July\b|Jul\b|August\b|Aug\b|September\b|Sep\b|October\b|Oct\b|November\b|Nov\b|December\b|Dec\b)
 
 #spacy:
 #  source: blank:en
