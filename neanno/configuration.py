@@ -9,7 +9,8 @@ from cerberus import Validator
 from flashtext import KeywordProcessor
 from neanno.colors import DEFAULT_ENTITY_COLORS_PALETTE
 from neanno.definitions import (
-    AutoSuggestRegex,
+    AutoSuggestKeyTermRegex,
+    AutoSuggestEntityRegex,
     CategoryDefinition,
     NamedEntityDefinition,
 )
@@ -95,12 +96,12 @@ class ConfigInit:
 
     def dataset_target():
         config.dataset_target_friendly = None
-        if ConfigInit.get_config_value("dataset/target") is not None:
+        if ConfigInit.has_config_value("dataset/target"):
             datasource_spec = ConfigInit.get_config_value("dataset/target")
             datasource_type = datasource_spec.split(":")[0]
             supported_datasource_types = ["csv"]
             if datasource_type not in supported_datasource_types:
-                parser.error(
+                config.parser.error(
                     "Parameter 'dataset/target' uses a datasource type '{}' which is not supported.  Ensure that a valid datasource type is specified. Valid datasource types are: {}.".format(
                         datasource_type, ", ".join(supported_datasource_types)
                     )
@@ -118,10 +119,10 @@ class ConfigInit:
 
     def key_terms():
         config.is_key_terms_enabled = "key_terms" in config.yaml
-        config.key_terms_shortcut_anonymous = ConfigInit.get_config_value(
+        config.key_terms_shortcut_mark_anonymous = ConfigInit.get_config_value(
             "key_terms/shortcuts/anonymous", "Alt+1"
         )
-        config.key_terms_shortcut_child = ConfigInit.get_config_value(
+        config.key_terms_shortcut_mark_child = ConfigInit.get_config_value(
             "key_terms/shortcuts/child", "Alt+2"
         )
         config.key_terms_backcolor = ConfigInit.get_config_value(
@@ -130,96 +131,153 @@ class ConfigInit:
         config.key_terms_forecolor = ConfigInit.get_config_value(
             "key_terms/forecolor", "#50e6ff"
         )
+        ConfigInit.key_terms_autosuggest()
+
+    def key_terms_autosuggest():
+        # sources
+        config.is_autosuggest_key_terms_by_sources = ConfigInit.has_config_value(
+            "key_terms/auto_suggest/sources"
+        )
+        if config.is_autosuggest_key_terms_by_sources:
+            print("Loading autosuggest key terms dataset(s)...")
+            # combine data from multiple datasets
+            autosuggest_key_terms_dataset = pd.DataFrame(
+                columns=["term", "parent_terms"]
+            )
+            for spec in ConfigInit.get_config_value("key_terms/auto_suggest/sources"):
+                new_data, friendly_dataset_name_never_used = ConfigInit.load_dataset(
+                    spec, ["term", "parent_terms"], "key_terms/auto_suggest/sources"
+                )
+                new_data = new_data.astype({"term": str, "parent_terms": str})
+                autosuggest_key_terms_dataset = autosuggest_key_terms_dataset.append(
+                    new_data
+                )
+            # setup flashtext for later string replacements
+            # TODO: complete, support H
+            config.key_terms_autosuggest_flashtext = KeywordProcessor()
+            data_for_flashtext = pd.DataFrame(
+                "("
+                + autosuggest_key_terms_dataset["term"]
+                + "|N "
+                + autosuggest_key_terms_dataset["parent_terms"]
+                + ")"
+            )
+            data_for_flashtext["replace"] = autosuggest_key_terms_dataset["term"]
+            data_for_flashtext.columns = ["against", "replace"]
+            dict_for_flashtext = data_for_flashtext.set_index("against").T.to_dict(
+                "list"
+            )
+            config.key_terms_autosuggest_flashtext.add_keywords_from_dict(
+                dict_for_flashtext
+            )
+
+        # regexes
+        config.key_terms_autosuggest_regexes = []
+        config.is_autosuggest_key_terms_by_regexes = ConfigInit.has_config_value(
+            "key_terms/auto_suggest/regexes"
+        )
+        if config.is_autosuggest_key_terms_by_regexes:
+            for autosuggest_regex in ConfigInit.get_config_value(
+                "key_terms/auto_suggest/regexes"
+            ):
+                config.key_terms_autosuggest_regexes.append(
+                    AutoSuggestKeyTermRegex(
+                        autosuggest_regex["pattern"],
+                        autosuggest_regex["parent_terms"]
+                        if "parent_terms" in autosuggest_regex
+                        else None,
+                    )
+                )
 
     def named_entities():
         config.named_entity_definitions = []
         config.is_named_entities_enabled = "named_entities" in config.yaml
         if config.is_named_entities_enabled:
-            config.named_entities_node = config.yaml["named_entities"]
-            index = 0
-            for definition in config.named_entities_node["definitions"]:
-                code = definition["code"]
-                shortcut = definition["shortcut"]
-                maincolor = (
-                    definition["maincolor"]
-                    if "maincolor" in definition
-                    else DEFAULT_ENTITY_COLORS_PALETTE[
-                        index % len(DEFAULT_ENTITY_COLORS_PALETTE)
-                    ][0]
-                )
-                backcolor = (
-                    definition["backcolor"]
-                    if "backcolor" in definition
-                    else DEFAULT_ENTITY_COLORS_PALETTE[
-                        index % len(DEFAULT_ENTITY_COLORS_PALETTE)
-                    ][1]
-                )
-                forecolor = (
-                    definition["forecolor"]
-                    if "forecolor" in definition
-                    else DEFAULT_ENTITY_COLORS_PALETTE[
-                        index % len(DEFAULT_ENTITY_COLORS_PALETTE)
-                    ][2]
-                )
-                config.named_entity_definitions.append(
-                    NamedEntityDefinition(
-                        code, shortcut, maincolor, backcolor, forecolor
-                    )
-                )
-                index += 1
-            # load autosuggest dataset
-            config.is_autosuggest_entities_enabled = (
-                config.is_named_entities_enabled
-                and "auto_suggest" in config.named_entities_node
-            )
-            config.is_autosuggest_entities_by_sources_enabled = False
-            config.is_autosuggest_entities_by_regexes_enabled = False
-            if config.is_autosuggest_entities_enabled:
-                if "sources" in config.named_entities_node["auto_suggest"]:
-                    config.is_autosuggest_entities_by_sources_enabled = True
-                    print("Loading autosuggest dataset(s)...")
-                    # combine data from multiple datasets
-                    autosuggest_entities_dataset = pd.DataFrame(
-                        columns=["term", "entity_code"]
-                    )
-                    for spec in config.named_entities_node["auto_suggest"]["sources"]:
-                        new_data, friendly_dataset_name_never_used = ConfigInit.load_dataset(
-                            spec,
-                            ["term", "entity_code"],
-                            "named_entities.auto_suggest.sources",
-                        )
-                        autosuggest_entities_dataset = autosuggest_entities_dataset.append(
-                            new_data
-                        )
-                    # setup flashtext for later string replacements
-                    config.flashtext = KeywordProcessor()
-                    data_for_flashtext = pd.DataFrame(
-                        "("
-                        + autosuggest_entities_dataset["term"]
-                        + "|E "
-                        + autosuggest_entities_dataset["entity_code"]
-                        + ")"
-                    )
-                    data_for_flashtext["replace"] = autosuggest_entities_dataset["term"]
-                    data_for_flashtext.columns = ["against", "replace"]
-                    dict_for_flashtext = data_for_flashtext.set_index(
-                        "against"
-                    ).T.to_dict("list")
-                    config.flashtext.add_keywords_from_dict(dict_for_flashtext)
+            ConfigInit.named_entities_definitions()
+            ConfigInit.named_entities_autosuggest()
 
-                # provide regexes to config
-                config.autosuggest_regexes = []
-                if "regexes" in config.named_entities_node["auto_suggest"].keys():
-                    config.is_autosuggest_entities_by_regexes_enabled = True
-                    for autosuggest_regex in config.named_entities_node["auto_suggest"][
-                        "regexes"
-                    ]:
-                        config.autosuggest_regexes.append(
-                            AutoSuggestRegex(
-                                autosuggest_regex["entity"],
-                                autosuggest_regex["pattern"],
-                            )
-                        )
+    def named_entities_definitions():
+        index = 0
+        for definition in ConfigInit.get_config_value("named_entities/definitions"):
+            code = definition["code"]
+            shortcut = definition["shortcut"]
+            maincolor = (
+                definition["maincolor"]
+                if "maincolor" in definition
+                else DEFAULT_ENTITY_COLORS_PALETTE[
+                    index % len(DEFAULT_ENTITY_COLORS_PALETTE)
+                ][0]
+            )
+            backcolor = (
+                definition["backcolor"]
+                if "backcolor" in definition
+                else DEFAULT_ENTITY_COLORS_PALETTE[
+                    index % len(DEFAULT_ENTITY_COLORS_PALETTE)
+                ][1]
+            )
+            forecolor = (
+                definition["forecolor"]
+                if "forecolor" in definition
+                else DEFAULT_ENTITY_COLORS_PALETTE[
+                    index % len(DEFAULT_ENTITY_COLORS_PALETTE)
+                ][2]
+            )
+            config.named_entity_definitions.append(
+                NamedEntityDefinition(code, shortcut, maincolor, backcolor, forecolor)
+            )
+            index += 1
+
+    def named_entities_autosuggest():
+        # sources
+        config.is_autosuggest_entities_by_sources = ConfigInit.has_config_value(
+            "named_entities/auto_suggest/sources"
+        )
+        if config.is_autosuggest_entities_by_sources:
+            print("Loading autosuggest entities dataset(s)...")
+            # combine data from multiple datasets
+            autosuggest_entities_dataset = pd.DataFrame(columns=["term", "entity_code"])
+            for spec in ConfigInit.get_config_value(
+                "named_entities/auto_suggest/sources"
+            ):
+                new_data, friendly_dataset_name_never_used = ConfigInit.load_dataset(
+                    spec, ["term", "entity_code"], "named_entities/auto_suggest/sources"
+                )
+                new_data = new_data.astype({"term": str, "entity_code": str})
+                autosuggest_entities_dataset = autosuggest_entities_dataset.append(
+                    new_data
+                )
+            # setup flashtext for later string replacements
+            config.named_entities_autosuggest_flashtext = KeywordProcessor()
+            data_for_flashtext = pd.DataFrame(
+                "("
+                + autosuggest_entities_dataset["term"]
+                + "|E "
+                + autosuggest_entities_dataset["entity_code"]
+                + ")"
+            )
+            data_for_flashtext["replace"] = autosuggest_entities_dataset["term"]
+            data_for_flashtext.columns = ["against", "replace"]
+            dict_for_flashtext = data_for_flashtext.set_index("against").T.to_dict(
+                "list"
+            )
+            config.named_entities_autosuggest_flashtext.add_keywords_from_dict(
+                dict_for_flashtext
+            )
+
+        # regexes
+        config.named_entities_autosuggest_regexes = []
+        config.is_autosuggest_entities_by_regexes = ConfigInit.has_config_value(
+            "named_entities/auto_suggest/regexes"
+        )
+        if config.is_autosuggest_entities_by_regexes:
+            for autosuggest_regex in ConfigInit.get_config_value(
+                "named_entities/auto_suggest/regexes"
+            ):
+                config.named_entities_autosuggest_regexes.append(
+                    AutoSuggestEntityRegex(
+                        autosuggest_regex["entity"], autosuggest_regex["pattern"]
+                    )
+                )
 
     def categories():
         config.category_definitions = []
@@ -282,3 +340,6 @@ class ConfigInit:
     def get_config_value(path, default=None):
         candidate = QueryDict(config.yaml).get(path)
         return candidate if candidate is not None else default
+
+    def has_config_value(path):
+        return ConfigInit.get_config_value(path) is not None

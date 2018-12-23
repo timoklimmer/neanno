@@ -2,6 +2,8 @@ term,entity_code
 Aeroflot,AIRLINE
 Air Berlin,AIRLINE
 Alitalia,AIRLINE
+Cabana,AIRLINE
+Condor,AIRLINE
 Delta,AIRLINE
 Emirates,AIRLINE
 Iberia,AIRLINE
@@ -12,3 +14,4 @@ Lufthansa,AIRLINE
 UA,AIRLINE
 US Airways,AIRLINE
 United Airlines,AIRLINE
+Virgin,AIRLINE

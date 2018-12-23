@@ -69,7 +69,7 @@ class TextModel(QAbstractTableModel):
                 config.spacy_model_source
             )
 
-    def compute_entities_distribution(self):        
+    def compute_entities_distribution(self):
         if config.is_named_entities_enabled:
             annotated_data = self.get_annotated_data()
             distribution_candidate = (
@@ -86,8 +86,8 @@ class TextModel(QAbstractTableModel):
                 if not isinstance(distribution_candidate, pd.Series)
                 else {}
             )
-    
-    def compute_categories_distribution(self):        
+
+    def compute_categories_distribution(self):
         if config.is_categories_enabled:
             annotated_data = self.get_annotated_data()
             distribution_candidate = (
@@ -205,19 +205,44 @@ class TextModel(QAbstractTableModel):
                             result[ent.end_char + shift :],
                         )
                         shift += len(result) - old_result_length
-                # autosuggest entities
-                if config.is_autosuggest_entities_enabled:
-                    # sources
-                    if config.is_autosuggest_entities_by_sources_enabled:
-                        result = config.flashtext.replace_keywords(result)
-                    # regexes
-                    if config.is_autosuggest_entities_by_regexes_enabled:
-                        for autosuggest_regex in config.autosuggest_regexes:
+                # autosuggest key terms
+                # sources
+                if config.is_autosuggest_key_terms_by_sources:
+                    result = config.key_terms_autosuggest_flashtext.replace_keywords(
+                        result
+                    )
+                # regexes
+                if config.is_autosuggest_key_terms_by_regexes:
+                    for autosuggest_regex in config.key_terms_autosuggest_regexes:
+                        if autosuggest_regex.parent_terms:
                             result = re.sub(
                                 "(?P<text>{})".format(autosuggest_regex.pattern),
-                                "({}|E {})".format("\g<text>", autosuggest_regex.entity),
+                                "({}|N {})".format(
+                                    "\g<text>", autosuggest_regex.parent_terms
+                                ),
                                 result,
                             )
+                        else:
+                            result = re.sub(
+                                "(?P<text>{})".format(autosuggest_regex.pattern),
+                                "({}|H)".format("\g<text>"),
+                                result,
+                            )
+
+                # autosuggest entities
+                # sources
+                if config.is_autosuggest_entities_by_sources:
+                    result = config.named_entities_autosuggest_flashtext.replace_keywords(
+                        result
+                    )
+                # regexes
+                if config.is_autosuggest_entities_by_regexes:
+                    for autosuggest_regex in config.named_entities_autosuggest_regexes:
+                        result = re.sub(
+                            "(?P<text>{})".format(autosuggest_regex.pattern),
+                            "({}|E {})".format("\g<text>", autosuggest_regex.entity),
+                            result,
+                        )
             # return result
             return result
         # column 1: is_annotated

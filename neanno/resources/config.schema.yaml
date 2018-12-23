@@ -45,6 +45,27 @@ key_terms:
                 child:
                     type: string
                     required: False
+        auto_suggest:
+            type: dict
+            schema:
+                sources:
+                    type: list
+                    schema:
+                        type: string
+                        regex: "^.+?:.+"
+                regexes:
+                    type: list
+                    schema:
+                        type: dict
+                        schema:
+                            pattern:
+                                type: string
+                                required: True
+                            parent_terms:
+                                type: string
+                                required: False
+                        required: False
+            required: False
         backcolor:
             type: string
             regex: "(?i)^#[A-F0-9]{6}$|^[A-Z]+$"

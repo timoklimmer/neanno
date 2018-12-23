@@ -147,8 +147,8 @@ class AnnotationDialog(QMainWindow):
             key_terms_layout.addWidget(
                 QLabel(
                     "Select a text and press\n- {} to mark a key term.\n- {} to mark with consolidating terms.".format(
-                        config.key_terms_shortcut_anonymous,
-                        config.key_terms_shortcut_child,
+                        config.key_terms_shortcut_mark_anonymous,
+                        config.key_terms_shortcut_mark_child,
                     )
                 )
             )
@@ -253,10 +253,12 @@ class AnnotationDialog(QMainWindow):
 
     def setup_and_wire_shortcuts(self):
         register_shortcut(
-            self, config.key_terms_shortcut_child, self.annotate_child_key_term
+            self, config.key_terms_shortcut_mark_child, self.annotate_child_key_term
         )
         register_shortcut(
-            self, config.key_terms_shortcut_anonymous, self.annotate_anonymous_key_term
+            self,
+            config.key_terms_shortcut_mark_anonymous,
+            self.annotate_anonymous_key_term,
         )
         for named_entity_definition in config.named_entity_definitions:
             register_shortcut(
