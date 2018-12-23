@@ -23,6 +23,10 @@ tagging:
   # shortcuts:
   #   anonymous: Alt+1
   #   named: Alt+2
+  #TODO: implement
+  # auto_suggest:
+  #  sources:
+  #    - csv:samples/airline_tickets/topics.autosuggest.csv
   backcolor: "#333333"
   forecolor: "#50e6ff"
 
@@ -46,8 +50,6 @@ named_entities:
   auto_suggest:
     sources:
       - csv:samples/airline_tickets/airlines.autosuggest.csv
-      #- csv:samples/airline_tickets/airport_codes.autosuggest.csv
-      #- csv:samples/airline_tickets/topics.autosuggest.csv
     regexes:
       - entity: AIRCRAFT
         pattern: (A\s*)?3[28]0|(B\s*)?7\d7(-\d{3})|CRJ|MD-\d{2}?

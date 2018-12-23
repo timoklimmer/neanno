@@ -1,70 +1,70 @@
-term,entity_code
-airfare,TOPIC
-alcohol,TOPIC
-awards,TOPIC
-award ticket,TOPIC
-award miles,TOPIC
-billing statement,TOPIC
-boarding,TOPIC
-boarding pass,TOPIC
-bottles,TOPIC
-cancelling,TOPIC
-cancelled,TOPIC
-charge,TOPIC
-cigarettes,TOPIC
-compensation,TOPIC
-complaints,TOPIC
-computer,TOPIC
-cost,TOPIC
-costs,TOPIC
-credit,TOPIC
-credit card,TOPIC
-economy,TOPIC
-Economy Plus,TOPIC
-error,TOPIC
-family,TOPIC
-frequent miles number,TOPIC
-group rate,TOPIC
-hotel,TOPIC
-notebook,TOPIC
-laptop,TOPIC
-luggage,TOPIC
-live agent,TOPIC
-food,TOPIC
-football,TOPIC
-in-flight service,TOPIC
-insurance,TOPIC
-iPad,TOPIC
-iPhone,TOPIC
-iPod,TOPIC
-kindle,TOPIC
-layover,TOPIC
-legal,TOPIC
-medications,TOPIC
-mileage plan,TOPIC
-miles,TOPIC
-minors,TOPIC
-online bag check,TOPIC
-parent,TOPIC
-passport,TOPIC
-pay,TOPIC
-phone number,TOPIC
-pre-screening,TOPIC
-pushchair,TOPIC
-puppys,TOPIC
-refund,TOPIC
-representative,TOPIC
-seat,TOPIC
-seats,TOPIC
-seating,TOPIC
-sling carrier,TOPIC
-small portable electronic devices,TOPIC
-special assistant,TOPIC
-superbowl,TOPIC
-smoking,TOPIC
-travel insurance,TOPIC
-TSA,TOPIC
-Silver Preferred,TOPIC
-visa,TOPIC
-wheelchair,TOPIC
-wifi,TOPIC
+term,parent_terms
+airfare,""
+alcohol,""
+awards,""
+award ticket,""
+award miles,""
+billing statement,""
+boarding,""
+boarding pass,""
+bottles,""
+cancelling,""
+cancelled,""
+charge,""
+cigarettes,""
+compensation,""
+complaints,""
+computer,""
+cost,""
+costs,""
+credit,""
+credit card,""
+economy,""
+Economy Plus,""
+error,""
+family,""
+frequent miles number,""
+group rate,""
+hotel,""
+notebook,""
+laptop,""
+luggage,""
+live agent,""
+food,""
+football,""
+in-flight service,""
+insurance,""
+iPad,""
+iPhone,""
+iPod,""
+kindle,""
+layover,""
+legal,""
+medications,""
+mileage plan,""
+miles,""
+minors,""
+online bag check,""
+parent,""
+passport,""
+pay,""
+phone number,""
+pre-screening,""
+pushchair,""
+puppys,""
+refund,""
+representative,""
+seat,""
+seats,""
+seating,""
+sling carrier,""
+small portable electronic devices,""
+special assistant,""
+superbowl,""
+smoking,""
+travel insurance,""
+TSA,""
+Silver Preferred,""
+visa,""
+wheelchair
+wifi,""
