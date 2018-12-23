@@ -107,3 +107,7 @@ spacy:
             type: string
             required: False
     required: False
+
+instructions:
+    type: string
+    required: False

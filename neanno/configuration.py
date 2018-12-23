@@ -35,6 +35,8 @@ class ConfigInit:
         ConfigInit.named_entities()
         # spacy-related
         ConfigInit.spacy()
+        # instructions
+        ConfigInit.instructions()
 
     def define_args_and_load_config_yaml():
         # define arguments
@@ -236,6 +238,10 @@ class ConfigInit:
         config.is_spacy_enabled = "spacy" in config.yaml
         config.spacy_model_source = ConfigInit.get_config_value("spacy/source")
         config.spacy_model_target = ConfigInit.get_config_value("spacy/target")
+
+    def instructions():
+        config.has_instructions = "instructions" in config.yaml
+        config.instructions = ConfigInit.get_config_value("instructions")
 
     def load_dataset(spec, required_columns, parameter=None):
         supported_datasource_types = ["csv"]

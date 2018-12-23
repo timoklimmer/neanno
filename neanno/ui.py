@@ -88,33 +88,41 @@ class AnnotationDialog(QMainWindow):
         )
 
         # navigation / about / shortcuts buttons
+        navigation_buttons_layout = QHBoxLayout()
         self.backward_button = QPushButton(self.get_icon("backward.png"), None)
+        navigation_buttons_layout.addWidget(self.backward_button)
         self.forward_button = QPushButton(self.get_icon("forward.png"), None)
+        navigation_buttons_layout.addWidget(self.forward_button)
+        navigation_buttons_layout.addStretch()
         self.first_button = QPushButton(self.get_icon("first.png"), None)
+        navigation_buttons_layout.addWidget(self.first_button)
         self.previous_button = QPushButton(self.get_icon("previous.png"), None)
+        navigation_buttons_layout.addWidget(self.previous_button)
         self.next_button = QPushButton(self.get_icon("next.png"), None)
+        navigation_buttons_layout.addWidget(self.next_button)
         self.last_button = QPushButton(self.get_icon("last.png"), None)
+        navigation_buttons_layout.addWidget(self.last_button)
         self.goto_button = QPushButton(self.get_icon("goto.png"), None)
+        navigation_buttons_layout.addWidget(self.goto_button)
         self.submit_next_best_button = QPushButton(
             self.get_icon("submit_next_best.png"), None
         )
-        about_button = QPushButton("About")
-        about_button.clicked.connect(lambda: show_about_dialog(self))
-        shortcuts_button = QPushButton("Shortcuts")
-        shortcuts_button.clicked.connect(self.show_shortcuts_dialog)
-        navigation_buttons_layout = QHBoxLayout()
-        navigation_buttons_layout.addWidget(self.backward_button)
-        navigation_buttons_layout.addWidget(self.forward_button)
-        navigation_buttons_layout.addStretch()
-        navigation_buttons_layout.addWidget(self.first_button)
-        navigation_buttons_layout.addWidget(self.previous_button)
-        navigation_buttons_layout.addWidget(self.next_button)
-        navigation_buttons_layout.addWidget(self.last_button)
-        navigation_buttons_layout.addWidget(self.goto_button)
         navigation_buttons_layout.addWidget(self.submit_next_best_button)
         navigation_buttons_layout.addStretch()
-        navigation_buttons_layout.addWidget(about_button)
+        if config.has_instructions:
+            instructions_button = QPushButton("Instructions")
+            navigation_buttons_layout.addWidget(instructions_button)
+            instructions_button.clicked.connect(
+                lambda: QMessageBox.information(
+                    self, "Instructions", config.instructions, QMessageBox.Ok
+                )
+            )
+        shortcuts_button = QPushButton("Shortcuts")
+        shortcuts_button.clicked.connect(lambda: show_shortcuts_dialog(self))
         navigation_buttons_layout.addWidget(shortcuts_button)
+        about_button = QPushButton("About")
+        about_button.clicked.connect(lambda: show_about_dialog(self))
+        navigation_buttons_layout.addWidget(about_button)
 
         # progress bar
         self.progressbar = QProgressBar()
@@ -138,7 +146,7 @@ class AnnotationDialog(QMainWindow):
             tags_layout = QHBoxLayout()
             tags_layout.addWidget(
                 QLabel(
-                    "{} to highlight the selected term.\n{} to tag the selected term with something.".format(
+                    "{} to highlight the selected term.\n{} to tag something to the selected term.".format(
                         config.tagging_shortcut_anonymous, config.tagging_shortcut_named
                     )
                 )
@@ -292,46 +300,55 @@ class AnnotationDialog(QMainWindow):
         self.submit_next_best_button.clicked.connect(self.submit_and_go_to_next_best)
 
     def update_topic_monitor(self):
-        new_tags = []
-        # categories
+        new_topics = []
+        categories_to_add = []
         if config.is_categories_enabled:
-            new_tags.extend(self.categories_selector.get_selected_categories())
+            categories_to_add.extend(self.categories_selector.get_selected_categories())
+        # highlighted terms, named terms, named entities
+        for match in re.finditer(
+            r"\((?P<text>[^()]+?)\|(?P<type>[NEH])( (?P<postfix>[^()]+?))?\)",
+            self.text_edit.toPlainText(),
+            flags=re.DOTALL,
+        ):
+            text = match.group("text")
+            type = match.group("type")
+            postfix = match.group("postfix")
+            # highlighted term
+            if type == "H":
+                topic_to_add = text
+                if topic_to_add.lower() not in [
+                    topic.lower() for topic in new_topics
+                ] and topic_to_add.lower() not in [
+                    category.lower() for category in categories_to_add
+                ]:
+                    new_topics.append(topic_to_add)
+            # named term
+            if type == "N":
+                term_topics = []
+                for topic in postfix.split(","):
+                    topic_to_add = topic.strip()
+                    if topic_to_add.lower() not in [
+                        topic.lower() for topic in new_topics
+                    ] and topic_to_add.lower() not in [
+                        category.lower() for category in categories_to_add
+                    ]:
+                        term_topics.append(topic_to_add)
+                new_topics.extend(sorted(term_topics))
+            # entity
+            if type == "E":
+                topic_to_add = "{}:{}".format(postfix.lower(), text)
+                if topic_to_add.lower() not in [
+                    topic.lower() for topic in new_topics
+                ] and topic_to_add.lower() not in [
+                    category.lower() for category in categories_to_add
+                ]:
+                    new_topics.append(topic_to_add)
+        ## categories (not sure yet if this should be included)
+        ##if config.is_categories_enabled:
+        ##    new_topics.extend(categories_to_add)
 
-        # entities
-        # TODO: sort by configuration sequence
-        if config.is_named_entities_enabled:
-            entities = []
-            for match in re.findall(
-                r"\([^()]+?\|E [^()]*?\)", self.text_edit.toPlainText(), flags=re.DOTALL
-            ):
-                entities.append(match)
-            if len(entities) > 0:
-                entities = sorted(set(entities))
-                new_tags.extend(entities)
-        if config.is_tagging_enabled:
-            # named terms
-            named_terms = []
-            for match in re.finditer(
-                r"\([^()]+?\|N (?P<termName>[^()]*?)\)",
-                self.text_edit.toPlainText(),
-                flags=re.DOTALL,
-            ):
-                named_terms.append(match.group("termName"))
-            if len(named_terms) > 0:
-                named_terms = sorted(set(named_terms))
-                new_tags.extend(named_terms)
-            # highlighted terms
-            highlighted_terms = []
-            for match in re.finditer(
-                r"\((?P<highlightedTerm>[^()]+?)\|H\)",
-                self.text_edit.toPlainText(),
-                flags=re.DOTALL,
-            ):
-                highlighted_terms.append(match.group("highlightedTerm"))
-            if len(highlighted_terms) > 0:
-                highlighted_terms = sorted(set(highlighted_terms))
-                new_tags.extend(highlighted_terms)
-        self.topic_monitor.setPlainText(", ".join(new_tags))
+        # update topics
+        self.topic_monitor.setPlainText(", ".join(new_topics))
 
     def submit_and_go_to_next_best(self):
         # submit changes of old text
@@ -360,38 +377,6 @@ class AnnotationDialog(QMainWindow):
         )
         if is_not_canceled:
             self.navigator.setCurrentIndex(new_index)
-
-    @staticmethod
-    def show_shortcuts_dialog():
-        def shortcut_fragment(label, shortcut):
-            return (
-                "<tr><td style="
-                "padding-right:20"
-                ">{}</td><td>{}</td></tr>".format(label, shortcut)
-            )
-
-        message = "<table>"
-        message += shortcut_fragment("Submit/Next Best", SHORTCUT_SUBMIT_NEXT_BEST)
-        message += shortcut_fragment("Backward", SHORTCUT_BACKWARD)
-        message += shortcut_fragment("Forward", SHORTCUT_FORWARD)
-        message += shortcut_fragment("First", SHORTCUT_FIRST)
-        message += shortcut_fragment("Previous", SHORTCUT_PREVIOUS)
-        message += shortcut_fragment("Next", SHORTCUT_NEXT)
-        message += shortcut_fragment("Last", SHORTCUT_LAST)
-        message += shortcut_fragment("Goto", SHORTCUT_GOTO)
-        message += shortcut_fragment("Undo", SHORTCUT_UNDO)
-        message += shortcut_fragment("Redo", SHORTCUT_REDO)
-        message += shortcut_fragment("Remove label", SHORTCUT_REMOVE)
-        message += shortcut_fragment("Remove all labels", SHORTCUT_REMOVE_ALL)
-        message += "</table>"
-
-        msg = QMessageBox()
-        msg.setTextFormat(Qt.RichText)
-        msg.setIcon(QMessageBox.Information)
-        msg.setText(message)
-        msg.setWindowTitle("Shortcuts")
-        msg.setStandardButtons(QMessageBox.Ok)
-        msg.exec_()
 
     def retrain_model(self):
         self.textmodel.retrain_spacy_model()
@@ -462,7 +447,7 @@ class AnnotationDialog(QMainWindow):
         text_cursor = self.text_edit.textCursor()
         if text_cursor.hasSelection():
             default_named_tag = "add_your_tags_here_separated_by_comma"
-            orig_selection_start = text_cursor.selectionStart()            
+            orig_selection_start = text_cursor.selectionStart()
             new_selection_start = orig_selection_start + len(
                 "({}|N ".format(text_cursor.selectedText())
             )
@@ -499,3 +484,4 @@ class AnnotationDialog(QMainWindow):
             flags=re.DOTALL,
         )
         self.text_edit.setPlainText(new_text)
+        self.categories_selector.set_selected_categories_by_text("")

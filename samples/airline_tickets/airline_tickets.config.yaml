@@ -41,6 +41,8 @@ named_entities:
         shortcut: Alt+C
       - code: AIRPORT
         shortcut: Alt+I
+      - code: TERMINAL
+        shortcut: Alt+E
   auto_suggest:
     sources:
       - csv:samples/airline_tickets/airlines.autosuggest.csv
@@ -49,7 +51,15 @@ named_entities:
     regexes:
       - entity: AIRCRAFT
         pattern: (A\s*)?3[28]0|(B\s*)?7\d7(-\d{3})|CRJ|MD-\d{2}?
+      - entity: TERMINAL
+        pattern: (?i)Terminal \d+
 
 #spacy:
 #  source: blank:en
 #  target: models/airline_tickets
+
+instructions: "
+Put your instructions for the annotators here.
+<br/>
+You can even use <b>HTML</b>.
+"
