@@ -24,43 +24,42 @@ class TextEditHighlighter(QSyntaxHighlighter):
         )
 
         # append highlighting rules
-        # tags
-        tag_text_format = self.get_text_char_format(
+        term_text_format = self.get_text_char_format(
             config.tagging_backcolor, config.tagging_forecolor
         )
-        tag_text_format_blank = self.get_text_char_format(
+        term_text_format_blank = self.get_text_char_format(
             config.tagging_backcolor, config.tagging_backcolor
         )
-        # named tag
+        # named terms
         self.highlighting_rules.append(
             (
                 QRegularExpression(
                     r"(?<openParen>\()"
                     + r"(?<text>[^|()]+?)"
-                    + r"(?<pipeAndType>\|T)"
+                    + r"(?<pipeAndType>\|N)"
                     + r"(?<postfix> "
                     + r".*?"
                     + r")(?<closingParen>\))"
                 ),
-                tag_text_format,
-                tag_text_format_blank,
+                term_text_format,
+                term_text_format_blank,
                 postfix_format,
                 postfix_format_blank,
             )
         )
-        # anonymous tag
+        # highlighted terms
         self.highlighting_rules.append(
             (
                 QRegularExpression(
                     r"(?<openParen>\()"
                     + r"(?<text>[^|()]+?)"
-                    + r"(?<pipeAndType>\|A)"
+                    + r"(?<pipeAndType>\|H)"
                     + r"(?<closingParen>\))"
                 ),
-                tag_text_format,
-                tag_text_format_blank,
-                tag_text_format_blank,
-                tag_text_format_blank,
+                term_text_format,
+                term_text_format_blank,
+                term_text_format_blank,
+                term_text_format_blank,
             )
         )
         # named entities

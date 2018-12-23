@@ -25,13 +25,13 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 
+from neanno.about import show_about_dialog
 from neanno.custom_ui_controls import (
     CategoriesSelectorWidget,
     QDataWidgetMapperWithHistory,
 )
-from neanno.syntaxhighlighters import TextEditHighlighter
 from neanno.shortcuts import *
-from neanno.about import show_about_dialog
+from neanno.syntaxhighlighters import TextEditHighlighter
 
 
 class AnnotationDialog(QMainWindow):
@@ -75,15 +75,16 @@ class AnnotationDialog(QMainWindow):
         self.text_edit_highlighter = TextEditHighlighter(
             self.text_edit.document(), config.named_entity_definitions
         )
-        self.text_edit.textChanged.connect(self.update_tag_monitor)
+        self.text_edit.textChanged.connect(self.update_topic_monitor)
 
-        # tag monitor
-        self.tag_monitor = QPlainTextEdit()
-        self.tag_monitor.setStyleSheet(
+        # topic monitor
+        self.topic_monitor = QPlainTextEdit()
+        self.topic_monitor.setReadOnly(True)
+        self.topic_monitor.setStyleSheet(
             "font-size: 14pt; font-family: Consolas; color: lightgrey; background-color: black"
         )
-        self.tag_monitor_entity_highlighter = TextEditHighlighter(
-            self.tag_monitor.document(), config.named_entity_definitions
+        self.topic_monitor_entity_highlighter = TextEditHighlighter(
+            self.topic_monitor.document(), config.named_entity_definitions
         )
 
         # navigation / about / shortcuts buttons
@@ -124,7 +125,7 @@ class AnnotationDialog(QMainWindow):
         if config.is_categories_enabled:
             self.categories_selector = CategoriesSelectorWidget(config, self.textmodel)
             self.categories_selector.selectionModel().selectionChanged.connect(
-                self.update_tag_monitor
+                self.update_topic_monitor
             )
             categories_groupbox_layout = QHBoxLayout()
             categories_groupbox_layout.addWidget(self.categories_selector)
@@ -207,7 +208,7 @@ class AnnotationDialog(QMainWindow):
         left_panel_layout = QVBoxLayout()
         left_panel_layout_splitter = QSplitter(Qt.Vertical)
         left_panel_layout_splitter.addWidget(self.text_edit)
-        left_panel_layout_splitter.addWidget(self.tag_monitor)
+        left_panel_layout_splitter.addWidget(self.topic_monitor)
         left_panel_layout_splitter.setSizes([400, 100])
         left_panel_layout.addWidget(left_panel_layout_splitter)
         # right panel
@@ -290,7 +291,7 @@ class AnnotationDialog(QMainWindow):
         self.goto_button.clicked.connect(self.go_to_index)
         self.submit_next_best_button.clicked.connect(self.submit_and_go_to_next_best)
 
-    def update_tag_monitor(self):
+    def update_topic_monitor(self):
         new_tags = []
         # categories
         if config.is_categories_enabled:
@@ -307,28 +308,30 @@ class AnnotationDialog(QMainWindow):
             if len(entities) > 0:
                 entities = sorted(set(entities))
                 new_tags.extend(entities)
-        # named tags (highlighted term)
         if config.is_tagging_enabled:
-            named_tags = []
+            # named terms
+            named_terms = []
             for match in re.finditer(
-                r"\([^()]+?\|T (?P<tagName>[^()]*?)\)",
+                r"\([^()]+?\|N (?P<termName>[^()]*?)\)",
                 self.text_edit.toPlainText(),
                 flags=re.DOTALL,
             ):
-                named_tags.append("({}|A)".format(match.group("tagName")))
-            if len(named_tags) > 0:
-                named_tags = sorted(set(named_tags))
-                new_tags.extend(named_tags)
-            # anonymous tags (tagged term)
-            anonymous_tags = []
-            for match in re.findall(
-                r"\([^()]+?\|A\)", self.text_edit.toPlainText(), flags=re.DOTALL
+                named_terms.append(match.group("termName"))
+            if len(named_terms) > 0:
+                named_terms = sorted(set(named_terms))
+                new_tags.extend(named_terms)
+            # highlighted terms
+            highlighted_terms = []
+            for match in re.finditer(
+                r"\((?P<highlightedTerm>[^()]+?)\|H\)",
+                self.text_edit.toPlainText(),
+                flags=re.DOTALL,
             ):
-                anonymous_tags.append(match)
-            if len(anonymous_tags) > 0:
-                anonymous_tags = sorted(set(anonymous_tags))
-                new_tags.extend(anonymous_tags)
-        self.tag_monitor.setPlainText(", ".join(new_tags))
+                highlighted_terms.append(match.group("highlightedTerm"))
+            if len(highlighted_terms) > 0:
+                highlighted_terms = sorted(set(highlighted_terms))
+                new_tags.extend(highlighted_terms)
+        self.topic_monitor.setPlainText(", ".join(new_tags))
 
     def submit_and_go_to_next_best(self):
         # submit changes of old text
@@ -459,7 +462,7 @@ class AnnotationDialog(QMainWindow):
         text_cursor = self.text_edit.textCursor()
         if text_cursor.hasSelection():
             text_cursor.insertText(
-                "({}|T add_your_tags_here_separated_by_comma)".format(
+                "({}|N add_your_tags_here_separated_by_comma)".format(
                     text_cursor.selectedText()
                 )
             )
@@ -467,12 +470,12 @@ class AnnotationDialog(QMainWindow):
     def place_anonymous_tag(self):
         text_cursor = self.text_edit.textCursor()
         if text_cursor.hasSelection():
-            text_cursor.insertText("({}|A)".format(text_cursor.selectedText()))
+            text_cursor.insertText("({}|H)".format(text_cursor.selectedText()))
 
     def remove_annotation(self):
         current_cursor_pos = self.text_edit.textCursor().position()
         new_text = re.sub(
-            r"\((.*?)\|(([ET] .+?)|(A))\)",
+            r"\((.*?)\|(([EN] .+?)|(H))\)",
             lambda match: match.group(1)
             if match.start() < current_cursor_pos < match.end()
             else match.group(0),
@@ -483,7 +486,7 @@ class AnnotationDialog(QMainWindow):
 
     def remove_all_annotations(self):
         new_text = re.sub(
-            r"\((.*?)\|(([ET] .+?)|(A))\)",
+            r"\((.*?)\|(([EN] .+?)|(H))\)",
             lambda match: match.group(1),
             self.text_edit.toPlainText(),
             flags=re.DOTALL,
