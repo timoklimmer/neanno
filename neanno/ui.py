@@ -311,15 +311,15 @@ class AnnotationDialog(QMainWindow):
             categories_to_add.extend(self.categories_selector.get_selected_categories())
         # anonymous/child key terms, named entities
         for match in re.finditer(
-            r"\((?P<text>[^()]+?)\|(?P<type>[NEH])( (?P<postfix>[^()]+?))?\)",
+            r"\((?P<text>[^()]+?)\|(?P<type>(SK|PK|NE))( (?P<postfix>[^()]+?))?\)",
             self.text_edit.toPlainText(),
             flags=re.DOTALL,
         ):
             text = match.group("text")
             type = match.group("type")
             postfix = match.group("postfix")
-            # anonymous key term
-            if type == "H":
+            # single key term
+            if type == "SK":
                 topic_to_add = text
                 if topic_to_add.lower() not in [
                     topic.lower() for topic in new_topics
@@ -327,8 +327,8 @@ class AnnotationDialog(QMainWindow):
                     category.lower() for category in categories_to_add
                 ]:
                     new_topics.append(topic_to_add)
-            # child key term
-            if type == "N":
+            # key terms with parents
+            if type == "PK":
                 term_topics = []
                 for topic in postfix.split(","):
                     topic_to_add = topic.strip()
@@ -339,8 +339,8 @@ class AnnotationDialog(QMainWindow):
                     ]:
                         term_topics.append(topic_to_add)
                 new_topics.extend(sorted(term_topics))
-            # entity
-            if type == "E":
+            # named entity
+            if type == "NE":
                 topic_to_add = "{}:{}".format(postfix.lower(), text)
                 if topic_to_add.lower() not in [
                     topic.lower() for topic in new_topics
@@ -446,21 +446,21 @@ class AnnotationDialog(QMainWindow):
                 if named_entity_definition.key_sequence == key_sequence:
                     code = named_entity_definition.code
                     break
-            text_cursor.insertText("({}|E {})".format(text_cursor.selectedText(), code))
+            text_cursor.insertText("({}|NE {})".format(text_cursor.selectedText(), code))
 
     def annotate_child_key_term(self):
         text_cursor = self.text_edit.textCursor()
         if text_cursor.hasSelection():
             default_parent_key_term = (
-                "<add your consolidated terms here, separated by commas>"
+                "<add your consolidating terms here, separated by commas>"
             )
             orig_selection_start = text_cursor.selectionStart()
             new_selection_start = orig_selection_start + len(
-                "({}|N ".format(text_cursor.selectedText())
+                "({}|PK ".format(text_cursor.selectedText())
             )
             new_selection_end = new_selection_start + len(default_parent_key_term)
             text_cursor.insertText(
-                "({}|N {})".format(text_cursor.selectedText(), default_parent_key_term)
+                "({}|PK {})".format(text_cursor.selectedText(), default_parent_key_term)
             )
             text_cursor.setPosition(new_selection_start)
             text_cursor.setPosition(new_selection_end, QTextCursor.KeepAnchor)
@@ -469,12 +469,12 @@ class AnnotationDialog(QMainWindow):
     def annotate_anonymous_key_term(self):
         text_cursor = self.text_edit.textCursor()
         if text_cursor.hasSelection():
-            text_cursor.insertText("({}|H)".format(text_cursor.selectedText()))
+            text_cursor.insertText("({}|SK)".format(text_cursor.selectedText()))
 
     def remove_annotation(self):
         current_cursor_pos = self.text_edit.textCursor().position()
         new_text = re.sub(
-            r"\((.*?)\|(([EN] .+?)|(H))\)",
+            r"\((.*?)\|(((PK|NE) .+?)|(SK))\)",
             lambda match: match.group(1)
             if match.start() < current_cursor_pos < match.end()
             else match.group(0),
@@ -485,7 +485,7 @@ class AnnotationDialog(QMainWindow):
 
     def remove_all_annotations(self):
         new_text = re.sub(
-            r"\((.*?)\|(([EN] .+?)|(H))\)",
+            r"\((.*?)\|(((PK|NE) .+?)|(SK))\)",
             lambda match: match.group(1),
             self.text_edit.toPlainText(),
             flags=re.DOTALL,

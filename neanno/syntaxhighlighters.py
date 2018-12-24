@@ -36,7 +36,7 @@ class TextEditHighlighter(QSyntaxHighlighter):
                 QRegularExpression(
                     r"(?<openParen>\()"
                     + r"(?<text>[^|()]+?)"
-                    + r"(?<pipeAndType>\|H)"
+                    + r"(?<pipeAndType>\|SK)"
                     + r"(?<closingParen>\))"
                 ),
                 term_text_format,
@@ -45,13 +45,13 @@ class TextEditHighlighter(QSyntaxHighlighter):
                 term_text_format_blank,
             )
         )
-        # child key terms
+        # key terms with parents
         self.highlighting_rules.append(
             (
                 QRegularExpression(
                     r"(?<openParen>\()"
                     + r"(?<text>[^|()]+?)"
-                    + r"(?<pipeAndType>\|N)"
+                    + r"(?<pipeAndType>\|PK)"
                     + r"(?<postfix> "
                     + r".*?"
                     + r")(?<closingParen>\))"
@@ -75,7 +75,7 @@ class TextEditHighlighter(QSyntaxHighlighter):
                     QRegularExpression(
                         r"(?<openParen>\()"
                         + r"(?<text>[^|()]+?)"
-                        + r"(?<pipeAndType>\|E)"
+                        + r"(?<pipeAndType>\|NE)"
                         + r"(?<postfix> "
                         + named_definition.code
                         + r")(?<closingParen>\))"

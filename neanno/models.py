@@ -128,6 +128,7 @@ class TextModel(QAbstractTableModel):
         for named_entity_definition in config.named_entity_definitions:
             ner.add_label(named_entity_definition.code)
         # prepare the training set
+        # TODO: remove key term annotations etc. before using the training set
         allowed_entities = [
             named_entity_definition.code
             for named_entity_definition in config.named_entity_definitions
@@ -201,7 +202,7 @@ class TextModel(QAbstractTableModel):
                         old_result_length = len(result)
                         result = "{}{}{}".format(
                             result[: ent.start_char + shift],
-                            "({}|E {})".format(ent.text, ent.label_),
+                            "({}|NE {})".format(ent.text, ent.label_),
                             result[ent.end_char + shift :],
                         )
                         shift += len(result) - old_result_length
@@ -217,7 +218,7 @@ class TextModel(QAbstractTableModel):
                         if autosuggest_regex.parent_terms:
                             result = re.sub(
                                 "(?P<text>{})".format(autosuggest_regex.pattern),
-                                "({}|N {})".format(
+                                "({}KP {})".format(
                                     "\g<text>", autosuggest_regex.parent_terms
                                 ),
                                 result,
@@ -225,7 +226,7 @@ class TextModel(QAbstractTableModel):
                         else:
                             result = re.sub(
                                 "(?P<text>{})".format(autosuggest_regex.pattern),
-                                "({}|H)".format("\g<text>"),
+                                "({}|SK)".format("\g<text>"),
                                 result,
                             )
 
@@ -240,7 +241,7 @@ class TextModel(QAbstractTableModel):
                     for autosuggest_regex in config.named_entities_autosuggest_regexes:
                         result = re.sub(
                             "(?P<text>{})".format(autosuggest_regex.pattern),
-                            "({}|E {})".format("\g<text>", autosuggest_regex.entity),
+                            "({}|NE {})".format("\g<text>", autosuggest_regex.entity),
                             result,
                         )
             # return result
