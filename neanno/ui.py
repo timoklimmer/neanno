@@ -147,8 +147,8 @@ class AnnotationDialog(QMainWindow):
             key_terms_layout.addWidget(
                 QLabel(
                     "Select a text and press\n- {} to mark a key term.\n- {} to mark with consolidating terms.".format(
-                        config.key_terms_shortcut_mark_anonymous,
-                        config.key_terms_shortcut_mark_child,
+                        config.key_terms_shortcut_mark_standalone,
+                        config.key_terms_shortcut_mark_parented,
                     )
                 )
             )
@@ -253,12 +253,12 @@ class AnnotationDialog(QMainWindow):
 
     def setup_and_wire_shortcuts(self):
         register_shortcut(
-            self, config.key_terms_shortcut_mark_child, self.annotate_child_key_term
+            self, config.key_terms_shortcut_mark_parented, self.annotate_parented_key_term
         )
         register_shortcut(
             self,
-            config.key_terms_shortcut_mark_anonymous,
-            self.annotate_anonymous_key_term,
+            config.key_terms_shortcut_mark_standalone,
+            self.annotate_standalone_key_term,
         )
         for named_entity_definition in config.named_entity_definitions:
             register_shortcut(
@@ -309,7 +309,7 @@ class AnnotationDialog(QMainWindow):
         categories_to_add = []
         if config.is_categories_enabled:
             categories_to_add.extend(self.categories_selector.get_selected_categories())
-        # anonymous/child key terms, named entities
+        # standalone/parented key terms, named entities
         for match in re.finditer(
             r"\((?P<text>[^()]+?)\|(?P<type>(SK|PK|NE))( (?P<postfix>[^()]+?))?\)",
             self.text_edit.toPlainText(),
@@ -318,7 +318,7 @@ class AnnotationDialog(QMainWindow):
             text = match.group("text")
             type = match.group("type")
             postfix = match.group("postfix")
-            # single key term
+            # standalone key term
             if type == "SK":
                 topic_to_add = text
                 if topic_to_add.lower() not in [
@@ -327,7 +327,7 @@ class AnnotationDialog(QMainWindow):
                     category.lower() for category in categories_to_add
                 ]:
                     new_topics.append(topic_to_add)
-            # key terms with parents
+            # parented key terms
             if type == "PK":
                 term_topics = []
                 for topic in postfix.split(","):
@@ -448,7 +448,7 @@ class AnnotationDialog(QMainWindow):
                     break
             text_cursor.insertText("({}|NE {})".format(text_cursor.selectedText(), code))
 
-    def annotate_child_key_term(self):
+    def annotate_parented_key_term(self):
         text_cursor = self.text_edit.textCursor()
         if text_cursor.hasSelection():
             default_parent_key_term = (
@@ -466,7 +466,7 @@ class AnnotationDialog(QMainWindow):
             text_cursor.setPosition(new_selection_end, QTextCursor.KeepAnchor)
             self.text_edit.setTextCursor(text_cursor)
 
-    def annotate_anonymous_key_term(self):
+    def annotate_standalone_key_term(self):
         text_cursor = self.text_edit.textCursor()
         if text_cursor.hasSelection():
             text_cursor.insertText("({}|SK)".format(text_cursor.selectedText()))

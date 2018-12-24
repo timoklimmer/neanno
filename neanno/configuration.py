@@ -119,11 +119,11 @@ class ConfigInit:
 
     def key_terms():
         config.is_key_terms_enabled = "key_terms" in config.yaml
-        config.key_terms_shortcut_mark_anonymous = ConfigInit.get_config_value(
-            "key_terms/shortcuts/anonymous", "Alt+1"
+        config.key_terms_shortcut_mark_standalone = ConfigInit.get_config_value(
+            "key_terms/shortcuts/standalone", "Alt+1"
         )
-        config.key_terms_shortcut_mark_child = ConfigInit.get_config_value(
-            "key_terms/shortcuts/child", "Alt+2"
+        config.key_terms_shortcut_mark_parented = ConfigInit.get_config_value(
+            "key_terms/shortcuts/parented", "Alt+2"
         )
         config.key_terms_backcolor = ConfigInit.get_config_value(
             "key_terms/backcolor", "#333333"

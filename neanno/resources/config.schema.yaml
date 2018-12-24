@@ -39,10 +39,10 @@ key_terms:
         shortcuts:
             type: dict
             schema:
-                anonymous:
+                standalone:
                     type: string
                     required: False
-                child:
+                parented:
                     type: string
                     required: False
         auto_suggest:

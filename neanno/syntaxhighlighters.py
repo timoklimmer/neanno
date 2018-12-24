@@ -30,7 +30,7 @@ class TextEditHighlighter(QSyntaxHighlighter):
         term_text_format_blank = self.get_text_char_format(
             config.key_terms_backcolor, config.key_terms_backcolor
         )
-        # anonymous key terms
+        # standalone key terms
         self.highlighting_rules.append(
             (
                 QRegularExpression(
@@ -45,7 +45,7 @@ class TextEditHighlighter(QSyntaxHighlighter):
                 term_text_format_blank,
             )
         )
-        # key terms with parents
+        # parented key terms
         self.highlighting_rules.append(
             (
                 QRegularExpression(

@@ -28,8 +28,8 @@ key_terms:
     #  - pattern: (Hi|Hey|Hello) all
     #    parent_terms: Greeting
   # shortcuts:
-  #   anonymous: Alt+1
-  #   child: Alt+2
+  #   standalone: Alt+1
+  #   parented: Alt+2
   #backcolor: "#333333"
   #forecolor: "#50e6ff"
 
