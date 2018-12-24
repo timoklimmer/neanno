@@ -58,6 +58,9 @@ key_terms:
                     schema:
                         type: dict
                         schema:
+                            description:
+                                type: string
+                                required: True
                             pattern:
                                 type: string
                                 required: True

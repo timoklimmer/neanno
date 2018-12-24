@@ -24,9 +24,11 @@ key_terms:
     sources:
       - csv:samples/airline_tickets/key_terms.autosuggest.csv
     regexes:
-      - pattern: (?i)Terminal \d+
-    #  - pattern: (Hi|Hey|Hello) all
-    #    parent_terms: Greeting
+      - description: terminals
+        pattern: (?i)terminal\s*\d+\b
+    #  - description: Just another sample, maybe not that useful
+    #    pattern: (Hi|Hey|Hello) all
+    #    parent_terms: Greeting, Hello
   # shortcuts:
   #   standalone: Alt+1
   #   parented: Alt+2
