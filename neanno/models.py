@@ -9,7 +9,7 @@ import config
 import pandas as pd
 import spacy
 from neanno.dictutils import mergesum_dict
-from neanno.textutils import extract_named_entities_distribution, extract_annotations
+from neanno.textutils import extract_annotations, extract_named_entities_distribution
 from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant, pyqtSignal
 from spacy.util import compounding, minibatch
 
