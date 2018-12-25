@@ -165,13 +165,13 @@ class ConfigInit:
             ] = (
                 "("
                 + autosuggest_key_terms_dataset["term"]
-                + "|PK "
+                + "|P "
                 + autosuggest_key_terms_dataset["parent_terms"]
                 + ")"
             )
             autosuggest_key_terms_dataset.loc[
                 autosuggest_key_terms_dataset["parent_terms"] == "", "against"
-            ] = ("(" + autosuggest_key_terms_dataset["term"] + "|SK)")
+            ] = ("(" + autosuggest_key_terms_dataset["term"] + "|S)")
             autosuggest_key_terms_dataset = autosuggest_key_terms_dataset[
                 ["replace", "against"]
             ]
@@ -263,7 +263,7 @@ class ConfigInit:
             data_for_flashtext = pd.DataFrame(
                 "("
                 + autosuggest_entities_dataset["term"]
-                + "|NE "
+                + "|N "
                 + autosuggest_entities_dataset["entity_code"]
                 + ")"
             )

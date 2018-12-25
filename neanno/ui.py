@@ -32,6 +32,7 @@ from neanno.custom_ui_controls import (
 )
 from neanno.shortcuts import *
 from neanno.syntaxhighlighters import TextEditHighlighter
+from neanno.textutils import *
 
 
 class AnnotationDialog(QMainWindow):
@@ -253,7 +254,9 @@ class AnnotationDialog(QMainWindow):
 
     def setup_and_wire_shortcuts(self):
         register_shortcut(
-            self, config.key_terms_shortcut_mark_parented, self.annotate_parented_key_term
+            self,
+            config.key_terms_shortcut_mark_parented,
+            self.annotate_parented_key_term,
         )
         register_shortcut(
             self,
@@ -311,7 +314,7 @@ class AnnotationDialog(QMainWindow):
             categories_to_add.extend(self.categories_selector.get_selected_categories())
         # standalone/parented key terms, named entities
         for match in re.finditer(
-            r"\((?P<text>[^()]+?)\|(?P<type>(SK|PK|NE))( (?P<postfix>[^()]+?))?\)",
+            r"\((?P<text>[^()]+?)\|(?P<type>(S|P|N))( (?P<postfix>[^()]+?))?\)",
             self.text_edit.toPlainText(),
             flags=re.DOTALL,
         ):
@@ -319,7 +322,7 @@ class AnnotationDialog(QMainWindow):
             type = match.group("type")
             postfix = match.group("postfix")
             # standalone key term
-            if type == "SK":
+            if type == "S":
                 topic_to_add = text
                 if topic_to_add.lower() not in [
                     topic.lower() for topic in new_topics
@@ -328,7 +331,7 @@ class AnnotationDialog(QMainWindow):
                 ]:
                     new_topics.append(topic_to_add)
             # parented key terms
-            if type == "PK":
+            if type == "P":
                 term_topics = []
                 for topic in postfix.split(","):
                     topic_to_add = topic.strip()
@@ -340,7 +343,7 @@ class AnnotationDialog(QMainWindow):
                         term_topics.append(topic_to_add)
                 new_topics.extend(sorted(term_topics))
             # named entity
-            if type == "NE":
+            if type == "N":
                 topic_to_add = "{}:{}".format(postfix.lower(), text)
                 if topic_to_add.lower() not in [
                     topic.lower() for topic in new_topics
@@ -446,7 +449,9 @@ class AnnotationDialog(QMainWindow):
                 if named_entity_definition.key_sequence == key_sequence:
                     code = named_entity_definition.code
                     break
-            text_cursor.insertText("({}|NE {})".format(text_cursor.selectedText(), code))
+            text_cursor.insertText(
+                "({}|N {})".format(text_cursor.selectedText(), code)
+            )
 
     def annotate_parented_key_term(self):
         text_cursor = self.text_edit.textCursor()
@@ -456,11 +461,11 @@ class AnnotationDialog(QMainWindow):
             )
             orig_selection_start = text_cursor.selectionStart()
             new_selection_start = orig_selection_start + len(
-                "({}|PK ".format(text_cursor.selectedText())
+                "({}|P ".format(text_cursor.selectedText())
             )
             new_selection_end = new_selection_start + len(default_parent_key_term)
             text_cursor.insertText(
-                "({}|PK {})".format(text_cursor.selectedText(), default_parent_key_term)
+                "({}|P {})".format(text_cursor.selectedText(), default_parent_key_term)
             )
             text_cursor.setPosition(new_selection_start)
             text_cursor.setPosition(new_selection_end, QTextCursor.KeepAnchor)
@@ -469,26 +474,17 @@ class AnnotationDialog(QMainWindow):
     def annotate_standalone_key_term(self):
         text_cursor = self.text_edit.textCursor()
         if text_cursor.hasSelection():
-            text_cursor.insertText("({}|SK)".format(text_cursor.selectedText()))
+            text_cursor.insertText("({}|S)".format(text_cursor.selectedText()))
 
     def remove_annotation(self):
-        current_cursor_pos = self.text_edit.textCursor().position()
-        new_text = re.sub(
-            r"\((.*?)\|(((PK|NE) .+?)|(SK))\)",
-            lambda match: match.group(1)
-            if match.start() < current_cursor_pos < match.end()
-            else match.group(0),
-            self.text_edit.toPlainText(),
-            flags=re.DOTALL,
+        self.text_edit.setPlainText(
+            remove_annotation_at_position(
+                self.text_edit.toPlainText(), self.text_edit.textCursor().position()
+            )
         )
-        self.text_edit.setPlainText(new_text)
 
     def remove_all_annotations(self):
-        new_text = re.sub(
-            r"\((.*?)\|(((PK|NE) .+?)|(SK))\)",
-            lambda match: match.group(1),
-            self.text_edit.toPlainText(),
-            flags=re.DOTALL,
+        self.text_edit.setPlainText(
+            remove_all_annotations(self.text_edit.toPlainText())
         )
-        self.text_edit.setPlainText(new_text)
         self.categories_selector.set_selected_categories_by_text("")

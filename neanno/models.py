@@ -9,10 +9,7 @@ import config
 import pandas as pd
 import spacy
 from neanno.dictutils import mergesum_dict
-from neanno.textutils import (
-    extract_entities_distribution,
-    extract_entities_from_nerded_text,
-)
+from neanno.textutils import extract_named_entities_distribution, extract_annotations
 from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant, pyqtSignal
 from spacy.util import compounding, minibatch
 
@@ -74,7 +71,7 @@ class TextModel(QAbstractTableModel):
             annotated_data = self.get_annotated_data()
             distribution_candidate = (
                 annotated_data[config.text_column]
-                .map(lambda text: extract_entities_distribution(text))
+                .map(lambda text: extract_named_entities_distribution(text))
                 .agg(
                     lambda series: reduce(
                         lambda dist1, dist2: mergesum_dict(dist1, dist2), series
@@ -128,16 +125,20 @@ class TextModel(QAbstractTableModel):
         for named_entity_definition in config.named_entity_definitions:
             ner.add_label(named_entity_definition.code)
         # prepare the training set
-        # TODO: remove key term annotations etc. before using the training set
-        allowed_entities = [
-            named_entity_definition.code
-            for named_entity_definition in config.named_entity_definitions
-        ]
         trainset = (
             config.dataset_to_edit[
                 config.dataset_to_edit[config.is_annotated_column] == True
             ][config.text_column]
-            .map(lambda text: extract_entities_from_nerded_text(text, allowed_entities))
+            .map(
+                lambda text: extract_annotations(
+                    text,
+                    ["named_entities"],
+                    [
+                        named_entity_definition.code
+                        for named_entity_definition in config.named_entity_definitions
+                    ],
+                )
+            )
             .tolist()
         )
 
@@ -202,7 +203,7 @@ class TextModel(QAbstractTableModel):
                         old_result_length = len(result)
                         result = "{}{}{}".format(
                             result[: ent.start_char + shift],
-                            "({}|NE {})".format(ent.text, ent.label_),
+                            "({}|N {})".format(ent.text, ent.label_),
                             result[ent.end_char + shift :],
                         )
                         shift += len(result) - old_result_length
@@ -226,7 +227,7 @@ class TextModel(QAbstractTableModel):
                         else:
                             result = re.sub(
                                 "(?P<text>{})".format(autosuggest_regex.pattern),
-                                "({}|SK)".format("\g<text>"),
+                                "({}|S)".format("\g<text>"),
                                 result,
                             )
 
@@ -241,7 +242,7 @@ class TextModel(QAbstractTableModel):
                     for autosuggest_regex in config.named_entities_autosuggest_regexes:
                         result = re.sub(
                             "(?P<text>{})".format(autosuggest_regex.pattern),
-                            "({}|NE {})".format("\g<text>", autosuggest_regex.entity),
+                            "({}|N {})".format("\g<text>", autosuggest_regex.entity),
                             result,
                         )
             # return result
