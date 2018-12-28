@@ -266,7 +266,7 @@ class TextModel(QAbstractTableModel):
         # skip writing is_annotated
         if col == 1:
             return True
-        # update _df and save if needed
+        # update dataset and save if needed
         if (
             self.data(index) != value
             or not config.dataset_to_edit.ix[row, self.is_annotated_column_index]
@@ -275,6 +275,8 @@ class TextModel(QAbstractTableModel):
             if index.column() == 0:
                 # text
                 config.dataset_to_edit.iat[row, self.text_column_index] = value
+                # update key terms collection
+                # TODO: complete
                 # re-compute distributions
                 # TODO: might be made more efficient with deltas instead of complete recomputation all the time
                 self.compute_entities_distribution()
