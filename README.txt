@@ -10,7 +10,6 @@ of them really matched my requirements. Hence, I created my own.
 Run
     python neanno.py -h
 
-from the commandline or check neanno.py to see how the
-annotate_entities() function can be used.
+from the commandline to get more details.
 
 Feel free to use but don't blame me if things go wrong.

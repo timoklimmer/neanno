@@ -1,5 +1,12 @@
 # neanno config file for airline_tickets sample
 
+# notes: - this file contains a few settings which have been commented out.
+#          these comments are included intentionally to show what other
+#          configuration options exist.
+#        - categories, key_terms, named_entities, spacy, instructions nodes
+#          are optional. if they are not specified, neanno will disable the
+#          respective features.
+
 dataset:
     source: csv:samples/airline_tickets/texts.csv
     text_column: Text

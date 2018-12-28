@@ -48,7 +48,7 @@ class ConfigInit:
         required = config.parser.add_argument_group("required arguments")
         required.add_argument(
             "--config-file",
-            help="Points to a config file for neanno. See the example config files (config.yaml) to learn how to write them.",
+            help="Points to a config file for neanno. See the airline_tickets.config.yaml file in samples/airline_tickets to learn how to write neanno config files.",
             required=True,
         )
         help = config.parser.add_argument_group("help arguments")
