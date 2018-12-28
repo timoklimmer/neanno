@@ -1,7 +1,7 @@
 import re
 
 
-def extract_annotations(
+def extract_annotations_as_ranges(
     annotated_text, types_to_extract=None, named_entities_to_extract=None
 ):
     """ Returns all annotations and their position ranges from an annotated text.
@@ -59,6 +59,54 @@ def extract_annotations(
 
     # return result
     return (plain_text, annotations)
+
+
+def extract_annotations_as_text(text, external_annotations_to_add=[]):
+    result_list = []
+    for match in re.finditer(
+        r"\((?P<text>[^()]+?)\|(?P<type>(S|P|N))( (?P<postfix>[^()]+?))?\)",
+        text,
+        flags=re.DOTALL,
+    ):
+        text = match.group("text")
+        type = match.group("type")
+        postfix = match.group("postfix")
+        # standalone key term
+        if type == "S":
+            annotation_to_add = text
+            if annotation_to_add.lower() not in [
+                annotation.lower() for annotation in result_list
+            ] and annotation_to_add.lower() not in [
+                annotation.lower() for annotation in external_annotations_to_add
+            ]:
+                result_list.append(annotation_to_add)
+        # parented key terms
+        if type == "P":
+            parent_terms = []
+            for parent_term in postfix.split(","):
+                annotation_to_add = parent_term.strip()
+                if annotation_to_add.lower() not in [
+                    annotation.lower() for annotation in result_list
+                ] and annotation_to_add.lower() not in [
+                    annotation.lower() for annotation in external_annotations_to_add
+                ]:
+                    parent_terms.append(annotation_to_add)
+            result_list.extend(sorted(parent_terms))
+        # named entity
+        if type == "N":
+            annotation_to_add = "{} ({})".format(text, postfix.lower())
+            if annotation_to_add.lower() not in [
+                annotation.lower() for annotation in result_list
+            ] and annotation_to_add.lower() not in [
+                annotation.lower() for annotation in external_annotations_to_add
+            ]:
+                result_list.append(annotation_to_add)
+
+    # external annotations
+    result_list.extend(external_annotations_to_add)
+
+    # return result
+    return ", ".join(result_list)
 
 
 def remove_annotation_at_position(text, position):

@@ -76,16 +76,16 @@ class AnnotationDialog(QMainWindow):
         self.text_edit_highlighter = TextEditHighlighter(
             self.text_edit.document(), config.named_entity_definitions
         )
-        self.text_edit.textChanged.connect(self.update_topic_monitor)
+        self.text_edit.textChanged.connect(self.update_annotation_monitor)
 
-        # topic monitor
-        self.topic_monitor = QPlainTextEdit()
-        self.topic_monitor.setReadOnly(True)
-        self.topic_monitor.setStyleSheet(
+        # annotation monitor
+        self.annotation_monitor = QPlainTextEdit()
+        self.annotation_monitor.setReadOnly(True)
+        self.annotation_monitor.setStyleSheet(
             "font-size: 14pt; font-family: Consolas; color: lightgrey; background-color: black"
         )
-        self.topic_monitor_entity_highlighter = TextEditHighlighter(
-            self.topic_monitor.document(), config.named_entity_definitions
+        self.annotation_monitor_entity_highlighter = TextEditHighlighter(
+            self.annotation_monitor.document(), config.named_entity_definitions
         )
 
         # navigation / about / shortcuts buttons
@@ -134,7 +134,7 @@ class AnnotationDialog(QMainWindow):
         if config.is_categories_enabled:
             self.categories_selector = CategoriesSelectorWidget(config, self.textmodel)
             self.categories_selector.selectionModel().selectionChanged.connect(
-                self.update_topic_monitor
+                self.update_annotation_monitor
             )
             categories_groupbox_layout = QHBoxLayout()
             categories_groupbox_layout.addWidget(self.categories_selector)
@@ -218,7 +218,7 @@ class AnnotationDialog(QMainWindow):
         left_panel_layout = QVBoxLayout()
         left_panel_layout_splitter = QSplitter(Qt.Vertical)
         left_panel_layout_splitter.addWidget(self.text_edit)
-        left_panel_layout_splitter.addWidget(self.topic_monitor)
+        left_panel_layout_splitter.addWidget(self.annotation_monitor)
         left_panel_layout_splitter.setSizes([400, 100])
         left_panel_layout.addWidget(left_panel_layout_splitter)
         # right panel
@@ -307,56 +307,14 @@ class AnnotationDialog(QMainWindow):
         self.goto_button.clicked.connect(self.go_to_index)
         self.submit_next_best_button.clicked.connect(self.submit_and_go_to_next_best)
 
-    def update_topic_monitor(self):
-        new_topics = []
-        categories_to_add = []
-        if config.is_categories_enabled:
-            categories_to_add.extend(self.categories_selector.get_selected_categories())
-        # standalone/parented key terms, named entities
-        for match in re.finditer(
-            r"\((?P<text>[^()]+?)\|(?P<type>(S|P|N))( (?P<postfix>[^()]+?))?\)",
-            self.text_edit.toPlainText(),
-            flags=re.DOTALL,
-        ):
-            text = match.group("text")
-            type = match.group("type")
-            postfix = match.group("postfix")
-            # standalone key term
-            if type == "S":
-                topic_to_add = text
-                if topic_to_add.lower() not in [
-                    topic.lower() for topic in new_topics
-                ] and topic_to_add.lower() not in [
-                    category.lower() for category in categories_to_add
-                ]:
-                    new_topics.append(topic_to_add)
-            # parented key terms
-            if type == "P":
-                term_topics = []
-                for topic in postfix.split(","):
-                    topic_to_add = topic.strip()
-                    if topic_to_add.lower() not in [
-                        topic.lower() for topic in new_topics
-                    ] and topic_to_add.lower() not in [
-                        category.lower() for category in categories_to_add
-                    ]:
-                        term_topics.append(topic_to_add)
-                new_topics.extend(sorted(term_topics))
-            # named entity
-            if type == "N":
-                topic_to_add = "{}:{}".format(postfix.lower(), text)
-                if topic_to_add.lower() not in [
-                    topic.lower() for topic in new_topics
-                ] and topic_to_add.lower() not in [
-                    category.lower() for category in categories_to_add
-                ]:
-                    new_topics.append(topic_to_add)
-        ## categories (not sure yet if this should be included)
-        ##if config.is_categories_enabled:
-        ##    new_topics.extend(categories_to_add)
-
-        # update topics
-        self.topic_monitor.setPlainText(", ".join(new_topics))
+    def update_annotation_monitor(self):
+        self.annotation_monitor.setPlainText(
+            extract_annotations_as_text(
+                self.text_edit.toPlainText(),
+                # remove comment to include categories too
+                ##self.categories_selector.get_selected_categories(),
+            )
+        )
 
     def submit_and_go_to_next_best(self):
         # submit changes of old text
@@ -449,9 +407,7 @@ class AnnotationDialog(QMainWindow):
                 if named_entity_definition.key_sequence == key_sequence:
                     code = named_entity_definition.code
                     break
-            text_cursor.insertText(
-                "({}|N {})".format(text_cursor.selectedText(), code)
-            )
+            text_cursor.insertText("({}|N {})".format(text_cursor.selectedText(), code))
 
     def annotate_parented_key_term(self):
         text_cursor = self.text_edit.textCursor()

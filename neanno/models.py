@@ -8,10 +8,14 @@ from functools import reduce
 import config
 import pandas as pd
 import spacy
-from neanno.dictutils import mergesum_dict
-from neanno.textutils import extract_annotations, extract_named_entities_distribution
 from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant, pyqtSignal
 from spacy.util import compounding, minibatch
+
+from neanno.dictutils import mergesum_dict
+from neanno.textutils import (
+    extract_annotations_as_ranges,
+    extract_named_entities_distribution,
+)
 
 
 class TextModel(QAbstractTableModel):
@@ -130,7 +134,7 @@ class TextModel(QAbstractTableModel):
                 config.dataset_to_edit[config.is_annotated_column] == True
             ][config.text_column]
             .map(
-                lambda text: extract_annotations(
+                lambda text: extract_annotations_as_ranges(
                     text,
                     ["named_entities"],
                     [
