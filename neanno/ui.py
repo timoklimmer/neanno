@@ -84,9 +84,6 @@ class AnnotationDialog(QMainWindow):
         self.annotation_monitor.setStyleSheet(
             "font-size: 14pt; font-family: Consolas; color: lightgrey; background-color: black"
         )
-        self.annotation_monitor_entity_highlighter = TextEditHighlighter(
-            self.annotation_monitor.document(), config.named_entity_definitions
-        )
 
         # navigation / about / shortcuts buttons
         navigation_buttons_layout = QHBoxLayout()
@@ -308,6 +305,7 @@ class AnnotationDialog(QMainWindow):
         self.submit_next_best_button.clicked.connect(self.submit_and_go_to_next_best)
 
     def update_annotation_monitor(self):
+        # update annotation monitor
         self.annotation_monitor.setPlainText(
             extract_annotations_as_text(
                 self.text_edit.toPlainText(),
@@ -401,17 +399,20 @@ class AnnotationDialog(QMainWindow):
     def annotate_entity(self):
         text_cursor = self.text_edit.textCursor()
         if text_cursor.hasSelection():
+            # change text
             key_sequence = self.sender().key().toString()
+            selected_text = text_cursor.selectedText()
             code = ""
             for named_entity_definition in config.named_entity_definitions:
                 if named_entity_definition.key_sequence == key_sequence:
                     code = named_entity_definition.code
                     break
-            text_cursor.insertText("({}|N {})".format(text_cursor.selectedText(), code))
+            text_cursor.insertText("({}|N {})".format(selected_text, code))
 
     def annotate_parented_key_term(self):
         text_cursor = self.text_edit.textCursor()
         if text_cursor.hasSelection():
+            # add annotation to text
             default_parent_key_term = (
                 "<add your consolidating terms here, separated by commas>"
             )
@@ -428,9 +429,11 @@ class AnnotationDialog(QMainWindow):
             self.text_edit.setTextCursor(text_cursor)
 
     def annotate_standalone_key_term(self):
+        # add annotation to text
         text_cursor = self.text_edit.textCursor()
+        selected_text = text_cursor.selectedText()
         if text_cursor.hasSelection():
-            text_cursor.insertText("({}|S)".format(text_cursor.selectedText()))
+            text_cursor.insertText("({}|S)".format(selected_text))
 
     def remove_annotation(self):
         self.text_edit.setPlainText(

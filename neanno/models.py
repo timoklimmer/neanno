@@ -212,8 +212,8 @@ class TextModel(QAbstractTableModel):
                         )
                         shift += len(result) - old_result_length
                 # autosuggest key terms
-                # sources
-                if config.is_autosuggest_key_terms_by_sources:
+                # source
+                if config.is_autosuggest_key_terms_by_source:
                     result = config.key_terms_autosuggest_flashtext.replace_keywords(
                         result
                     )

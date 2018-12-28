@@ -28,8 +28,9 @@ categories:
 
 key_terms:
   auto_suggest:
-    sources:
-      - csv:samples/airline_tickets/key_terms.autosuggest.csv
+    source:
+      spec: csv:samples/airline_tickets/key_terms.autosuggest.csv
+      writeback: True # TODO: implement writeback
     regexes:
       - description: terminals
         pattern: (?i)terminal\s*\d+\b

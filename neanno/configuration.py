@@ -76,7 +76,7 @@ class ConfigInit:
                         yaml.dump(errors)
                         + os.linesep
                         + os.linesep
-                        + "The given config file does not follow the required schema. See error message(s) above for more details."
+                        + "The given config file does not follow the required schema (from file config.schema.yaml). See error message(s) above for more details."
                     )
 
     def dataset_source():
@@ -134,25 +134,22 @@ class ConfigInit:
         ConfigInit.key_terms_autosuggest()
 
     def key_terms_autosuggest():
-        # sources
-        config.is_autosuggest_key_terms_by_sources = ConfigInit.has_config_value(
-            "key_terms/auto_suggest/sources"
+        # source
+        config.is_autosuggest_key_terms_by_source = ConfigInit.has_config_value(
+            "key_terms/auto_suggest/source/spec"
         )
-        if config.is_autosuggest_key_terms_by_sources:
-            print("Loading autosuggest key terms dataset(s)...")
-            # combine data from multiple datasets
-            autosuggest_key_terms_dataset = pd.DataFrame(
-                columns=["term", "parent_terms"]
+        if config.is_autosuggest_key_terms_by_source:
+            print("Loading autosuggest key terms dataset...")
+            # load data
+            autosuggest_key_terms_dataset, friendly_dataset_name_never_used = ConfigInit.load_dataset(
+                ConfigInit.get_config_value("key_terms/auto_suggest/source/spec"),
+                ["term", "parent_terms"],
+                "key_terms/auto_suggest/source/spec",
             )
-            for spec in ConfigInit.get_config_value("key_terms/auto_suggest/sources"):
-                new_data, friendly_dataset_name_never_used = ConfigInit.load_dataset(
-                    spec, ["term", "parent_terms"], "key_terms/auto_suggest/sources"
-                )
-                new_data = new_data.fillna("")
-                new_data = new_data.astype({"term": str, "parent_terms": str})
-                autosuggest_key_terms_dataset = autosuggest_key_terms_dataset.append(
-                    new_data
-                )
+            autosuggest_key_terms_dataset = autosuggest_key_terms_dataset.fillna("")
+            autosuggest_key_terms_dataset = autosuggest_key_terms_dataset.astype(
+                {"term": str, "parent_terms": str}
+            )
             # setup flashtext for later string replacements
             autosuggest_key_terms_dataset["replace"] = autosuggest_key_terms_dataset[
                 "term"

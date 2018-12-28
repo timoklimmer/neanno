@@ -48,11 +48,16 @@ key_terms:
         auto_suggest:
             type: dict
             schema:
-                sources:
-                    type: list
+                source:
+                    type: dict
                     schema:
-                        type: string
-                        regex: "^.+?:.+"
+                        spec:
+                            type: string
+                            regex: "^.+?:.+"
+                            required: True
+                        writeback:
+                            type: boolean
+                            required: True
                 regexes:
                     type: list
                     schema:
