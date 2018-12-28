@@ -11,6 +11,7 @@ import spacy
 from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant, pyqtSignal
 from spacy.util import compounding, minibatch
 
+from neanno.configuration import ConfigManager
 from neanno.dictutils import mergesum_dict
 from neanno.textutils import (
     extract_annotations_as_ranges,
@@ -274,9 +275,10 @@ class TextModel(QAbstractTableModel):
             config.dataset_to_edit.iat[row, self.is_annotated_column_index] = True
             if index.column() == 0:
                 # text
+                # update text
                 config.dataset_to_edit.iat[row, self.text_column_index] = value
-                # update key terms collection
-                # TODO: complete
+                # update key terms to key terms collection if enabled
+                ConfigManager.upsert_key_terms_to_autosuggest_key_terms(value)
                 # re-compute distributions
                 # TODO: might be made more efficient with deltas instead of complete recomputation all the time
                 self.compute_entities_distribution()

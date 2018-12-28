@@ -122,7 +122,7 @@ def extract_annotations_as_text(text, external_annotations_to_add=[]):
     return ", ".join(result_list)
 
 
-def extract_annotations_as_dict(
+def extract_annotations_as_dictlist(
     annotated_text, types_to_extract=None, entity_names_to_extract=None
 ):
 

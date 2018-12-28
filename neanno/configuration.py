@@ -7,37 +7,39 @@ import pandas as pd
 import yaml
 from cerberus import Validator
 from flashtext import KeywordProcessor
+
 from neanno.colors import DEFAULT_ENTITY_COLORS_PALETTE
 from neanno.definitions import (
-    AutoSuggestKeyTermRegex,
     AutoSuggestEntityRegex,
+    AutoSuggestKeyTermRegex,
     CategoryDefinition,
     NamedEntityDefinition,
 )
 from neanno.dictutils import QueryDict
+from neanno.textutils import extract_annotations_as_dictlist
 
 
-class ConfigInit:
+class ConfigManager:
     """Collects all configuration settings and provides configuration-related objects to neanno (through config.*)."""
 
     def __init__(self):
         # specify neanno's args and load/validate the required config file
-        ConfigInit.define_args_and_load_config_yaml()
+        ConfigManager.define_args_and_load_config_yaml()
         # derive further configuration objects from specified arguments
         # dataset source-related
-        ConfigInit.dataset_source()
+        ConfigManager.dataset_source()
         # dataset target-related
-        ConfigInit.dataset_target()
+        ConfigManager.dataset_target()
         # categories-related
-        ConfigInit.categories()
+        ConfigManager.categories()
         # key terms-related
-        ConfigInit.key_terms()
+        ConfigManager.key_terms()
         # named entities-related
-        ConfigInit.named_entities()
+        ConfigManager.named_entities()
         # spacy-related
-        ConfigInit.spacy()
+        ConfigManager.spacy()
         # instructions
-        ConfigInit.instructions()
+        ConfigManager.instructions()
 
     def define_args_and_load_config_yaml():
         # define arguments
@@ -81,12 +83,12 @@ class ConfigInit:
 
     def dataset_source():
         print("Loading dataframe with texts to annotate...")
-        config.text_column = ConfigInit.get_config_value("dataset/text_column")
-        config.is_annotated_column = ConfigInit.get_config_value(
+        config.text_column = ConfigManager.get_config_value("dataset/text_column")
+        config.is_annotated_column = ConfigManager.get_config_value(
             "dataset/is_annotated_column"
         )
-        config.dataset_to_edit, config.dataset_source_friendly = ConfigInit.load_dataset(
-            ConfigInit.get_config_value("dataset/source"),
+        config.dataset_to_edit, config.dataset_source_friendly = ConfigManager.load_dataset(
+            ConfigManager.get_config_value("dataset/source"),
             [config.text_column],
             "dataset/source",
         )
@@ -96,8 +98,8 @@ class ConfigInit:
 
     def dataset_target():
         config.dataset_target_friendly = None
-        if ConfigInit.has_config_value("dataset/target"):
-            datasource_spec = ConfigInit.get_config_value("dataset/target")
+        if ConfigManager.has_config_value("dataset/target"):
+            datasource_spec = ConfigManager.get_config_value("dataset/target")
             datasource_type = datasource_spec.split(":")[0]
             supported_datasource_types = ["csv"]
             if datasource_type not in supported_datasource_types:
@@ -106,10 +108,10 @@ class ConfigInit:
                         datasource_type, ", ".join(supported_datasource_types)
                     )
                 )
-            getattr(ConfigInit, "dataset_target_" + datasource_type)()
+            getattr(ConfigManager, "dataset_target_" + datasource_type)()
 
     def dataset_target_csv():
-        dataset_target_csv = ConfigInit.get_config_value("dataset/target").replace(
+        dataset_target_csv = ConfigManager.get_config_value("dataset/target").replace(
             "csv:", "", 1
         )
         config.dataset_target_friendly = os.path.basename(dataset_target_csv)
@@ -119,30 +121,30 @@ class ConfigInit:
 
     def key_terms():
         config.is_key_terms_enabled = "key_terms" in config.yaml
-        config.key_terms_shortcut_mark_standalone = ConfigInit.get_config_value(
+        config.key_terms_shortcut_mark_standalone = ConfigManager.get_config_value(
             "key_terms/shortcuts/standalone", "Alt+1"
         )
-        config.key_terms_shortcut_mark_parented = ConfigInit.get_config_value(
+        config.key_terms_shortcut_mark_parented = ConfigManager.get_config_value(
             "key_terms/shortcuts/parented", "Alt+2"
         )
-        config.key_terms_backcolor = ConfigInit.get_config_value(
+        config.key_terms_backcolor = ConfigManager.get_config_value(
             "key_terms/backcolor", "#333333"
         )
-        config.key_terms_forecolor = ConfigInit.get_config_value(
+        config.key_terms_forecolor = ConfigManager.get_config_value(
             "key_terms/forecolor", "#50e6ff"
         )
-        ConfigInit.key_terms_autosuggest()
+        ConfigManager.key_terms_autosuggest()
 
     def key_terms_autosuggest():
         # source
-        config.is_autosuggest_key_terms_by_source = ConfigInit.has_config_value(
+        config.is_autosuggest_key_terms_by_source = ConfigManager.has_config_value(
             "key_terms/auto_suggest/source/spec"
         )
         if config.is_autosuggest_key_terms_by_source:
             print("Loading autosuggest key terms dataset...")
             # load data
-            autosuggest_key_terms_dataset, friendly_dataset_name_never_used = ConfigInit.load_dataset(
-                ConfigInit.get_config_value("key_terms/auto_suggest/source/spec"),
+            autosuggest_key_terms_dataset, friendly_dataset_name_never_used = ConfigManager.load_dataset(
+                ConfigManager.get_config_value("key_terms/auto_suggest/source/spec"),
                 ["term", "parent_terms"],
                 "key_terms/auto_suggest/source/spec",
             )
@@ -182,11 +184,11 @@ class ConfigInit:
 
         # regexes
         config.key_terms_autosuggest_regexes = []
-        config.is_autosuggest_key_terms_by_regexes = ConfigInit.has_config_value(
+        config.is_autosuggest_key_terms_by_regexes = ConfigManager.has_config_value(
             "key_terms/auto_suggest/regexes"
         )
         if config.is_autosuggest_key_terms_by_regexes:
-            for autosuggest_regex in ConfigInit.get_config_value(
+            for autosuggest_regex in ConfigManager.get_config_value(
                 "key_terms/auto_suggest/regexes"
             ):
                 config.key_terms_autosuggest_regexes.append(
@@ -202,12 +204,12 @@ class ConfigInit:
         config.named_entity_definitions = []
         config.is_named_entities_enabled = "named_entities" in config.yaml
         if config.is_named_entities_enabled:
-            ConfigInit.named_entities_definitions()
-            ConfigInit.named_entities_autosuggest()
+            ConfigManager.named_entities_definitions()
+            ConfigManager.named_entities_autosuggest()
 
     def named_entities_definitions():
         index = 0
-        for definition in ConfigInit.get_config_value("named_entities/definitions"):
+        for definition in ConfigManager.get_config_value("named_entities/definitions"):
             code = definition["code"]
             shortcut = definition["shortcut"]
             maincolor = (
@@ -238,17 +240,17 @@ class ConfigInit:
 
     def named_entities_autosuggest():
         # sources
-        config.is_autosuggest_entities_by_sources = ConfigInit.has_config_value(
+        config.is_autosuggest_entities_by_sources = ConfigManager.has_config_value(
             "named_entities/auto_suggest/sources"
         )
         if config.is_autosuggest_entities_by_sources:
             print("Loading autosuggest entities dataset(s)...")
             # combine data from multiple datasets
             autosuggest_entities_dataset = pd.DataFrame(columns=["term", "entity_code"])
-            for spec in ConfigInit.get_config_value(
+            for spec in ConfigManager.get_config_value(
                 "named_entities/auto_suggest/sources"
             ):
-                new_data, friendly_dataset_name_never_used = ConfigInit.load_dataset(
+                new_data, friendly_dataset_name_never_used = ConfigManager.load_dataset(
                     spec, ["term", "entity_code"], "named_entities/auto_suggest/sources"
                 )
                 new_data = new_data.astype({"term": str, "entity_code": str})
@@ -275,11 +277,11 @@ class ConfigInit:
 
         # regexes
         config.named_entities_autosuggest_regexes = []
-        config.is_autosuggest_entities_by_regexes = ConfigInit.has_config_value(
+        config.is_autosuggest_entities_by_regexes = ConfigManager.has_config_value(
             "named_entities/auto_suggest/regexes"
         )
         if config.is_autosuggest_entities_by_regexes:
-            for autosuggest_regex in ConfigInit.get_config_value(
+            for autosuggest_regex in ConfigManager.get_config_value(
                 "named_entities/auto_suggest/regexes"
             ):
                 config.named_entities_autosuggest_regexes.append(
@@ -292,8 +294,10 @@ class ConfigInit:
         config.category_definitions = []
         config.is_categories_enabled = "categories" in config.yaml
         if config.is_categories_enabled:
-            config.categories_column = ConfigInit.get_config_value("categories/column")
-            for definition in ConfigInit.get_config_value("categories/definitions"):
+            config.categories_column = ConfigManager.get_config_value(
+                "categories/column"
+            )
+            for definition in ConfigManager.get_config_value("categories/definitions"):
                 name = definition["name"]
                 config.category_definitions.append(CategoryDefinition(name))
             config.categories_names_list = [
@@ -303,12 +307,12 @@ class ConfigInit:
 
     def spacy():
         config.is_spacy_enabled = "spacy" in config.yaml
-        config.spacy_model_source = ConfigInit.get_config_value("spacy/source")
-        config.spacy_model_target = ConfigInit.get_config_value("spacy/target")
+        config.spacy_model_source = ConfigManager.get_config_value("spacy/source")
+        config.spacy_model_target = ConfigManager.get_config_value("spacy/target")
 
     def instructions():
         config.has_instructions = "instructions" in config.yaml
-        config.instructions = ConfigInit.get_config_value("instructions")
+        config.instructions = ConfigManager.get_config_value("instructions")
 
     def load_dataset(spec, required_columns, parameter=None):
         supported_datasource_types = ["csv"]
@@ -324,7 +328,7 @@ class ConfigInit:
             if parameter is not None
             else ""
         )
-        return getattr(ConfigInit, "load_dataset_" + datasource_type)(
+        return getattr(ConfigManager, "load_dataset_" + datasource_type)(
             spec, required_columns, parameter_hint
         )
 
@@ -351,4 +355,31 @@ class ConfigInit:
         return candidate if candidate is not None else default
 
     def has_config_value(path):
-        return ConfigInit.get_config_value(path) is not None
+        return ConfigManager.get_config_value(path) is not None
+
+    def upsert_key_terms_to_autosuggest_key_terms(annotated_text):
+        if config.is_autosuggest_key_terms_by_source:
+            # update config.key_terms_autosuggest_flashtext
+            # standalone key terms
+            standalone_key_terms_dict = {
+                "({}|S)".format(key_term["text"]): [key_term["text"]]
+                for key_term in extract_annotations_as_dictlist(
+                    annotated_text, types_to_extract=["standalone_keyterm"]
+                )
+            }
+            config.key_terms_autosuggest_flashtext.add_keywords_from_dict(
+                standalone_key_terms_dict
+            )
+            # parented key terms
+            parented_key_terms_dict = {
+                "({}|P {})".format(key_term["text"], key_term["parent_terms"]): [
+                    key_term["text"]
+                ]
+                for key_term in extract_annotations_as_dictlist(
+                    annotated_text, types_to_extract=["parented_keyterm"]
+                )
+            }
+            config.key_terms_autosuggest_flashtext.add_keywords_from_dict(
+                parented_key_terms_dict
+            )
+            # TODO: writeback

@@ -63,9 +63,14 @@ named_entities:
       - csv:samples/airline_tickets/airlines.autosuggest.csv
     regexes:
       - entity: AIRCRAFT
-        pattern: (A\s*)?3[28]0|(B\s*)?7\d7(-\d{3})|CRJ|MD-\d{2}?
+        pattern: (A\s*)?3[28]0|(B\s*)?7\d7(-\d{3})|(Boeing\s*)?7\d7(-\d{3})CRJ|MD-\d{2}?
       - entity: TIME
-        pattern: (January\b|Jan\b|February\b|Feb\b|March\b|Mar\b|April\b|Apr\b|May\b|June\b|Jun\b|July\b|Jul\b|August\b|Aug\b|September\b|Sep\b|October\b|Oct\b|November\b|Nov\b|December\b|Dec\b)
+        pattern: "(?x)
+                   January \\b | Jan \\b | February \\b | Feb \\b | March \\b | Mar \\b | April \\b | Apr \\b
+                  | May \\b | June \\b | Jun \\b | July \\b | Jul \\b | August \\b | Aug \\b | September \\b
+                  | Sep \\b | October \\b | Oct \\b | November \\b | Nov \\b | December \\b | Dec \\b
+                  | \\b(([01]?[0-9])|(2[0-3]))[:\\.]?[0-5][0-9]\\s*([Aa]\\.?[Mm]\\.?|[Pp]\\.?[Mm]\\.?|hrs)\\b
+                 "
 
 #spacy:
 #  source: blank:en
