@@ -149,7 +149,7 @@ class ConfigManager:
                 "key_terms/auto_suggest/source/spec",
             )
             # setup flashtext for later string replacements
-            autosuggest_key_terms_dataset = config.autosuggest_key_terms_dataset
+            autosuggest_key_terms_dataset = config.autosuggest_key_terms_dataset.copy()
             autosuggest_key_terms_dataset["replace"] = autosuggest_key_terms_dataset[
                 "term"
             ]
@@ -404,4 +404,31 @@ class ConfigManager:
             )
 
             # write back new autosuggest key terms dataset
-            # TODO: complete
+            # sort the key terms dataset for convenience
+            config.autosuggest_key_terms_dataset[
+                "sort"
+            ] = config.autosuggest_key_terms_dataset["term"].str.lower()
+            config.autosuggest_key_terms_dataset = config.autosuggest_key_terms_dataset.sort_values(
+                by=["sort"]
+            )
+            del config.autosuggest_key_terms_dataset["sort"]
+            # save the dataset
+            ConfigManager.save_dataset(
+                config.autosuggest_key_terms_dataset,
+                ConfigManager.get_config_value("key_terms/auto_suggest/source/spec"),
+            )
+
+    def save_dataset(dataframe, spec):
+        supported_datasource_types = ["csv"]
+        datasource_type = spec.split(":")[0]
+        if datasource_type not in supported_datasource_types:
+            config.parser.error(
+                "Spec '{}' uses a datasource type '{}' which is not supported for saving. Ensure that a valid datasource type is specified. Valid datasource types are: {}.".format(
+                    spec, datasource_type, ", ".join(supported_datasource_types)
+                )
+            )
+        getattr(ConfigManager, "save_dataset_" + datasource_type)(dataframe, spec)
+
+    def save_dataset_csv(dataframe, spec):
+        file_path = spec.replace("csv:", "", 1)
+        dataframe.to_csv(file_path, header=True, index=False)
