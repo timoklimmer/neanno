@@ -15,7 +15,7 @@ from neanno.definitions import (
     CategoryDefinition,
     NamedEntityDefinition,
 )
-from neanno.dictutils import QueryDict
+from neanno.dictutils import QueryDict, merge_dict
 from neanno.textutils import extract_annotations_as_dictlist
 
 
@@ -89,7 +89,7 @@ class ConfigManager:
         )
         config.dataset_to_edit, config.dataset_source_friendly = ConfigManager.load_dataset(
             ConfigManager.get_config_value("dataset/source"),
-            [config.text_column],
+            {config.text_column: str},
             "dataset/source",
         )
         config.dataset_to_edit[config.text_column] = config.dataset_to_edit[
@@ -143,16 +143,13 @@ class ConfigManager:
         if config.is_autosuggest_key_terms_by_source:
             print("Loading autosuggest key terms dataset...")
             # load data
-            autosuggest_key_terms_dataset, friendly_dataset_name_never_used = ConfigManager.load_dataset(
+            config.autosuggest_key_terms_dataset, friendly_dataset_name_never_used = ConfigManager.load_dataset(
                 ConfigManager.get_config_value("key_terms/auto_suggest/source/spec"),
-                ["term", "parent_terms"],
+                {"term": str, "parent_terms": str},
                 "key_terms/auto_suggest/source/spec",
             )
-            autosuggest_key_terms_dataset = autosuggest_key_terms_dataset.fillna("")
-            autosuggest_key_terms_dataset = autosuggest_key_terms_dataset.astype(
-                {"term": str, "parent_terms": str}
-            )
             # setup flashtext for later string replacements
+            autosuggest_key_terms_dataset = config.autosuggest_key_terms_dataset
             autosuggest_key_terms_dataset["replace"] = autosuggest_key_terms_dataset[
                 "term"
             ]
@@ -174,12 +171,14 @@ class ConfigManager:
             autosuggest_key_terms_dataset = autosuggest_key_terms_dataset[
                 ["replace", "against"]
             ]
-            autosuggest_key_terms_dataset = autosuggest_key_terms_dataset.set_index(
+            autosuggest_key_terms_dataset_as_dict = autosuggest_key_terms_dataset.set_index(
                 "against"
-            ).T.to_dict("list")
+            ).T.to_dict(
+                "list"
+            )
             config.key_terms_autosuggest_flashtext = KeywordProcessor()
             config.key_terms_autosuggest_flashtext.add_keywords_from_dict(
-                autosuggest_key_terms_dataset
+                autosuggest_key_terms_dataset_as_dict
             )
 
         # regexes
@@ -251,9 +250,10 @@ class ConfigManager:
                 "named_entities/auto_suggest/sources"
             ):
                 new_data, friendly_dataset_name_never_used = ConfigManager.load_dataset(
-                    spec, ["term", "entity_code"], "named_entities/auto_suggest/sources"
+                    spec,
+                    {"term": str, "entity_code": str},
+                    "named_entities/auto_suggest/sources",
                 )
-                new_data = new_data.astype({"term": str, "entity_code": str})
                 autosuggest_entities_dataset = autosuggest_entities_dataset.append(
                     new_data
                 )
@@ -314,7 +314,7 @@ class ConfigManager:
         config.has_instructions = "instructions" in config.yaml
         config.instructions = ConfigManager.get_config_value("instructions")
 
-    def load_dataset(spec, required_columns, parameter=None):
+    def load_dataset(spec, schema, fillna=True, parameter=None):
         supported_datasource_types = ["csv"]
         datasource_type = spec.split(":")[0]
         if datasource_type not in supported_datasource_types:
@@ -328,11 +328,15 @@ class ConfigManager:
             if parameter is not None
             else ""
         )
-        return getattr(ConfigManager, "load_dataset_" + datasource_type)(
-            spec, required_columns, parameter_hint
+        required_columns = list(schema.keys())
+        result = getattr(ConfigManager, "load_dataset_" + datasource_type)(
+            spec, required_columns, parameter_hint, True
         )
+        for column_name in schema.keys():
+            result[0][column_name] = result[0][column_name].astype(schema[column_name])
+        return result
 
-    def load_dataset_csv(spec, required_columns, parameter_hint):
+    def load_dataset_csv(spec, required_columns, parameter_hint, fill_na=True):
         file_to_load = spec.replace("csv:", "", 1)
         if not os.path.isfile(file_to_load):
             config.parser.error(
@@ -341,6 +345,8 @@ class ConfigManager:
                 )
             )
         result = pd.read_csv(file_to_load)
+        if fill_na:
+            result = result.fillna("")
         if not pd.Series(required_columns).isin(result.columns).all():
             config.parser.error(
                 "A dataset{} does not return a dataset with the expected columns. Ensure that the dataset includes the following columns (case-sensitive): {}.".format(
@@ -357,29 +363,45 @@ class ConfigManager:
     def has_config_value(path):
         return ConfigManager.get_config_value(path) is not None
 
-    def upsert_key_terms_to_autosuggest_key_terms(annotated_text):
+    def upsert_key_terms_to_autosuggest_collection(annotated_text):
         if config.is_autosuggest_key_terms_by_source:
-            # update config.key_terms_autosuggest_flashtext
-            # standalone key terms
-            standalone_key_terms_dict = {
-                "({}|S)".format(key_term["text"]): [key_term["text"]]
-                for key_term in extract_annotations_as_dictlist(
-                    annotated_text, types_to_extract=["standalone_keyterm"]
-                )
-            }
+            # update autosuggest flashtext
             config.key_terms_autosuggest_flashtext.add_keywords_from_dict(
-                standalone_key_terms_dict
+                merge_dict(
+                    {
+                        "({}|S)".format(key_term["text"]): [key_term["text"]]
+                        for key_term in extract_annotations_as_dictlist(
+                            annotated_text, types_to_extract=["standalone_keyterm"]
+                        )
+                    },
+                    {
+                        "({}|P {})".format(
+                            key_term["text"], key_term["parent_terms"]
+                        ): [key_term["text"]]
+                        for key_term in extract_annotations_as_dictlist(
+                            annotated_text, types_to_extract=["parented_keyterm"]
+                        )
+                    },
+                )
             )
-            # parented key terms
-            parented_key_terms_dict = {
-                "({}|P {})".format(key_term["text"], key_term["parent_terms"]): [
-                    key_term["text"]
+            # update config.autosuggest_key_terms_dataset
+            new_entries = pd.DataFrame(
+                extract_annotations_as_dictlist(
+                    annotated_text,
+                    types_to_extract=["standalone_keyterm", "parented_keyterm"],
+                )
+            ).fillna("")[["text", "parent_terms"]]
+            new_entries.columns = ["term", "parent_terms"]
+            config.autosuggest_key_terms_dataset = pd.concat(
+                [
+                    config.autosuggest_key_terms_dataset[
+                        ~config.autosuggest_key_terms_dataset["term"].isin(
+                            new_entries["term"]
+                        )
+                    ],
+                    new_entries,
                 ]
-                for key_term in extract_annotations_as_dictlist(
-                    annotated_text, types_to_extract=["parented_keyterm"]
-                )
-            }
-            config.key_terms_autosuggest_flashtext.add_keywords_from_dict(
-                parented_key_terms_dict
             )
-            # TODO: writeback
+
+            # write back new autosuggest key terms dataset
+            # TODO: complete

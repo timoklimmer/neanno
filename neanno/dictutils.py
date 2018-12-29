@@ -34,3 +34,15 @@ def mergesum_dict(dict1, dict2):
         value = dict2[key]
         result[key] += value
     return result
+
+
+def merge_dict(dict1, dict2):
+    """ Merges dict2 into dict1."""
+    if dict1 is None:
+        dict1 = {}
+    if dict2 is None:
+        dict2 = {}
+    result = dict1.copy()
+    for key in dict2:
+        result[key] = dict2[key]
+    return result
