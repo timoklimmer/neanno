@@ -171,11 +171,10 @@ class ConfigManager:
             autosuggest_key_terms_dataset = autosuggest_key_terms_dataset[
                 ["replace", "against"]
             ]
-            autosuggest_key_terms_dataset_as_dict = autosuggest_key_terms_dataset.set_index(
-                "against"
-            ).T.to_dict(
-                "list"
-            )
+            autosuggest_key_terms_dataset_as_dict = {
+                row["against"]: [row["replace"]]
+                for index, row in autosuggest_key_terms_dataset.iterrows()
+            }
             config.key_terms_autosuggest_flashtext = KeywordProcessor()
             config.key_terms_autosuggest_flashtext.add_keywords_from_dict(
                 autosuggest_key_terms_dataset_as_dict
