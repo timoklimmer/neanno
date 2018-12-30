@@ -26,6 +26,9 @@ class QDataWidgetMapperWithHistory(QDataWidgetMapper):
     def __init__(self, parent=None):
         super().__init__(parent)
 
+    def getCurrentIndex(self):
+        return self.currentIndex()
+
     def setCurrentIndex(self, index):
         if self.currentIndex() != index:
             if not self.is_forward_or_backward:

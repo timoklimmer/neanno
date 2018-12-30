@@ -390,18 +390,22 @@ class ConfigManager:
                     annotated_text,
                     types_to_extract=["standalone_keyterm", "parented_keyterm"],
                 )
-            ).fillna("")[["text", "parent_terms"]]
-            new_entries.columns = ["term", "parent_terms"]
-            config.autosuggest_key_terms_dataset = pd.concat(
-                [
-                    config.autosuggest_key_terms_dataset[
-                        ~config.autosuggest_key_terms_dataset["term"].isin(
-                            new_entries["term"]
-                        )
-                    ],
-                    new_entries,
-                ]
             )
+            if len(new_entries) > 0:
+                if "parent_terms" not in new_entries.columns:
+                    new_entries["parent_terms"] = ""
+                new_entries = new_entries.fillna("")[["text", "parent_terms"]]
+                new_entries.columns = ["term", "parent_terms"]
+                config.autosuggest_key_terms_dataset = pd.concat(
+                    [
+                        config.autosuggest_key_terms_dataset[
+                            ~config.autosuggest_key_terms_dataset["term"].isin(
+                                new_entries["term"]
+                            )
+                        ],
+                        new_entries,
+                    ]
+                )
 
             # write back new autosuggest key terms dataset
             # sort the key terms dataset for convenience

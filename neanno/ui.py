@@ -447,3 +447,5 @@ class AnnotationDialog(QMainWindow):
             remove_all_annotations(self.text_edit.toPlainText())
         )
         self.categories_selector.set_selected_categories_by_text("")
+        self.textmodel.unset_is_annotated_for_index(self.navigator.getCurrentIndex())
+        self.is_annotated_label.setText("False")
