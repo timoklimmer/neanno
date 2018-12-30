@@ -368,16 +368,16 @@ class ConfigManager:
             config.key_terms_autosuggest_flashtext.add_keywords_from_dict(
                 merge_dict(
                     {
-                        "({}|S)".format(key_term["text"]): [key_term["text"]]
-                        for key_term in extract_annotations_as_dictlist(
+                        "({}|S)".format(annotation["term"]): [annotation["term"]]
+                        for annotation in extract_annotations_as_dictlist(
                             annotated_text, types_to_extract=["standalone_keyterm"]
                         )
                     },
                     {
                         "({}|P {})".format(
-                            key_term["text"], key_term["parent_terms"]
-                        ): [key_term["text"]]
-                        for key_term in extract_annotations_as_dictlist(
+                            annotation["term"], annotation["parent_terms"]
+                        ): [annotation["term"]]
+                        for annotation in extract_annotations_as_dictlist(
                             annotated_text, types_to_extract=["parented_keyterm"]
                         )
                     },
@@ -393,8 +393,7 @@ class ConfigManager:
             if len(new_entries) > 0:
                 if "parent_terms" not in new_entries.columns:
                     new_entries["parent_terms"] = ""
-                new_entries = new_entries.fillna("")[["text", "parent_terms"]]
-                new_entries.columns = ["term", "parent_terms"]
+                new_entries = new_entries.fillna("")[["term", "parent_terms"]]
                 config.autosuggest_key_terms_dataset = pd.concat(
                     [
                         config.autosuggest_key_terms_dataset[

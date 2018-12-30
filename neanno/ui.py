@@ -275,7 +275,7 @@ class AnnotationDialog(QMainWindow):
         register_shortcut(self, SHORTCUT_NEXT, self.navigator.toNext)
         register_shortcut(self, SHORTCUT_LAST, self.navigator.toLast)
         register_shortcut(self, SHORTCUT_GOTO, self.go_to_index)
-        register_shortcut(self, SHORTCUT_REMOVE, self.remove_annotation)
+        register_shortcut(self, SHORTCUT_REMOVE, self.remove_annotation_from_position)
         register_shortcut(self, SHORTCUT_REMOVE_ALL, self.remove_all_annotations)
 
     def setup_and_wire_navigator(self):
@@ -436,12 +436,15 @@ class AnnotationDialog(QMainWindow):
         if text_cursor.hasSelection():
             text_cursor.insertText("({}|S)".format(selected_text))
 
-    def remove_annotation(self):
-        (new_text, term, long_type, postfix) = remove_annotation_at_position(
+    def remove_annotation_from_position(self):
+        (new_text, term, long_term_type, postfix) = remove_annotation_from_position(
             self.text_edit.toPlainText(), self.text_edit.textCursor().position()
         )
         self.text_edit.setPlainText(new_text)
-        if long_type in ["standalone_keyterm", "parented_keyterm"]:
+        if long_term_type in ["standalone_keyterm", "parented_keyterm"]:
+            # remove annotations for all other key terms as well
+            # TODO: complete
+            # remove term from key terms collection
             ConfigManager.remove_key_term_from_autosuggest_collection(term)
 
     def remove_all_annotations(self):

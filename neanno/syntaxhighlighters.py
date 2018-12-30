@@ -17,7 +17,7 @@ class TextEditHighlighter(QSyntaxHighlighter):
             (
                 QRegularExpression(
                     r"(?<openParen>\()"
-                    + r"(?<text>[^|()]+?)"
+                    + r"(?<term>[^|()]+?)"
                     + r"(?<pipeAndType>\|S)"
                     + r"(?<closingParen>\))"
                 ),
@@ -31,7 +31,7 @@ class TextEditHighlighter(QSyntaxHighlighter):
             (
                 QRegularExpression(
                     r"(?<openParen>\()"
-                    + r"(?<text>[^|()]+?)"
+                    + r"(?<term>[^|()]+?)"
                     + r"(?<pipeAndType>\|P)"
                     + r"(?<postfix> "
                     + r".*?"
@@ -48,7 +48,7 @@ class TextEditHighlighter(QSyntaxHighlighter):
                 (
                     QRegularExpression(
                         r"(?<openParen>\()"
-                        + r"(?<text>[^|()]+?)"
+                        + r"(?<term>[^|()]+?)"
                         + r"(?<pipeAndType>\|N)"
                         + r"(?<postfix> "
                         + named_definition.code
@@ -91,8 +91,8 @@ class TextEditHighlighter(QSyntaxHighlighter):
                 match = expression.match(text, offset)
                 self.setFormat(match.capturedStart("openParen"), 1, open_paren_format)
                 self.setFormat(
-                    match.capturedStart("text"),
-                    match.capturedLength("text"),
+                    match.capturedStart("term"),
+                    match.capturedLength("term"),
                     text_format,
                 )
                 self.setFormat(

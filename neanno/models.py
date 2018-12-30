@@ -223,16 +223,16 @@ class TextModel(QAbstractTableModel):
                     for autosuggest_regex in config.key_terms_autosuggest_regexes:
                         if autosuggest_regex.parent_terms:
                             result = re.sub(
-                                "(?P<text>{})".format(autosuggest_regex.pattern),
-                                "({}KP {})".format(
-                                    "\g<text>", autosuggest_regex.parent_terms
+                                "(?P<term>{})".format(autosuggest_regex.pattern),
+                                "({}P {})".format(
+                                    "\g<term>", autosuggest_regex.parent_terms
                                 ),
                                 result,
                             )
                         else:
                             result = re.sub(
-                                "(?P<text>{})".format(autosuggest_regex.pattern),
-                                "({}|S)".format("\g<text>"),
+                                "(?P<term>{})".format(autosuggest_regex.pattern),
+                                "({}|S)".format("\g<term>"),
                                 result,
                             )
 
@@ -246,8 +246,8 @@ class TextModel(QAbstractTableModel):
                 if config.is_autosuggest_entities_by_regexes:
                     for autosuggest_regex in config.named_entities_autosuggest_regexes:
                         result = re.sub(
-                            "(?P<text>{})".format(autosuggest_regex.pattern),
-                            "({}|N {})".format("\g<text>", autosuggest_regex.entity),
+                            "(?P<term>{})".format(autosuggest_regex.pattern),
+                            "({}|N {})".format("\g<term>", autosuggest_regex.entity),
                             result,
                         )
             # return result
