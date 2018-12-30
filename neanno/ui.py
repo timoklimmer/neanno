@@ -70,14 +70,14 @@ class AnnotationDialog(QMainWindow):
         self.move(horizontal_position, vertical_position)
 
         # text edit
-        self.text_edit = QPlainTextEdit()
-        self.text_edit.setStyleSheet(
+        self.textedit = QPlainTextEdit()
+        self.textedit.setStyleSheet(
             "font-size: 14pt; font-family: Consolas; color: lightgrey; background-color: black"
         )
-        self.text_edit_highlighter = TextEditHighlighter(
-            self.text_edit.document(), config.named_entity_definitions
+        self.textedit_highlighter = TextEditHighlighter(
+            self.textedit.document(), config.named_entity_definitions
         )
-        self.text_edit.textChanged.connect(self.update_annotation_monitor)
+        self.textedit.textChanged.connect(self.update_annotation_monitor)
 
         # annotation monitor
         self.annotation_monitor = QPlainTextEdit()
@@ -215,7 +215,7 @@ class AnnotationDialog(QMainWindow):
         # left panel
         left_panel_layout = QVBoxLayout()
         left_panel_layout_splitter = QSplitter(Qt.Vertical)
-        left_panel_layout_splitter.addWidget(self.text_edit)
+        left_panel_layout_splitter.addWidget(self.textedit)
         left_panel_layout_splitter.addWidget(self.annotation_monitor)
         left_panel_layout_splitter.setSizes([400, 100])
         left_panel_layout.addWidget(left_panel_layout_splitter)
@@ -282,7 +282,7 @@ class AnnotationDialog(QMainWindow):
         self.navigator = QDataWidgetMapperWithHistory(self)
         self.navigator.setSubmitPolicy(QDataWidgetMapper.ManualSubmit)
         self.navigator.setModel(self.textmodel)
-        self.navigator.addMapping(self.text_edit, 0)
+        self.navigator.addMapping(self.textedit, 0)
         self.navigator.addMapping(
             self.is_annotated_label, 1, QByteArray().insert(0, "text")
         )
@@ -305,53 +305,12 @@ class AnnotationDialog(QMainWindow):
         self.goto_button.clicked.connect(self.go_to_index)
         self.submit_next_best_button.clicked.connect(self.submit_and_go_to_next_best)
 
-    def update_annotation_monitor(self):
-        # update annotation monitor
-        self.annotation_monitor.setPlainText(
-            extract_annotations_as_text(
-                self.text_edit.toPlainText(),
-                # remove comment to include categories too
-                ##self.categories_selector.get_selected_categories(),
-            )
-        )
-
-    def submit_and_go_to_next_best(self):
-        # submit changes of old text
-        self.navigator.submit()
-        # update controls
-        self.update_dataset_related_controls()
-        self.update_navigation_related_controls()
-        # show "all messages annotated" if all texts are annotated
-        if not self.textmodel.is_texts_left_for_annotation():
-            QMessageBox.information(
-                self,
-                "Congratulations",
-                "You have annotated all {} texts. There are no more texts to annotate.".format(
-                    self.textmodel.rowCount()
-                ),
-                QMessageBox.Ok,
-            )
-        # identify and go to next best text
-        self.navigator.setCurrentIndex(
-            self.textmodel.get_next_best_row_index(self.navigator.currentIndex())
-        )
-
-    def go_to_index(self):
-        new_index, is_not_canceled = QInputDialog.getInt(
-            self, "Goto Index", "Enter an index:"
-        )
-        if is_not_canceled:
-            self.navigator.setCurrentIndex(new_index)
-
-    def retrain_model(self):
-        self.textmodel.retrain_spacy_model()
-
     def update_navigation_related_controls(self):
         # current index
         self.current_text_index_label.setText(str(self.navigator.currentIndex()))
         # remove focus from controls
-        # text_edit
-        self.text_edit.clearFocus()
+        # textedit
+        self.textedit.clearFocus()
         # categories_selector
         if config.is_categories_enabled:
             self.categories_selector.clearFocus()
@@ -397,8 +356,25 @@ class AnnotationDialog(QMainWindow):
         )
         self.progressbar.setValue(new_progress_value)
 
+    def update_annotation_monitor(self):
+        # update annotation monitor
+        self.annotation_monitor.setPlainText(
+            extract_annotations_as_text(
+                self.textedit.toPlainText(),
+                # remove comment to include categories too
+                ##self.categories_selector.get_selected_categories(),
+            )
+        )
+
+    def go_to_index(self):
+        new_index, is_not_canceled = QInputDialog.getInt(
+            self, "Goto Index", "Enter an index:"
+        )
+        if is_not_canceled:
+            self.navigator.setCurrentIndex(new_index)
+
     def annotate_entity(self):
-        text_cursor = self.text_edit.textCursor()
+        text_cursor = self.textedit.textCursor()
         if text_cursor.hasSelection():
             # change text
             key_sequence = self.sender().key().toString()
@@ -411,7 +387,7 @@ class AnnotationDialog(QMainWindow):
             text_cursor.insertText("({}|N {})".format(selected_text, code))
 
     def annotate_parented_key_term(self):
-        text_cursor = self.text_edit.textCursor()
+        text_cursor = self.textedit.textCursor()
         if text_cursor.hasSelection():
             # add annotation to text
             default_parent_key_term = (
@@ -427,20 +403,20 @@ class AnnotationDialog(QMainWindow):
             )
             text_cursor.setPosition(new_selection_start)
             text_cursor.setPosition(new_selection_end, QTextCursor.KeepAnchor)
-            self.text_edit.setTextCursor(text_cursor)
+            self.textedit.setTextCursor(text_cursor)
 
     def annotate_standalone_key_term(self):
         # add annotation to text
-        text_cursor = self.text_edit.textCursor()
+        text_cursor = self.textedit.textCursor()
         selected_text = text_cursor.selectedText()
         if text_cursor.hasSelection():
             text_cursor.insertText("({}|S)".format(selected_text))
 
     def remove_annotation_from_position(self):
         (new_text, term, long_term_type, postfix) = remove_annotation_from_position(
-            self.text_edit.toPlainText(), self.text_edit.textCursor().position()
+            self.textedit.toPlainText(), self.textedit.textCursor().position()
         )
-        self.text_edit.setPlainText(new_text)
+        self.textedit.setPlainText(new_text)
         if long_term_type in ["standalone_keyterm", "parented_keyterm"]:
             # remove annotations for all other key terms as well
             # TODO: complete
@@ -448,9 +424,33 @@ class AnnotationDialog(QMainWindow):
             ConfigManager.remove_key_term_from_autosuggest_collection(term)
 
     def remove_all_annotations(self):
-        self.text_edit.setPlainText(
-            remove_all_annotations(self.text_edit.toPlainText())
+        self.textedit.setPlainText(
+            remove_all_annotations(self.textedit.toPlainText())
         )
         self.categories_selector.set_selected_categories_by_text("")
         self.textmodel.unset_is_annotated_for_index(self.navigator.getCurrentIndex())
         self.is_annotated_label.setText("False")
+
+    def submit_and_go_to_next_best(self):
+        # submit changes of old text
+        self.navigator.submit()
+        # update controls
+        self.update_dataset_related_controls()
+        self.update_navigation_related_controls()
+        # show "all messages annotated" if all texts are annotated
+        if not self.textmodel.is_texts_left_for_annotation():
+            QMessageBox.information(
+                self,
+                "Congratulations",
+                "You have annotated all {} texts. There are no more texts to annotate.".format(
+                    self.textmodel.rowCount()
+                ),
+                QMessageBox.Ok,
+            )
+        # identify and go to next best text
+        self.navigator.setCurrentIndex(
+            self.textmodel.get_next_best_row_index(self.navigator.currentIndex())
+        )
+
+    def retrain_model(self):
+        self.textmodel.retrain_spacy_model()
