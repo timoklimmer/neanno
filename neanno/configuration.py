@@ -421,6 +421,15 @@ class ConfigManager:
                 ConfigManager.get_config_value("key_terms/auto_suggest/source/spec"),
             )
 
+    def remove_key_term_from_autosuggest_collection(term):
+        config.autosuggest_key_terms_dataset = config.autosuggest_key_terms_dataset[
+            config.autosuggest_key_terms_dataset.term != term
+        ]
+        ConfigManager.save_dataset(
+            config.autosuggest_key_terms_dataset,
+            ConfigManager.get_config_value("key_terms/auto_suggest/source/spec"),
+        )
+
     def save_dataset(dataframe, spec):
         supported_datasource_types = ["csv"]
         datasource_type = spec.split(":")[0]

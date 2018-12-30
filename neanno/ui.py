@@ -26,6 +26,7 @@ from PyQt5.QtWidgets import (
 )
 
 from neanno.about import show_about_dialog
+from neanno.configuration import ConfigManager
 from neanno.custom_ui_controls import (
     CategoriesSelectorWidget,
     QDataWidgetMapperWithHistory,
@@ -436,11 +437,12 @@ class AnnotationDialog(QMainWindow):
             text_cursor.insertText("({}|S)".format(selected_text))
 
     def remove_annotation(self):
-        self.text_edit.setPlainText(
-            remove_annotation_at_position(
-                self.text_edit.toPlainText(), self.text_edit.textCursor().position()
-            )
+        (new_text, term, long_type, postfix) = remove_annotation_at_position(
+            self.text_edit.toPlainText(), self.text_edit.textCursor().position()
         )
+        self.text_edit.setPlainText(new_text)
+        if long_type in ["standalone_keyterm", "parented_keyterm"]:
+            ConfigManager.remove_key_term_from_autosuggest_collection(term)
 
     def remove_all_annotations(self):
         self.text_edit.setPlainText(

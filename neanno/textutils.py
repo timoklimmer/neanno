@@ -191,17 +191,39 @@ def extract_annotations_as_dictlist(
     return result
 
 
-def remove_annotation_at_position(text, position):
+def remove_annotation_at_position(annotated_text, position):
     current_cursor_pos = position
+    text = None
+    long_type = None
+    postfix = None
+
+    # text, type, postfix of annotation
+    for match in re.finditer(
+        r"\((?P<text>[^()]+?)\|(?P<type>(S|P|N))( (?P<postfix>[^()]+?))?\)",
+        annotated_text,
+        flags=re.DOTALL,
+    ):
+        if not (match.start() < current_cursor_pos < match.end()):
+            continue
+        text = match.group("text")
+        type_mapping = {
+            "S": "standalone_keyterm",
+            "P": "parented_keyterm",
+            "N": "named_entity",
+        }
+        long_type = type_mapping.get(match.group("type"))
+        postfix = match.group("postfix")
+
+    # remove annotation from text
     new_text = re.sub(
         r"\((.*?)\|(((P|N) .+?)|(S))\)",
         lambda match: match.group(1)
         if match.start() < current_cursor_pos < match.end()
         else match.group(0),
-        text,
+        annotated_text,
         flags=re.DOTALL,
     )
-    return new_text
+    return (new_text, text, long_type, postfix)
 
 
 def remove_all_annotations(text):
