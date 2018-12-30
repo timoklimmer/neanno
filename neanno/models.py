@@ -14,7 +14,7 @@ from spacy.util import compounding, minibatch
 from neanno.configuration import ConfigManager
 from neanno.dictutils import mergesum_dict
 from neanno.textutils import (
-    extract_annotations_as_ranges,
+    extract_annotations_as_text_and_ranges,
     extract_named_entities_distribution,
 )
 
@@ -135,7 +135,7 @@ class TextModel(QAbstractTableModel):
                 config.dataset_to_edit[config.is_annotated_column] == True
             ][config.text_column]
             .map(
-                lambda text: extract_annotations_as_ranges(
+                lambda text: extract_annotations_as_text_and_ranges(
                     text,
                     ["named_entities"],
                     [

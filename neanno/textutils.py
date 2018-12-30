@@ -7,7 +7,7 @@ TINY_TO_LONG_TERM_TYPE_MAPPING = {
 }
 
 
-def extract_annotations_as_ranges(
+def extract_annotations_as_text_and_ranges(
     annotated_text, types_to_extract=None, entity_names_to_extract=None
 ):
     """ Returns all annotations and their position ranges from an annotated text.
