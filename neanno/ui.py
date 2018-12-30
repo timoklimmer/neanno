@@ -77,7 +77,7 @@ class AnnotationDialog(QMainWindow):
         self.textedit_highlighter = TextEditHighlighter(
             self.textedit.document(), config.named_entity_definitions
         )
-        self.textedit.textChanged.connect(self.update_annotation_monitor)
+        self.textedit.textChanged.connect(self.textedit_text_changed)
 
         # annotation monitor
         self.annotation_monitor = QPlainTextEdit()
@@ -275,7 +275,7 @@ class AnnotationDialog(QMainWindow):
         register_shortcut(self, SHORTCUT_NEXT, self.navigator.toNext)
         register_shortcut(self, SHORTCUT_LAST, self.navigator.toLast)
         register_shortcut(self, SHORTCUT_GOTO, self.go_to_index)
-        register_shortcut(self, SHORTCUT_REMOVE, self.remove_annotation_from_position)
+        register_shortcut(self, SHORTCUT_REMOVE, self.remove_annotations_by_position)
         register_shortcut(self, SHORTCUT_REMOVE_ALL, self.remove_all_annotations)
 
     def setup_and_wire_navigator(self):
@@ -356,8 +356,15 @@ class AnnotationDialog(QMainWindow):
         )
         self.progressbar.setValue(new_progress_value)
 
+    def textedit_text_changed(self):
+        self.sync_key_term_annotations()
+        self.update_annotation_monitor()
+
+    def sync_key_term_annotations(self):
+        # TODO: encapsulate annotation at position function
+        pass
+
     def update_annotation_monitor(self):
-        # update annotation monitor
         self.annotation_monitor.setPlainText(
             extract_annotations_as_text(
                 self.textedit.toPlainText(),
@@ -412,21 +419,22 @@ class AnnotationDialog(QMainWindow):
         if text_cursor.hasSelection():
             text_cursor.insertText("({}|S)".format(selected_text))
 
-    def remove_annotation_from_position(self):
-        (new_text, term, long_term_type, postfix) = remove_annotation_from_position(
+    def remove_annotations_by_position(self):
+        new_text, removed_annotation = remove_annotations_by_position(
             self.textedit.toPlainText(), self.textedit.textCursor().position()
         )
         self.textedit.setPlainText(new_text)
-        if long_term_type in ["standalone_keyterm", "parented_keyterm"]:
-            # remove annotations for all other key terms as well
-            # TODO: complete
+        if removed_annotation["term_type_long"] in [
+            "standalone_keyterm",
+            "parented_keyterm",
+        ]:
             # remove term from key terms collection
-            ConfigManager.remove_key_term_from_autosuggest_collection(term)
+            ConfigManager.remove_key_term_from_autosuggest_collection(
+                removed_annotation["term"]
+            )
 
     def remove_all_annotations(self):
-        self.textedit.setPlainText(
-            remove_all_annotations(self.textedit.toPlainText())
-        )
+        self.textedit.setPlainText(remove_all_annotations(self.textedit.toPlainText()))
         self.categories_selector.set_selected_categories_by_text("")
         self.textmodel.unset_is_annotated_for_index(self.navigator.getCurrentIndex())
         self.is_annotated_label.setText("False")

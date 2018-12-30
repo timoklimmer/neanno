@@ -1,6 +1,6 @@
 import re
 
-TINY_TO_LONG_TERM_TYPE_MAPPING = {
+TERM_TYPE_TINY_TO_LONG_MAPPING = {
     "S": "standalone_keyterm",
     "P": "parented_keyterm",
     "N": "named_entity",
@@ -38,7 +38,7 @@ def extract_annotations_as_text_and_ranges(
     parented_keyterms = []
     named_entities = []
     for match in re.finditer(
-        r"\((?P<term>[^()]+?)\|(?P<type>(S|P|N))( (?P<postfix>[^()]+?))?\)",
+        r"\((?P<term>[^()]+?)\|(?P<term_type_tiny>(S|P|N))( (?P<postfix>[^()]+?))?\)",
         annotated_text,
         flags=re.DOTALL,
     ):
@@ -46,18 +46,18 @@ def extract_annotations_as_text_and_ranges(
         end_position = start_position + len(
             remove_all_annotations(annotated_text[match.start() : match.end()])
         )
-        if match.group("type") == "S" and (
+        if match.group("term_type_tiny") == "S" and (
             types_to_extract is None or "standalone_keyterm" in types_to_extract
         ):
             standalone_keyterms.append((start_position, end_position))
-        if match.group("type") == "P" and (
+        if match.group("term_type_tiny") == "P" and (
             types_to_extract is None or "parented_keyterm" in types_to_extract
         ):
             parented_keyterms.append(
                 (start_position, end_position, match.group("postfix"))
             )
         if (
-            match.group("type") == "N"
+            match.group("term_type_tiny") == "N"
             and (types_to_extract is None or "named_entity" in types_to_extract)
             and (
                 entity_names_to_extract is None
@@ -104,40 +104,43 @@ def extract_annotations_as_dictlist(
 
     result = []
     for match in re.finditer(
-        r"\((?P<term>[^()]+?)\|(?P<type>(S|P|N))( (?P<postfix>[^()]+?))?\)",
+        r"\((?P<term>[^()]+?)\|(?P<term_type_tiny>(S|P|N))( (?P<postfix>[^()]+?))?\)",
         annotated_text,
         flags=re.DOTALL,
     ):
         # compute full result
         term = match.group("term")
-        type = match.group("type")
+        term_type_long = TERM_TYPE_TINY_TO_LONG_MAPPING.get(
+            match.group("term_type_tiny")
+        )
         postfix = match.group("postfix")
         start_position = len(remove_all_annotations(annotated_text[: match.start()]))
         end_position = start_position + len(
             remove_all_annotations(annotated_text[match.start() : match.end()])
         )
-        long_term_type = TINY_TO_LONG_TERM_TYPE_MAPPING.get(type)
         dict_to_add = {
             "term": term,
             "start": start_position,
             "end": end_position,
-            "type": long_term_type,
+            "term_type_long": term_type_long,
         }
-        if type == "P":
+        if term_type_long == "parented_keyword":
             dict_to_add["parent_terms"] = postfix
-        if type == "N":
+        if term_type_long == "named_entity":
             dict_to_add["entity_name"] = postfix
         result.append(dict_to_add)
         # apply filters if needed
         if types_to_extract:
-            result = [item for item in result if item["type"] in types_to_extract]
+            result = [
+                item for item in result if item["term_type_long"] in types_to_extract
+            ]
         if entity_names_to_extract:
             result = [
                 item
                 for item in result
-                if item["type"] != "named_entity"
+                if item["term_type_long"] != "named_entity"
                 or (
-                    item["type"] == "named_entity"
+                    item["term_type_long"] == "named_entity"
                     and "entity_name" in item
                     and item["entity_name"] in entity_names_to_extract
                 )
@@ -148,15 +151,17 @@ def extract_annotations_as_dictlist(
 def extract_annotations_as_text(annotated_text, external_annotations_to_add=[]):
     result_list = []
     for match in re.finditer(
-        r"\((?P<term>[^()]+?)\|(?P<type>(S|P|N))( (?P<postfix>[^()]+?))?\)",
+        r"\((?P<term>[^()]+?)\|(?P<term_type_tiny>(S|P|N))( (?P<postfix>[^()]+?))?\)",
         annotated_text,
         flags=re.DOTALL,
     ):
         term = match.group("term")
-        type = match.group("type")
+        term_type_long = TERM_TYPE_TINY_TO_LONG_MAPPING.get(
+            match.group("term_type_tiny")
+        )
         postfix = match.group("postfix")
         # standalone key term
-        if type == "S":
+        if term_type_long == "standalone_keyterm":
             annotation_to_add = term
             if annotation_to_add.lower() not in [
                 annotation.lower() for annotation in result_list
@@ -165,7 +170,7 @@ def extract_annotations_as_text(annotated_text, external_annotations_to_add=[]):
             ]:
                 result_list.append(annotation_to_add)
         # parented key terms
-        if type == "P":
+        if term_type_long == "parented_keyterm":
             parent_terms = []
             for parent_term in set(
                 [parent_term.strip() for parent_term in postfix.split(",")]
@@ -179,7 +184,7 @@ def extract_annotations_as_text(annotated_text, external_annotations_to_add=[]):
                     parent_terms.append(annotation_to_add)
             result_list.extend(sorted(parent_terms))
         # named entity
-        if type == "N":
+        if term_type_long == "named_entity":
             annotation_to_add = "{}:{}".format(postfix.lower(), term)
             if annotation_to_add.lower() not in [
                 annotation.lower() for annotation in result_list
@@ -195,62 +200,81 @@ def extract_annotations_as_text(annotated_text, external_annotations_to_add=[]):
     return ", ".join(result_list)
 
 
-def remove_annotation_from_position(annotated_text, position):
-    current_cursor_pos = position
-    term = None
-    long_term_type = None
-    postfix = None
-
-    # extract term, long_term_type, postfix of annotation
+def get_annotation_at_position(annotated_text, position):
+    result = None
     for match in re.finditer(
-        r"\((?P<term>[^()]+?)\|(?P<type>(S|P|N))( (?P<postfix>[^()]+?))?\)",
+        r"\((?P<term>[^()]+?)\|(?P<term_type_tiny>(S|P|N))( (?P<postfix>[^()]+?))?\)",
         annotated_text,
         flags=re.DOTALL,
     ):
-        if not (match.start() < current_cursor_pos < match.end()):
+        if not (match.start() < position < match.end()):
             continue
         term = match.group("term")
-        long_term_type = TINY_TO_LONG_TERM_TYPE_MAPPING.get(match.group("type"))
+        term_type_long = TERM_TYPE_TINY_TO_LONG_MAPPING.get(
+            match.group("term_type_tiny")
+        )
         postfix = match.group("postfix")
+        start_position = len(remove_all_annotations(annotated_text[: match.start()]))
+        end_position = start_position + len(
+            remove_all_annotations(annotated_text[match.start() : match.end()])
+        )
+        result = {
+            "term": term,
+            "start": start_position,
+            "end": end_position,
+            "term_type_long": term_type_long,
+        }
+        if term_type_long == "parented_keyword":
+            result["parent_terms"] = postfix
+        if term_type_long == "named_entity":
+            result["entity_name"] = postfix
+    return result
 
-    # remove annotation from text
-    new_text = re.sub(
-        r"\((.*?)\|(((P|N) .+?)|(S))\)",
-        lambda match: match.group(1)
-        if match.start() < current_cursor_pos < match.end()
-        else match.group(0),
-        annotated_text,
-        flags=re.DOTALL,
-    )
 
-    # remove all other occurences of the same key term as well
-    if long_term_type in ["standalone_keyterm", "parented_keyterm"]:
+def remove_annotations_by_position(annotated_text, position):
+    annotation_at_position = get_annotation_at_position(annotated_text, position)
+    if annotation_at_position is not None:
+        # remove annotation from text
         new_text = re.sub(
-            r"(?i)\(({})\|(((P) .+?)|(S))\)".format(re.escape(term)),
-            term,
-            new_text,
+            r"\((.*?)\|(((P|N) .+?)|(S))\)",
+            lambda match: match.group(1)
+            if match.start() < position < match.end()
+            else match.group(0),
+            annotated_text,
             flags=re.DOTALL,
         )
 
-    # return result
-    return (new_text, term, long_term_type, postfix)
+        # remove all other occurences of the same key term as well
+        if annotation_at_position["term_type_long"] in [
+            "standalone_keyterm",
+            "parented_keyterm",
+        ]:
+            term = annotation_at_position["term"]
+            new_text = re.sub(
+                r"(?i)\(({})\|(((P) .+?)|(S))\)".format(re.escape(term)),
+                term,
+                new_text,
+                flags=re.DOTALL,
+            )
+
+    return (new_text, annotation_at_position)
 
 
-def remove_all_annotations(text):
+def remove_all_annotations(annotated_text):
     new_text = re.sub(
         r"\((.*?)\|(((P|N) .+?)|(S))\)",
         lambda match: match.group(1),
-        text,
+        annotated_text,
         flags=re.DOTALL,
     )
     return new_text
 
 
-def extract_named_entities_distribution(text):
+def extract_named_entities_distribution(annotated_text):
     """ Computes the types and frequencies of named entities in the specified text."""
     result = {}
     find_entities_pattern = "\((?P<term>.+?)\|N (?P<label>.+?)\)"
-    for entity in re.findall(find_entities_pattern, text):
+    for entity in re.findall(find_entities_pattern, annotated_text):
         entity_code = entity[1]
         if entity_code not in result:
             result[entity_code] = 0
