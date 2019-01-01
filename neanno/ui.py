@@ -39,6 +39,8 @@ from neanno.textutils import *
 class AnnotationDialog(QMainWindow):
     """ The dialog shown to the user to do the annotation/labeling."""
 
+    skip_next_text_changed = False
+
     def __init__(self, textmodel):
         print("Showing annotation dialog...")
         app = QApplication([])
@@ -275,7 +277,7 @@ class AnnotationDialog(QMainWindow):
         register_shortcut(self, SHORTCUT_NEXT, self.navigator.toNext)
         register_shortcut(self, SHORTCUT_LAST, self.navigator.toLast)
         register_shortcut(self, SHORTCUT_GOTO, self.go_to_index)
-        register_shortcut(self, SHORTCUT_REMOVE, self.remove_annotations_by_position)
+        register_shortcut(self, SHORTCUT_REMOVE, self.remove_annotation)
         register_shortcut(self, SHORTCUT_REMOVE_ALL, self.remove_all_annotations)
 
     def setup_and_wire_navigator(self):
@@ -357,12 +359,37 @@ class AnnotationDialog(QMainWindow):
         self.progressbar.setValue(new_progress_value)
 
     def textedit_text_changed(self):
-        self.sync_key_term_annotations()
+        # skip method execution if flag is set
+        if self.skip_next_text_changed:
+            self.skip_next_text_changed = False
+            return
+
+        # sync parented key terms
+        self.sync_parented_keyterms()
+
+        # update annotation monitor
         self.update_annotation_monitor()
 
-    def sync_key_term_annotations(self):
-        # TODO: encapsulate annotation at position function
-        pass
+    def sync_parented_keyterms(self):
+        # get annotation at current cursor position
+        annotation_at_current_cursor_pos = get_annotation_at_position(
+            self.textedit.toPlainText(), self.textedit.textCursor().position()
+        )
+        # update annotation for same parented keyterm
+        if (
+            annotation_at_current_cursor_pos is not None
+            and annotation_at_current_cursor_pos["term_type_long"] == "parented_keyterm"
+        ):
+            text_to_replace_pattern = r"\({}\|P .*?\)".format(
+                re.escape(annotation_at_current_cursor_pos["term"])
+            )
+            replace_against_text = "({}|P {})".format(
+                annotation_at_current_cursor_pos["term"],
+                annotation_at_current_cursor_pos["parent_terms"],
+            )
+            self.replace_pattern_in_textedit(
+                text_to_replace_pattern, replace_against_text
+            )
 
     def update_annotation_monitor(self):
         self.annotation_monitor.setPlainText(
@@ -380,6 +407,45 @@ class AnnotationDialog(QMainWindow):
         if is_not_canceled:
             self.navigator.setCurrentIndex(new_index)
 
+    def annotate_standalone_key_term(self):
+        text_cursor = self.textedit.textCursor()
+        if text_cursor.hasSelection():
+            # TODO: only match if not part of another annotation
+            text_to_replace = text_cursor.selectedText()
+            text_to_replace_pattern = r"(?<!\(){}(?!\|S\))".format(
+                re.escape(text_to_replace)
+            )
+            replace_against_text = "({}|S)".format(text_to_replace)
+            self.replace_pattern_in_textedit(
+                text_to_replace_pattern, replace_against_text
+            )
+
+    def annotate_parented_key_term(self):
+        text_cursor = self.textedit.textCursor()
+        if text_cursor.hasSelection():
+            text_to_replace = text_cursor.selectedText()
+            # TODO: only match if not part of another annotation
+            text_to_replace_pattern = r"(?<!\(){}(?!\|P .*?\))".format(
+                re.escape(text_to_replace)
+            )
+            default_parent_key_term = (
+                "<add your consolidating terms here, separated by commas>"
+            )
+            orig_selection_start = text_cursor.selectionStart()
+            new_selection_start = orig_selection_start + len(
+                "({}|P ".format(text_cursor.selectedText())
+            )
+            new_selection_end = new_selection_start + len(default_parent_key_term)
+            replace_against_text = "({}|P {})".format(
+                text_to_replace, default_parent_key_term
+            )
+            self.replace_pattern_in_textedit(
+                text_to_replace_pattern, replace_against_text
+            )
+            text_cursor.setPosition(new_selection_start)
+            text_cursor.setPosition(new_selection_end, QTextCursor.KeepAnchor)
+            self.textedit.setTextCursor(text_cursor)
+
     def annotate_entity(self):
         text_cursor = self.textedit.textCursor()
         if text_cursor.hasSelection():
@@ -393,45 +459,39 @@ class AnnotationDialog(QMainWindow):
                     break
             text_cursor.insertText("({}|N {})".format(selected_text, code))
 
-    def annotate_parented_key_term(self):
-        text_cursor = self.textedit.textCursor()
-        if text_cursor.hasSelection():
-            # add annotation to text
-            default_parent_key_term = (
-                "<add your consolidating terms here, separated by commas>"
-            )
-            orig_selection_start = text_cursor.selectionStart()
-            new_selection_start = orig_selection_start + len(
-                "({}|P ".format(text_cursor.selectedText())
-            )
-            new_selection_end = new_selection_start + len(default_parent_key_term)
-            text_cursor.insertText(
-                "({}|P {})".format(text_cursor.selectedText(), default_parent_key_term)
-            )
-            text_cursor.setPosition(new_selection_start)
-            text_cursor.setPosition(new_selection_end, QTextCursor.KeepAnchor)
-            self.textedit.setTextCursor(text_cursor)
-
-    def annotate_standalone_key_term(self):
-        # add annotation to text
-        text_cursor = self.textedit.textCursor()
-        selected_text = text_cursor.selectedText()
-        if text_cursor.hasSelection():
-            text_cursor.insertText("({}|S)".format(selected_text))
-
-    def remove_annotations_by_position(self):
-        new_text, removed_annotation = remove_annotations_by_position(
+    def remove_annotation(self):
+        annotation = get_annotation_at_position(
             self.textedit.toPlainText(), self.textedit.textCursor().position()
         )
-        self.textedit.setPlainText(new_text)
-        if removed_annotation["term_type_long"] in [
-            "standalone_keyterm",
-            "parented_keyterm",
-        ]:
-            # remove term from key terms collection
-            ConfigManager.remove_key_term_from_autosuggest_collection(
-                removed_annotation["term"]
+        # ensure there is an annotation to remove
+        if annotation is not None:
+            # get the replace pattern and replace against text
+            if annotation["term_type_long"] == "standalone_keyterm":
+                text_to_replace_pattern = r"\({}\|S\)".format(
+                    annotation["term"]
+                )
+            if annotation["term_type_long"] == "parented_keyterm":
+                text_to_replace_pattern = r"\({}\|P .*?\)".format(
+                    annotation["term"]
+                )
+            if annotation["term_type_long"] == "named_entity":
+                text_to_replace_pattern = r"\({}\|N {}?\)".format(
+                    annotation["term"],
+                    annotation["entity_name"]
+                )
+            replace_against_text = annotation["term"]
+            # do the replace
+            self.replace_pattern_in_textedit(
+                text_to_replace_pattern, replace_against_text
             )
+            # remove key term from autosuggest collection (if it is a key term)
+            if annotation["term_type_long"] in [
+                "standalone_keyterm",
+                "parented_keyterm",
+            ]:
+                ConfigManager.remove_key_term_from_autosuggest_collection(
+                    annotation["term"]
+                )
 
     def remove_all_annotations(self):
         self.textedit.setPlainText(remove_all_annotations(self.textedit.toPlainText()))
@@ -462,3 +522,21 @@ class AnnotationDialog(QMainWindow):
 
     def retrain_model(self):
         self.textmodel.retrain_spacy_model()
+
+    def replace_pattern_in_textedit(self, replace_pattern, replace_against_text):
+        text_cursor = self.textedit.textCursor()
+        text_cursor_backup = self.textedit.textCursor()
+        compiled_pattern = re.compile(replace_pattern, flags=re.DOTALL)
+        current_position = 0
+        match = compiled_pattern.search(self.textedit.toPlainText(), current_position)
+        while match is not None:
+            if match.group() != replace_against_text:
+                text_cursor.setPosition(match.start())
+                text_cursor.setPosition(match.end(), QTextCursor.KeepAnchor)
+                self.skip_next_text_changed = True
+                text_cursor.insertText(replace_against_text)
+            current_position = match.end()
+            match = compiled_pattern.search(
+                self.textedit.toPlainText(), current_position
+            )
+        self.textedit.setTextCursor(text_cursor_backup)

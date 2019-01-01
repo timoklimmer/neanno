@@ -124,7 +124,7 @@ def extract_annotations_as_dictlist(
             "end": end_position,
             "term_type_long": term_type_long,
         }
-        if term_type_long == "parented_keyword":
+        if term_type_long == "parented_keyterm":
             dict_to_add["parent_terms"] = postfix
         if term_type_long == "named_entity":
             dict_to_add["entity_name"] = postfix
@@ -203,7 +203,7 @@ def extract_annotations_as_text(annotated_text, external_annotations_to_add=[]):
 def get_annotation_at_position(annotated_text, position):
     result = None
     for match in re.finditer(
-        r"\((?P<term>[^()]+?)\|(?P<term_type_tiny>(S|P|N))( (?P<postfix>[^()]+?))?\)",
+        r"\((?P<term>[^()]+?)\|(?P<term_type_tiny>(S|P|N))( (?P<postfix>[^()]*?))?\)",
         annotated_text,
         flags=re.DOTALL,
     ):
@@ -224,40 +224,11 @@ def get_annotation_at_position(annotated_text, position):
             "end": end_position,
             "term_type_long": term_type_long,
         }
-        if term_type_long == "parented_keyword":
+        if term_type_long == "parented_keyterm":
             result["parent_terms"] = postfix
         if term_type_long == "named_entity":
             result["entity_name"] = postfix
     return result
-
-
-def remove_annotations_by_position(annotated_text, position):
-    annotation_at_position = get_annotation_at_position(annotated_text, position)
-    if annotation_at_position is not None:
-        # remove annotation from text
-        new_text = re.sub(
-            r"\((.*?)\|(((P|N) .+?)|(S))\)",
-            lambda match: match.group(1)
-            if match.start() < position < match.end()
-            else match.group(0),
-            annotated_text,
-            flags=re.DOTALL,
-        )
-
-        # remove all other occurences of the same key term as well
-        if annotation_at_position["term_type_long"] in [
-            "standalone_keyterm",
-            "parented_keyterm",
-        ]:
-            term = annotation_at_position["term"]
-            new_text = re.sub(
-                r"(?i)\(({})\|(((P) .+?)|(S))\)".format(re.escape(term)),
-                term,
-                new_text,
-                flags=re.DOTALL,
-            )
-
-    return (new_text, annotation_at_position)
 
 
 def remove_all_annotations(annotated_text):
