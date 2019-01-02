@@ -277,8 +277,8 @@ class TextModel(QAbstractTableModel):
                 # text
                 # update text
                 config.dataset_to_edit.iat[row, self.text_column_index] = value
-                # update key terms to key terms collection if enabled
-                ConfigManager.upsert_key_terms_to_autosuggest_collection(value)
+                # update autosuggest key terms collection
+                ConfigManager.update_autosuggest_key_terms_collection(value)
                 # re-compute distributions
                 # TODO: might be made more efficient with deltas instead of complete recomputation all the time
                 self.compute_entities_distribution()

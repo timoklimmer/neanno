@@ -1,10 +1,8 @@
 import os
+
 import config
 from PyQt5.QtCore import Qt, pyqtProperty
-from PyQt5.QtGui import (
-    QColor,
-    QPalette
-)
+from PyQt5.QtGui import QColor, QPalette
 from PyQt5.QtWidgets import (
     QAbstractItemView,
     QDataWidgetMapper,
@@ -14,6 +12,8 @@ from PyQt5.QtWidgets import (
     QTableWidget,
     QTableWidgetItem,
 )
+
+from neanno.configuration import ConfigManager
 
 
 class QDataWidgetMapperWithHistory(QDataWidgetMapper):
@@ -34,6 +34,7 @@ class QDataWidgetMapperWithHistory(QDataWidgetMapper):
             if not self.is_forward_or_backward:
                 self.forward_stack = []
                 self.backward_stack.append(self.currentIndex())
+            ConfigManager.reset_key_terms_marked_for_removal_from_autosuggest_collection()
             super().setCurrentIndex(index)
 
     def backward(self):
@@ -87,7 +88,7 @@ class CategoriesSelectorWidget(QTableWidget):
         # adjust the colors for highlighted entries if we are on Windows
         # note: this is required because the highlighted color in Windows
         #       may be very light, hence make neanno inconvenient to use
-        if os.name == 'nt':
+        if os.name == "nt":
             new_palette = self.palette()
             new_palette.setColor(QPalette.Highlight, QColor("#243a5e"))
             new_palette.setColor(QPalette.HighlightedText, QColor("white"))
@@ -132,7 +133,7 @@ class CategoriesSelectorWidget(QTableWidget):
 
     def set_selected_categories_by_text(self, value):
         self.clearSelection()
-        if value != '':
+        if value != "":
             self.set_selected_categories(value.split("|"))
 
     selected_categories_text = pyqtProperty(

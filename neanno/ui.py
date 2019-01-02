@@ -493,18 +493,29 @@ class AnnotationDialog(QMainWindow):
             self.replace_pattern_in_textedit(
                 text_to_replace_pattern, replace_against_text
             )
-            # remove key term from autosuggest collection (if it is a key term)
+            # mark key term for removal from autosuggest collection (if it is a key term and not a named entity)
             if annotation["term_type_long"] in [
                 "standalone_keyterm",
                 "parented_keyterm",
             ]:
-                ConfigManager.remove_key_term_from_autosuggest_collection(
+                ConfigManager.mark_key_term_for_removal_from_autosuggest_collection(
                     annotation["term"]
                 )
 
     def remove_all_annotations(self):
+        # mark all key terms for removal
+        for annotation in extract_annotations_as_list(
+            self.textedit.toPlainText(),
+            term_types_to_extract=["standalone_keyterm", "parented_keyterm"],
+        ):
+            ConfigManager.mark_key_term_for_removal_from_autosuggest_collection(
+                annotation["term"]
+            )
+        # update text
         self.textedit.setPlainText(remove_all_annotations(self.textedit.toPlainText()))
+        # clear categories
         self.categories_selector.set_selected_categories_by_text("")
+        # reset is annotated flag
         self.reset_is_annotated_flag()
 
     def reset_is_annotated_flag(self):
@@ -516,7 +527,7 @@ class AnnotationDialog(QMainWindow):
         self.is_annotated_label.setText("False")
 
     def submit_and_go_to_next_best(self):
-        # submit changes of old text
+        # submit changes of model-bound controls
         self.navigator.submit()
         # update controls
         self.update_dataset_related_controls()

@@ -22,6 +22,8 @@ from neanno.textutils import extract_annotations_as_list
 class ConfigManager:
     """Collects all configuration settings and provides configuration-related objects to neanno (through config.*)."""
 
+    key_terms_marked_for_removal_from_autosuggest_collection = []
+
     def __init__(self):
         # specify neanno's args and load/validate the required config file
         ConfigManager.define_args_and_load_config_yaml()
@@ -120,6 +122,7 @@ class ConfigManager:
         )
 
     def key_terms():
+        config.key_terms_marked_for_removal_from_autosuggest_collection = []
         config.is_key_terms_enabled = "key_terms" in config.yaml
         config.key_terms_shortcut_mark_standalone = ConfigManager.get_config_value(
             "key_terms/shortcuts/standalone", "Alt+1"
@@ -362,72 +365,113 @@ class ConfigManager:
     def has_config_value(path):
         return ConfigManager.get_config_value(path) is not None
 
-    def upsert_key_terms_to_autosuggest_collection(annotated_text):
+    def update_autosuggest_key_terms_collection(annotated_text):
         if config.is_autosuggest_key_terms_by_source:
-            # update autosuggest flashtext
-            config.key_terms_autosuggest_flashtext.add_keywords_from_dict(
-                merge_dict(
-                    {
-                        "({}|S)".format(annotation["term"]): [annotation["term"]]
-                        for annotation in extract_annotations_as_list(
-                            annotated_text, term_types_to_extract=["standalone_keyterm"]
-                        )
-                    },
-                    {
-                        "({}|P {})".format(
-                            annotation["term"], annotation["parent_terms"]
-                        ): [annotation["term"]]
-                        for annotation in extract_annotations_as_list(
-                            annotated_text, term_types_to_extract=["parented_keyterm"]
-                        )
-                    },
-                )
-            )
-            # update config.autosuggest_key_terms_dataset
-            new_entries = pd.DataFrame(
-                extract_annotations_as_list(
-                    annotated_text,
-                    term_types_to_extract=["standalone_keyterm", "parented_keyterm"],
-                )
-            )
-            if len(new_entries) > 0:
-                if "parent_terms" not in new_entries.columns:
-                    new_entries["parent_terms"] = ""
-                new_entries = new_entries.fillna("")[["term", "parent_terms"]]
-                config.autosuggest_key_terms_dataset = pd.concat(
-                    [
-                        config.autosuggest_key_terms_dataset[
-                            ~config.autosuggest_key_terms_dataset["term"].isin(
-                                new_entries["term"]
+            # get terms to add/update
+            terms_to_add = {}
+            parented_terms_to_update = []
+            existing_terms_list = list(config.autosuggest_key_terms_dataset["term"])
+            for annotation in extract_annotations_as_list(
+                annotated_text,
+                term_types_to_extract=["standalone_keyterm", "parented_keyterm"],
+            ):
+                if annotation["term"] not in existing_terms_list:
+                    # term does not exist yet
+                    terms_to_add = merge_dict(
+                        terms_to_add,
+                        {
+                            annotation["term"]: annotation["parent_terms"]
+                            if "parent_terms" in annotation
+                            else ""
+                        },
+                    )
+                else:
+                    # term exists but may need update due to different parent terms
+                    if "parent_terms" in annotation:
+                        currently_stored_parent_terms = list(
+                            config.autosuggest_key_terms_dataset[
+                                config.autosuggest_key_terms_dataset["term"]
+                                == annotation["term"]
+                            ]["parent_terms"]
+                        )[0]
+                        if currently_stored_parent_terms != annotation["parent_terms"]:
+                            # needs update
+                            terms_to_add = merge_dict(
+                                terms_to_add,
+                                {
+                                    annotation["term"]: annotation["parent_terms"]
+                                    if "parent_terms" in annotation
+                                    else ""
+                                },
                             )
-                        ],
-                        new_entries,
+                            parented_terms_to_update.append(annotation["term"])
+
+            # get total terms to remove
+            terms_to_remove = [
+                term
+                for term in config.key_terms_marked_for_removal_from_autosuggest_collection
+                if term not in terms_to_add
+            ]
+            terms_to_update = [term for term in parented_terms_to_update]
+            terms_to_remove.extend(terms_to_update)
+
+            # update autosuggest dataset
+            # remove
+            if terms_to_remove:
+                for term in terms_to_remove:
+                    config.autosuggest_key_terms_dataset = config.autosuggest_key_terms_dataset[
+                        config.autosuggest_key_terms_dataset.term != term
                     ]
-                )
+            # add
+            if terms_to_add:
+                for term in terms_to_add:
+                    new_row = pd.DataFrame(
+                        {"term": [term], "parent_terms": [terms_to_add[term]]}
+                    )
+                    config.autosuggest_key_terms_dataset = config.autosuggest_key_terms_dataset.append(
+                        new_row
+                    )
+            # save
+            ConfigManager.writeback_autosuggest_key_terms_collection()
 
-            # write back new autosuggest key terms dataset
-            # sort the key terms dataset for convenience
-            config.autosuggest_key_terms_dataset[
-                "sort"
-            ] = config.autosuggest_key_terms_dataset["term"].str.lower()
-            config.autosuggest_key_terms_dataset = config.autosuggest_key_terms_dataset.sort_values(
-                by=["sort"]
-            )
-            del config.autosuggest_key_terms_dataset["sort"]
-            # save the dataset
-            ConfigManager.save_dataset(
-                config.autosuggest_key_terms_dataset,
-                ConfigManager.get_config_value("key_terms/auto_suggest/source/spec"),
-            )
+            # update flashtext
+            # remove obsolete terms
+            if terms_to_remove:
+                for term in terms_to_remove:
+                    config.key_terms_autosuggest_flashtext.remove_keyword(term)
+            # add new terms
+            if terms_to_add:
+                for term in terms_to_add:
+                    if terms_to_add[term] != "":
+                        config.key_terms_autosuggest_flashtext.add_keywords_from_dict(
+                            {"({}|P {})".format(term, terms_to_add[term]): [term]}
+                        )
+                    else:
+                        config.key_terms_autosuggest_flashtext.add_keywords_from_dict(
+                            {"({}|S)".format(term): [term]}
+                        )
 
-    def remove_key_term_from_autosuggest_collection(term):
-        config.autosuggest_key_terms_dataset = config.autosuggest_key_terms_dataset[
-            config.autosuggest_key_terms_dataset.term != term
-        ]
+    def writeback_autosuggest_key_terms_collection():
+        # sort the key terms dataset for convenience
+        config.autosuggest_key_terms_dataset[
+            "sort"
+        ] = config.autosuggest_key_terms_dataset["term"].str.lower()
+        config.autosuggest_key_terms_dataset = config.autosuggest_key_terms_dataset.sort_values(
+            by=["sort"]
+        )
+        del config.autosuggest_key_terms_dataset["sort"]
+        # save the dataset
         ConfigManager.save_dataset(
             config.autosuggest_key_terms_dataset,
             ConfigManager.get_config_value("key_terms/auto_suggest/source/spec"),
         )
+
+    def mark_key_term_for_removal_from_autosuggest_collection(term):
+        if term not in config.key_terms_marked_for_removal_from_autosuggest_collection:
+            config.key_terms_marked_for_removal_from_autosuggest_collection.append(term)
+
+    def reset_key_terms_marked_for_removal_from_autosuggest_collection():
+        config.key_terms_marked_for_removal_from_autosuggest_collection = []
 
     def save_dataset(dataframe, spec):
         supported_datasource_types = ["csv"]
