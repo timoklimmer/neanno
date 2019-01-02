@@ -16,7 +16,7 @@ from neanno.definitions import (
     NamedEntityDefinition,
 )
 from neanno.dictutils import QueryDict, merge_dict
-from neanno.textutils import extract_annotations_as_dictlist
+from neanno.textutils import extract_annotations_as_list
 
 
 class ConfigManager:
@@ -369,25 +369,25 @@ class ConfigManager:
                 merge_dict(
                     {
                         "({}|S)".format(annotation["term"]): [annotation["term"]]
-                        for annotation in extract_annotations_as_dictlist(
-                            annotated_text, types_to_extract=["standalone_keyterm"]
+                        for annotation in extract_annotations_as_list(
+                            annotated_text, term_types_to_extract=["standalone_keyterm"]
                         )
                     },
                     {
                         "({}|P {})".format(
                             annotation["term"], annotation["parent_terms"]
                         ): [annotation["term"]]
-                        for annotation in extract_annotations_as_dictlist(
-                            annotated_text, types_to_extract=["parented_keyterm"]
+                        for annotation in extract_annotations_as_list(
+                            annotated_text, term_types_to_extract=["parented_keyterm"]
                         )
                     },
                 )
             )
             # update config.autosuggest_key_terms_dataset
             new_entries = pd.DataFrame(
-                extract_annotations_as_dictlist(
+                extract_annotations_as_list(
                     annotated_text,
-                    types_to_extract=["standalone_keyterm", "parented_keyterm"],
+                    term_types_to_extract=["standalone_keyterm", "parented_keyterm"],
                 )
             )
             if len(new_entries) > 0:

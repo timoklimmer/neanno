@@ -43,7 +43,7 @@ def show_shortcuts_dialog(parent):
     message += shortcut_fragment("Goto", SHORTCUT_GOTO)
     message += shortcut_fragment("Undo", SHORTCUT_UNDO)
     message += shortcut_fragment("Redo", SHORTCUT_REDO)
-    message += shortcut_fragment("Remove label", SHORTCUT_REMOVE)
+    message += shortcut_fragment("Remove annotation", SHORTCUT_REMOVE)
     message += shortcut_fragment("Remove all labels/annotations", SHORTCUT_REMOVE_ALL)
     message += "</table>"
 

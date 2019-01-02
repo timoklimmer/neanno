@@ -39,8 +39,6 @@ from neanno.textutils import *
 class AnnotationDialog(QMainWindow):
     """ The dialog shown to the user to do the annotation/labeling."""
 
-    skip_next_text_changed = False
-
     def __init__(self, textmodel):
         print("Showing annotation dialog...")
         app = QApplication([])
@@ -359,15 +357,7 @@ class AnnotationDialog(QMainWindow):
         self.progressbar.setValue(new_progress_value)
 
     def textedit_text_changed(self):
-        # skip method execution if flag is set
-        if self.skip_next_text_changed:
-            self.skip_next_text_changed = False
-            return
-
-        # sync parented key terms
         self.sync_parented_keyterms()
-
-        # update annotation monitor
         self.update_annotation_monitor()
 
     def sync_parented_keyterms(self):
@@ -467,17 +457,12 @@ class AnnotationDialog(QMainWindow):
         if annotation is not None:
             # get the replace pattern and replace against text
             if annotation["term_type_long"] == "standalone_keyterm":
-                text_to_replace_pattern = r"\({}\|S\)".format(
-                    annotation["term"]
-                )
+                text_to_replace_pattern = r"\({}\|[SP].*?\)".format(annotation["term"])
             if annotation["term_type_long"] == "parented_keyterm":
-                text_to_replace_pattern = r"\({}\|P .*?\)".format(
-                    annotation["term"]
-                )
+                text_to_replace_pattern = r"\({}\|[SP].*?\)".format(annotation["term"])
             if annotation["term_type_long"] == "named_entity":
                 text_to_replace_pattern = r"\({}\|N {}?\)".format(
-                    annotation["term"],
-                    annotation["entity_name"]
+                    annotation["term"], annotation["entity_name"]
                 )
             replace_against_text = annotation["term"]
             # do the replace
@@ -533,7 +518,6 @@ class AnnotationDialog(QMainWindow):
             if match.group() != replace_against_text:
                 text_cursor.setPosition(match.start())
                 text_cursor.setPosition(match.end(), QTextCursor.KeepAnchor)
-                self.skip_next_text_changed = True
                 text_cursor.insertText(replace_against_text)
             current_position = match.end()
             match = compiled_pattern.search(
