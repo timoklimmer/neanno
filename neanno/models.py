@@ -16,6 +16,8 @@ from neanno.dictutils import mergesum_dict
 from neanno.textutils import (
     extract_annotations_by_term_type,
     extract_named_entities_distribution,
+    mask_annotations,
+    unmask_annotations,
 )
 
 
@@ -199,6 +201,8 @@ class TextModel(QAbstractTableModel):
         # column 0: text
         if index.column() == 0:
             result = str(config.dataset_to_edit.ix[index.row(), self.text_column_index])
+            # mask annotations to avoid that we get nested annotations
+            result = mask_annotations(result)
             # add predicted and/or suggested entities if needed
             if not is_annotated and config.is_named_entities_enabled:
                 # entity predictions from spacy
@@ -251,6 +255,8 @@ class TextModel(QAbstractTableModel):
                             "({}|SN {})".format("\g<term>", autosuggest_regex.entity),
                             result,
                         )
+            # unmask masked annotations
+            result = unmask_annotations(result)
             # return result
             return result
         # column 1: is_annotated

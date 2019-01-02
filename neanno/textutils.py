@@ -1,3 +1,4 @@
+import base64
 import re
 
 TERM_TYPE_TINY_TO_LONG_MAPPING = {
@@ -255,6 +256,24 @@ def remove_all_annotations(annotated_text):
         flags=re.DOTALL,
     )
     return new_text
+
+
+def mask_annotations(text):
+    return re.sub(
+        r"\(.*?\|(SK|PK .*?|SN .*?)\)",
+        lambda match: "@neanno_masked_annotation:{}@".format(
+            base64.b64encode(match.group().encode("utf-8")).decode()
+        ),
+        text,
+    )
+
+
+def unmask_annotations(text_with_masked_annotations):
+    return re.sub(
+        r"@neanno_masked_annotation:(?P<base64string>.*?)@",
+        lambda match: base64.b64decode(match.group("base64string")).decode(),
+        text_with_masked_annotations,
+    )
 
 
 def extract_named_entities_distribution(annotated_text):
