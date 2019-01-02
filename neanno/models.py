@@ -337,4 +337,6 @@ class TextModel(QAbstractTableModel):
 
     def unset_is_annotated_for_index(self, row_index):
         config.dataset_to_edit.ix[row_index, self.is_annotated_column_index] = False
-        self.save()
+
+    def reset_is_annotated_flags(self):
+        config.dataset_to_edit[config.is_annotated_column] = False

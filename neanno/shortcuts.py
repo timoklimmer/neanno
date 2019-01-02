@@ -15,6 +15,8 @@ SHORTCUT_UNDO = "Ctrl+Z"
 SHORTCUT_REDO = "Ctrl+Y"
 SHORTCUT_REMOVE_ANNOTATION_AT_CURSOR = "Ctrl+R"
 SHORTCUT_REMOVE_ALL_FOR_CURRENT_TEXT = "Ctrl+D"
+SHORTCUT_RESET_IS_ANNOTATED_FLAG = "Ctrl+K"
+SHORTCUT_RESET_ALL_IS_ANNOTATED_FLAGS = "Ctrl+I"
 
 
 def register_shortcut(parent, key_sequence, function):
@@ -47,7 +49,14 @@ def show_shortcuts_dialog(parent):
         "Remove annotation at cursor", SHORTCUT_REMOVE_ANNOTATION_AT_CURSOR
     )
     message += shortcut_fragment(
-        "Remove all for current text", SHORTCUT_REMOVE_ALL_FOR_CURRENT_TEXT
+        "Remove all annotations/labels for current text",
+        SHORTCUT_REMOVE_ALL_FOR_CURRENT_TEXT,
+    )
+    message += shortcut_fragment(
+        "Reset Is Annotated flag", SHORTCUT_RESET_IS_ANNOTATED_FLAG
+    )
+    message += shortcut_fragment(
+        "Reset all Is Annotated flags", SHORTCUT_RESET_ALL_IS_ANNOTATED_FLAGS
     )
     message += "</table>"
 

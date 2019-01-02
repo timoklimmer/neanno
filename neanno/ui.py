@@ -287,8 +287,20 @@ class AnnotationDialog(QMainWindow):
         register_shortcut(self, SHORTCUT_NEXT, self.navigator.toNext)
         register_shortcut(self, SHORTCUT_LAST, self.navigator.toLast)
         register_shortcut(self, SHORTCUT_GOTO, self.go_to_index)
-        register_shortcut(self, SHORTCUT_REMOVE_ANNOTATION_AT_CURSOR, self.remove_annotation)
-        register_shortcut(self, SHORTCUT_REMOVE_ALL_FOR_CURRENT_TEXT, self.remove_all_annotations)
+        register_shortcut(
+            self, SHORTCUT_REMOVE_ANNOTATION_AT_CURSOR, self.remove_annotation
+        )
+        register_shortcut(
+            self, SHORTCUT_REMOVE_ALL_FOR_CURRENT_TEXT, self.remove_all_annotations
+        )
+        register_shortcut(
+            self, SHORTCUT_RESET_IS_ANNOTATED_FLAG, self.reset_is_annotated_flag
+        )
+        register_shortcut(
+            self,
+            SHORTCUT_RESET_ALL_IS_ANNOTATED_FLAGS,
+            self.reset_all_is_annotated_flags,
+        )
 
     def setup_and_wire_navigator(self):
         self.navigator = QDataWidgetMapperWithHistory(self)
@@ -493,7 +505,14 @@ class AnnotationDialog(QMainWindow):
     def remove_all_annotations(self):
         self.textedit.setPlainText(remove_all_annotations(self.textedit.toPlainText()))
         self.categories_selector.set_selected_categories_by_text("")
+        self.reset_is_annotated_flag()
+
+    def reset_is_annotated_flag(self):
         self.textmodel.unset_is_annotated_for_index(self.navigator.getCurrentIndex())
+        self.is_annotated_label.setText("False")
+
+    def reset_all_is_annotated_flags(self):
+        self.textmodel.reset_is_annotated_flags()
         self.is_annotated_label.setText("False")
 
     def submit_and_go_to_next_best(self):
