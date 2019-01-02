@@ -137,11 +137,12 @@ class TextModel(QAbstractTableModel):
             .map(
                 lambda text: extract_annotations_by_term_type(
                     text,
-                    ["named_entities"],
+                    ["standalone_named_entities"],
                     [
                         named_entity_definition.code
                         for named_entity_definition in config.named_entity_definitions
                     ],
+                    list_aliases={"standalone_named_entities": "entities"},
                 )
             )
             .tolist()
@@ -208,7 +209,7 @@ class TextModel(QAbstractTableModel):
                         old_result_length = len(result)
                         result = "{}{}{}".format(
                             result[: ent.start_char + shift],
-                            "({}|N {})".format(ent.text, ent.label_),
+                            "({}|SN {})".format(ent.text, ent.label_),
                             result[ent.end_char + shift :],
                         )
                         shift += len(result) - old_result_length
@@ -224,7 +225,7 @@ class TextModel(QAbstractTableModel):
                         if autosuggest_regex.parent_terms:
                             result = re.sub(
                                 "(?P<term>{})".format(autosuggest_regex.pattern),
-                                "({}P {})".format(
+                                "({}PK {})".format(
                                     "\g<term>", autosuggest_regex.parent_terms
                                 ),
                                 result,
@@ -232,7 +233,7 @@ class TextModel(QAbstractTableModel):
                         else:
                             result = re.sub(
                                 "(?P<term>{})".format(autosuggest_regex.pattern),
-                                "({}|S)".format("\g<term>"),
+                                "({}|SK)".format("\g<term>"),
                                 result,
                             )
 
@@ -247,7 +248,7 @@ class TextModel(QAbstractTableModel):
                     for autosuggest_regex in config.named_entities_autosuggest_regexes:
                         result = re.sub(
                             "(?P<term>{})".format(autosuggest_regex.pattern),
-                            "({}|N {})".format("\g<term>", autosuggest_regex.entity),
+                            "({}|SN {})".format("\g<term>", autosuggest_regex.entity),
                             result,
                         )
             # return result

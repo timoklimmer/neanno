@@ -164,13 +164,13 @@ class ConfigManager:
             ] = (
                 "("
                 + autosuggest_key_terms_dataset["term"]
-                + "|P "
+                + "|PK "
                 + autosuggest_key_terms_dataset["parent_terms"]
                 + ")"
             )
             autosuggest_key_terms_dataset.loc[
                 autosuggest_key_terms_dataset["parent_terms"] == "", "against"
-            ] = ("(" + autosuggest_key_terms_dataset["term"] + "|S)")
+            ] = ("(" + autosuggest_key_terms_dataset["term"] + "|SK)")
             autosuggest_key_terms_dataset = autosuggest_key_terms_dataset[
                 ["replace", "against"]
             ]
@@ -264,7 +264,7 @@ class ConfigManager:
             data_for_flashtext = pd.DataFrame(
                 "("
                 + autosuggest_entities_dataset["term"]
-                + "|N "
+                + "|SN "
                 + autosuggest_entities_dataset["entity_code"]
                 + ")"
             )
@@ -444,11 +444,11 @@ class ConfigManager:
                 for term in terms_to_add:
                     if terms_to_add[term] != "":
                         config.key_terms_autosuggest_flashtext.add_keywords_from_dict(
-                            {"({}|P {})".format(term, terms_to_add[term]): [term]}
+                            {"({}|PK {})".format(term, terms_to_add[term]): [term]}
                         )
                     else:
                         config.key_terms_autosuggest_flashtext.add_keywords_from_dict(
-                            {"({}|S)".format(term): [term]}
+                            {"({}|SK)".format(term): [term]}
                         )
 
     def writeback_autosuggest_key_terms_collection():
