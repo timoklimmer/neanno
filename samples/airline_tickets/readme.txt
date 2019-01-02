@@ -21,8 +21,3 @@ archivePrefix = "arXiv",
    adsurl = {http://adsabs.harvard.edu/abs/2017arXiv170805449B},
   adsnote = {Provided by the SAO/NASA Astrophysics Data System}
 }
-
-The airport codes have been taken from https://github.com/datasets/airport-codes and slightly adjusted
-to avoid too many wrong suggestions.
-
-The topics have been extracted manually but could/should come out of another system in a real application.
