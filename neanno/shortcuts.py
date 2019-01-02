@@ -13,8 +13,8 @@ SHORTCUT_LAST = "Ctrl+L"
 SHORTCUT_GOTO = "Ctrl+G"
 SHORTCUT_UNDO = "Ctrl+Z"
 SHORTCUT_REDO = "Ctrl+Y"
-SHORTCUT_REMOVE = "Ctrl+R"
-SHORTCUT_REMOVE_ALL = "Ctrl+D"
+SHORTCUT_REMOVE_ANNOTATION_AT_CURSOR = "Ctrl+R"
+SHORTCUT_REMOVE_ALL_FOR_CURRENT_TEXT = "Ctrl+D"
 
 
 def register_shortcut(parent, key_sequence, function):
@@ -43,8 +43,12 @@ def show_shortcuts_dialog(parent):
     message += shortcut_fragment("Goto", SHORTCUT_GOTO)
     message += shortcut_fragment("Undo", SHORTCUT_UNDO)
     message += shortcut_fragment("Redo", SHORTCUT_REDO)
-    message += shortcut_fragment("Remove annotation", SHORTCUT_REMOVE)
-    message += shortcut_fragment("Remove all labels/annotations", SHORTCUT_REMOVE_ALL)
+    message += shortcut_fragment(
+        "Remove annotation at cursor", SHORTCUT_REMOVE_ANNOTATION_AT_CURSOR
+    )
+    message += shortcut_fragment(
+        "Remove all for current text", SHORTCUT_REMOVE_ALL_FOR_CURRENT_TEXT
+    )
     message += "</table>"
 
     msg = QMessageBox(parent)

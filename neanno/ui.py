@@ -89,27 +89,36 @@ class AnnotationDialog(QMainWindow):
         # navigation / about / shortcuts buttons
         navigation_buttons_layout = QHBoxLayout()
         self.backward_button = QPushButton(self.get_icon("backward.png"), None)
+        self.backward_button.setToolTip("Backward")
         navigation_buttons_layout.addWidget(self.backward_button)
         self.forward_button = QPushButton(self.get_icon("forward.png"), None)
+        self.forward_button.setToolTip("Forward")
         navigation_buttons_layout.addWidget(self.forward_button)
         navigation_buttons_layout.addStretch()
         self.first_button = QPushButton(self.get_icon("first.png"), None)
+        self.first_button.setToolTip("First")
         navigation_buttons_layout.addWidget(self.first_button)
         self.previous_button = QPushButton(self.get_icon("previous.png"), None)
+        self.previous_button.setToolTip("Previous")
         navigation_buttons_layout.addWidget(self.previous_button)
         self.next_button = QPushButton(self.get_icon("next.png"), None)
+        self.next_button.setToolTip("Next")
         navigation_buttons_layout.addWidget(self.next_button)
         self.last_button = QPushButton(self.get_icon("last.png"), None)
+        self.last_button.setToolTip("Last")
         navigation_buttons_layout.addWidget(self.last_button)
         self.goto_button = QPushButton(self.get_icon("goto.png"), None)
+        self.goto_button.setToolTip("Go to index")
         navigation_buttons_layout.addWidget(self.goto_button)
         self.submit_next_best_button = QPushButton(
             self.get_icon("submit_next_best.png"), None
         )
+        self.submit_next_best_button.setToolTip("Submit and go to next best text")
         navigation_buttons_layout.addWidget(self.submit_next_best_button)
         navigation_buttons_layout.addStretch()
         if config.has_instructions:
             instructions_button = QPushButton("Instructions")
+            instructions_button.setToolTip("Instructions")
             navigation_buttons_layout.addWidget(instructions_button)
             instructions_button.clicked.connect(
                 lambda: QMessageBox.information(
@@ -117,9 +126,11 @@ class AnnotationDialog(QMainWindow):
                 )
             )
         shortcuts_button = QPushButton("Shortcuts")
+        shortcuts_button.setToolTip("Show general shortcuts")
         shortcuts_button.clicked.connect(lambda: show_shortcuts_dialog(self))
         navigation_buttons_layout.addWidget(shortcuts_button)
         about_button = QPushButton("About")
+        about_button.setToolTip("About")
         about_button.clicked.connect(lambda: show_about_dialog(self))
         navigation_buttons_layout.addWidget(about_button)
 
@@ -209,6 +220,7 @@ class AnnotationDialog(QMainWindow):
 
         # close
         close_button = QPushButton("Close")
+        close_button.setToolTip("Close")
         close_button.clicked.connect(self.close)
 
         # remaining layouts
@@ -275,8 +287,8 @@ class AnnotationDialog(QMainWindow):
         register_shortcut(self, SHORTCUT_NEXT, self.navigator.toNext)
         register_shortcut(self, SHORTCUT_LAST, self.navigator.toLast)
         register_shortcut(self, SHORTCUT_GOTO, self.go_to_index)
-        register_shortcut(self, SHORTCUT_REMOVE, self.remove_annotation)
-        register_shortcut(self, SHORTCUT_REMOVE_ALL, self.remove_all_annotations)
+        register_shortcut(self, SHORTCUT_REMOVE_ANNOTATION_AT_CURSOR, self.remove_annotation)
+        register_shortcut(self, SHORTCUT_REMOVE_ALL_FOR_CURRENT_TEXT, self.remove_all_annotations)
 
     def setup_and_wire_navigator(self):
         self.navigator = QDataWidgetMapperWithHistory(self)
