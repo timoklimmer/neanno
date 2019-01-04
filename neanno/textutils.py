@@ -165,7 +165,9 @@ def extract_annotations_as_list(
     return result
 
 
-def extract_annotations_as_text(annotated_text, external_annotations_to_add=[]):
+def extract_annotations_as_text(
+    annotated_text, external_annotations_to_add=[], include_entity_names=True
+):
     result_list = []
     for match in re.finditer(
         r"\((?P<term>[^()]+?)\|(?P<term_type_tiny>(SK|PK|SN))( (?P<postfix>[^()]+?))?\)",
@@ -202,7 +204,11 @@ def extract_annotations_as_text(annotated_text, external_annotations_to_add=[]):
         # named entity
         if term_type_long == "standalone_named_entity":
             entity_name = match.group("postfix")
-            annotation_to_add = "{}:{}".format(entity_name.lower(), term)
+            annotation_to_add = (
+                "{}:{}".format(entity_name.lower(), term)
+                if include_entity_names
+                else term
+            )
             if annotation_to_add.lower() not in [
                 annotation.lower() for annotation in result_list
             ] and annotation_to_add.lower() not in [

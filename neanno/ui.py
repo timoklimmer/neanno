@@ -411,6 +411,8 @@ class AnnotationDialog(QMainWindow):
                 self.textedit.toPlainText(),
                 # remove comment to include categories too
                 ##self.categories_selector.get_selected_categories(),
+                [],
+                False
             )
         )
 
