@@ -31,12 +31,9 @@ key_terms:
     source:
       spec: csv:samples/airline_tickets/key_terms.autosuggest.csv
       writeback: True # TODO: implement writeback
-    regexes:
-      - description: terminals
-        pattern: (?i)terminal\s*\d+\b
-    #  - description: Just another sample, maybe not that useful
-    #    pattern: (Hi|Hey|Hello) all
-    #    parent_terms: Greeting, Hello
+    #regexes:
+    #  - description: terminals
+    #    pattern: (?i)terminal\s*\d+\b
   # shortcuts:
   #   standalone: Alt+1
   #   parented: Alt+2
@@ -45,32 +42,28 @@ key_terms:
 
 named_entities:
   definitions:
-      - code: FROM
-        shortcut: Alt+F
+      - code: LOCATION
+        shortcut: Alt+D
         # maincolor: "#ff8c31"
         # backcolor: "#333333"
         # forecolor: "#ff8c31"
-      - code: TO
-        shortcut: Alt+T
       - code: AIRLINE
         shortcut: Alt+A
       - code: AIRCRAFT
         shortcut: Alt+C
-      - code: TIME
-        shortcut: Alt+E
   auto_suggest:
     sources:
       - csv:samples/airline_tickets/airlines.autosuggest.csv
     regexes:
       - entity: AIRCRAFT
         pattern: (A\s*)?3[28]0|(B\s*)?7\d7(-\d{3})|(Boeing\s*)?7\d7(-\d{3})CRJ|MD-\d{2}?
-      - entity: TIME
-        pattern: "(?x)
-                   January \\b | Jan \\b | February \\b | Feb \\b | March \\b | Mar \\b | April \\b | Apr \\b
-                  | May \\b | June \\b | Jun \\b | July \\b | Jul \\b | August \\b | Aug \\b | September \\b
-                  | Sep \\b | October \\b | Oct \\b | November \\b | Nov \\b | December \\b | Dec \\b
-                  | \\b(([01]?[0-9])|(2[0-3]))[:\\.]?[0-5][0-9]\\s*([Aa]\\.?[Mm]\\.?|[Pp]\\.?[Mm]\\.?|hrs)\\b
-                 "
+      #- entity: TIME
+      #  pattern: "(?x)
+      #             January \\b | Jan \\b | February \\b | Feb \\b | March \\b | Mar \\b | April \\b | Apr \\b
+      #            | May \\b | June \\b | Jun \\b | July \\b | Jul \\b | August \\b | Aug \\b | September \\b
+      #            | Sep \\b | October \\b | Oct \\b | November \\b | Nov \\b | December \\b | Dec \\b
+      #            | \\b(([01]?[0-9])|(2[0-3]))[:\\.]?[0-5][0-9]\\s*([Aa]\\.?[Mm]\\.?|[Pp]\\.?[Mm]\\.?|hrs)\\b
+      #           "
 
 #spacy:
 #  source: blank:en
