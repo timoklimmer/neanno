@@ -12,36 +12,37 @@ class TextEditHighlighter(QSyntaxHighlighter):
         super(TextEditHighlighter, self).__init__(parent)
 
         # append highlighting rules
-        # standalone key terms
-        self.highlighting_rules.append(
-            (
-                QRegularExpression(
-                    r"(?<openParen>\()"
-                    + r"(?<term>[^|()]+?)"
-                    + r"(?<pipeAndType>\|SK)"
-                    + r"(?<closingParen>\))"
-                ),
-                config.key_terms_backcolor,
-                config.key_terms_forecolor,
-                False,
+        if config.is_key_terms_enabled:
+            # standalone key terms
+            self.highlighting_rules.append(
+                (
+                    QRegularExpression(
+                        r"(?<openParen>\()"
+                        + r"(?<term>[^|()]+?)"
+                        + r"(?<pipeAndType>\|SK)"
+                        + r"(?<closingParen>\))"
+                    ),
+                    config.key_terms_backcolor,
+                    config.key_terms_forecolor,
+                    False,
+                )
             )
-        )
-        # parented key terms
-        self.highlighting_rules.append(
-            (
-                QRegularExpression(
-                    r"(?<openParen>\()"
-                    + r"(?<term>[^|()]+?)"
-                    + r"(?<pipeAndType>\|PK)"
-                    + r"(?<postfix> "
-                    + r".*?"
-                    + r")(?<closingParen>\))"
-                ),
-                config.key_terms_backcolor,
-                config.key_terms_forecolor,
-                True,
+            # parented key terms
+            self.highlighting_rules.append(
+                (
+                    QRegularExpression(
+                        r"(?<openParen>\()"
+                        + r"(?<term>[^|()]+?)"
+                        + r"(?<pipeAndType>\|PK)"
+                        + r"(?<postfix> "
+                        + r".*?"
+                        + r")(?<closingParen>\))"
+                    ),
+                    config.key_terms_backcolor,
+                    config.key_terms_forecolor,
+                    True,
+                )
             )
-        )
         # named entities
         for named_definition in named_definitions:
             self.highlighting_rules.append(

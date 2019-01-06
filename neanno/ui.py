@@ -264,23 +264,28 @@ class AnnotationDialog(QMainWindow):
         self.update_dataset_related_controls()
 
     def setup_and_wire_shortcuts(self):
-        register_shortcut(
-            self,
-            config.key_terms_shortcut_mark_parented,
-            self.annotate_parented_key_term,
-        )
-        register_shortcut(
-            self,
-            config.key_terms_shortcut_mark_standalone,
-            self.annotate_standalone_key_term,
-        )
+        # annotate key terms shortcuts
+        if config.is_key_terms_enabled:
+            register_shortcut(
+                self,
+                config.key_terms_shortcut_mark_parented,
+                self.annotate_parented_key_term,
+            )
+            register_shortcut(
+                self,
+                config.key_terms_shortcut_mark_standalone,
+                self.annotate_standalone_key_term,
+            )
+        # named entity shortcuts
         for named_entity_definition in config.named_entity_definitions:
             register_shortcut(
                 self, named_entity_definition.key_sequence, self.annotate_entity
             )
+        # submit next best
         register_shortcut(
             self, SHORTCUT_SUBMIT_NEXT_BEST, self.submit_and_go_to_next_best
         )
+        # navigation shortcuts
         register_shortcut(self, SHORTCUT_BACKWARD, self.navigator.backward)
         register_shortcut(self, SHORTCUT_FORWARD, self.navigator.forward)
         register_shortcut(self, SHORTCUT_FIRST, self.navigator.toFirst)
@@ -289,6 +294,7 @@ class AnnotationDialog(QMainWindow):
         register_shortcut(self, SHORTCUT_LAST, self.navigator.toLast)
         register_shortcut(self, SHORTCUT_GOTO, self.go_to_index)
         register_shortcut(self, SHORTCUT_SEARCH, self.search)
+        # remove/reset shortcuts
         register_shortcut(
             self, SHORTCUT_REMOVE_ANNOTATION_AT_CURSOR, self.remove_annotation
         )
@@ -542,8 +548,11 @@ class AnnotationDialog(QMainWindow):
             )
         # update text
         self.textedit.setPlainText(remove_all_annotations(self.textedit.toPlainText()))
-        # clear categories
-        self.categories_selector.set_selected_categories_by_text("")
+
+        # clear categories if categories are
+        if config.is_categories_enabled:
+            self.categories_selector.set_selected_categories_by_text("")
+
         # reset is annotated flag
         self.reset_is_annotated_flag()
 

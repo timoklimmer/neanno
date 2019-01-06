@@ -124,19 +124,20 @@ class ConfigManager:
     def key_terms():
         config.key_terms_marked_for_removal_from_autosuggest_collection = []
         config.is_key_terms_enabled = "key_terms" in config.yaml
-        config.key_terms_shortcut_mark_standalone = ConfigManager.get_config_value(
-            "key_terms/shortcuts/standalone", "Alt+1"
-        )
-        config.key_terms_shortcut_mark_parented = ConfigManager.get_config_value(
-            "key_terms/shortcuts/parented", "Alt+2"
-        )
-        config.key_terms_backcolor = ConfigManager.get_config_value(
-            "key_terms/backcolor", "#333333"
-        )
-        config.key_terms_forecolor = ConfigManager.get_config_value(
-            "key_terms/forecolor", "#50e6ff"
-        )
-        ConfigManager.key_terms_autosuggest()
+        if config.is_key_terms_enabled:
+            config.key_terms_shortcut_mark_standalone = ConfigManager.get_config_value(
+                "key_terms/shortcuts/standalone", "Alt+1"
+            )
+            config.key_terms_shortcut_mark_parented = ConfigManager.get_config_value(
+                "key_terms/shortcuts/parented", "Alt+2"
+            )
+            config.key_terms_backcolor = ConfigManager.get_config_value(
+                "key_terms/backcolor", "#333333"
+            )
+            config.key_terms_forecolor = ConfigManager.get_config_value(
+                "key_terms/forecolor", "#50e6ff"
+            )
+            ConfigManager.key_terms_autosuggest()
 
     def key_terms_autosuggest():
         # source
