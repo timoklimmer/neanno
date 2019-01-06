@@ -412,7 +412,7 @@ class AnnotationDialog(QMainWindow):
                 # remove comment to include categories too
                 ##self.categories_selector.get_selected_categories(),
                 [],
-                False
+                False,
             )
         )
 
@@ -529,8 +529,19 @@ class AnnotationDialog(QMainWindow):
         self.is_annotated_label.setText("False")
 
     def reset_all_is_annotated_flags(self):
-        self.textmodel.reset_is_annotated_flags()
-        self.is_annotated_label.setText("False")
+        if (
+            QMessageBox.question(
+                self,
+                "Confirmation",
+                "This will reset all Is Annotated flags and save the dataset. You may end up in big trouble if you don't know what you are doing.\n\nAre you sure you want to the reset/save?",
+                QMessageBox.Yes | QMessageBox.No,
+            )
+            == QMessageBox.Yes
+        ):
+            self.textmodel.reset_is_annotated_flags()
+            self.is_annotated_label.setText("False")
+            self.textmodel.save()
+            self.navigator.toFirst()
 
     def submit_and_go_to_next_best(self):
         # submit changes of model-bound controls
