@@ -6,11 +6,12 @@ from PyQt5.QtWidgets import QMessageBox, QShortcut
 SHORTCUT_SUBMIT_NEXT_BEST = "Ctrl+Return"
 SHORTCUT_BACKWARD = "Ctrl+Left"
 SHORTCUT_FORWARD = "Ctrl+Right"
-SHORTCUT_FIRST = "Ctrl+F"
+SHORTCUT_FIRST = "Ctrl+B"
 SHORTCUT_PREVIOUS = "Ctrl+P"
 SHORTCUT_NEXT = "Ctrl+N"
 SHORTCUT_LAST = "Ctrl+L"
 SHORTCUT_GOTO = "Ctrl+G"
+SHORTCUT_SEARCH = "Ctrl+F"
 SHORTCUT_UNDO = "Ctrl+Z"
 SHORTCUT_REDO = "Ctrl+Y"
 SHORTCUT_REMOVE_ANNOTATION_AT_CURSOR = "Ctrl+R"
@@ -43,6 +44,7 @@ def show_shortcuts_dialog(parent):
     message += shortcut_fragment("Next", SHORTCUT_NEXT)
     message += shortcut_fragment("Last", SHORTCUT_LAST)
     message += shortcut_fragment("Goto", SHORTCUT_GOTO)
+    message += shortcut_fragment("Search", SHORTCUT_SEARCH)
     message += shortcut_fragment("Undo", SHORTCUT_UNDO)
     message += shortcut_fragment("Redo", SHORTCUT_REDO)
     message += shortcut_fragment(

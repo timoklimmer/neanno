@@ -1,7 +1,4 @@
-import os
 import sys
-
-import pandas as pd
 
 from neanno.models import TextModel
 from neanno.ui import AnnotationDialog

@@ -27,10 +27,8 @@ from PyQt5.QtWidgets import (
 
 from neanno.about import show_about_dialog
 from neanno.configuration import ConfigManager
-from neanno.custom_ui_controls import (
-    CategoriesSelectorWidget,
-    QDataWidgetMapperWithHistory,
-)
+from neanno.custom_ui_controls import CategoriesSelectorWidget
+from neanno.navigator import TextNavigator
 from neanno.shortcuts import *
 from neanno.syntaxhighlighters import TextEditHighlighter
 from neanno.textutils import *
@@ -46,7 +44,7 @@ class AnnotationDialog(QMainWindow):
         self.setWindowIcon(self.get_icon("icon.ico"))
         self.textmodel = textmodel
         self.layout_controls()
-        self.setup_and_wire_navigator()
+        self.setup_and_wire_navigator_incl_buttons()
         self.setup_and_wire_shortcuts()
         self.show()
         app.exec_()
@@ -110,6 +108,9 @@ class AnnotationDialog(QMainWindow):
         self.goto_button = QPushButton(self.get_icon("goto.png"), None)
         self.goto_button.setToolTip("Go to index")
         navigation_buttons_layout.addWidget(self.goto_button)
+        self.search_button = QPushButton(self.get_icon("search.png"), None)
+        self.search_button.setToolTip("Search a text")
+        navigation_buttons_layout.addWidget(self.search_button)
         self.submit_next_best_button = QPushButton(
             self.get_icon("submit_next_best.png"), None
         )
@@ -287,6 +288,7 @@ class AnnotationDialog(QMainWindow):
         register_shortcut(self, SHORTCUT_NEXT, self.navigator.toNext)
         register_shortcut(self, SHORTCUT_LAST, self.navigator.toLast)
         register_shortcut(self, SHORTCUT_GOTO, self.go_to_index)
+        register_shortcut(self, SHORTCUT_SEARCH, self.search)
         register_shortcut(
             self, SHORTCUT_REMOVE_ANNOTATION_AT_CURSOR, self.remove_annotation
         )
@@ -302,8 +304,8 @@ class AnnotationDialog(QMainWindow):
             self.reset_all_is_annotated_flags,
         )
 
-    def setup_and_wire_navigator(self):
-        self.navigator = QDataWidgetMapperWithHistory(self)
+    def setup_and_wire_navigator_incl_buttons(self):
+        self.navigator = TextNavigator(self)
         self.navigator.setSubmitPolicy(QDataWidgetMapper.ManualSubmit)
         self.navigator.setModel(self.textmodel)
         self.navigator.addMapping(self.textedit, 0)
@@ -327,6 +329,7 @@ class AnnotationDialog(QMainWindow):
         self.next_button.clicked.connect(self.navigator.toNext)
         self.last_button.clicked.connect(self.navigator.toLast)
         self.goto_button.clicked.connect(self.go_to_index)
+        self.search_button.clicked.connect(self.search)
         self.submit_next_best_button.clicked.connect(self.submit_and_go_to_next_best)
 
     def update_navigation_related_controls(self):
@@ -422,6 +425,26 @@ class AnnotationDialog(QMainWindow):
         )
         if is_not_canceled:
             self.navigator.setCurrentIndex(new_index)
+
+    def search(self):
+        searched_text, is_not_canceled = QInputDialog.getText(
+            self,
+            "Search a text",
+            'Enter the substring or regex pattern by which you want to find another text.\n\nIf you prefix with "regex:", your input will be interpreted as a regex pattern.',
+        )
+        if is_not_canceled:
+            new_index = self.textmodel.get_index_of_next_text_which_contains_substring(
+                searched_text, self.navigator.currentIndex()
+            )
+            if new_index is not None:
+                self.navigator.setCurrentIndex(new_index)
+            else:
+                QMessageBox.information(
+                    self,
+                    "Information",
+                    "Could not find a text containing '{}'".format(searched_text),
+                    QMessageBox.Ok,
+                )
 
     def annotate_standalone_key_term(self):
         text_cursor = self.textedit.textCursor()
@@ -533,7 +556,7 @@ class AnnotationDialog(QMainWindow):
             QMessageBox.question(
                 self,
                 "Confirmation",
-                "This will reset all Is Annotated flags and save the dataset. You may end up in big trouble if you don't know what you are doing.\n\nAre you sure you want to the reset/save?",
+                "This will reset all Is Annotated flags and save the dataset to its target. You may end up in big trouble if you don't know what you are doing.\n\nAre you sure you want to the reset/save?",
                 QMessageBox.Yes | QMessageBox.No,
             )
             == QMessageBox.Yes

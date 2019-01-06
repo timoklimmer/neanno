@@ -1,3 +1,4 @@
+import math
 import pathlib
 import random
 import re
@@ -338,6 +339,27 @@ class TextModel(QAbstractTableModel):
             # there is no text that is not annotated yet
             # return the next text (might start at the beginning if end of available texts is reads)
             return (current_index + 1) % self.rowCount()
+
+    def get_index_of_next_text_which_contains_substring(self, substring, current_index):
+        is_regex = True if substring.startswith("regex:") else False
+        if is_regex:
+            substring = re.sub("^regex:", "", substring)
+        result = config.dataset_to_edit[
+            (config.dataset_to_edit.index > current_index)
+            & config.dataset_to_edit[config.text_column].str.contains(
+                substring, regex=is_regex
+            )
+        ].index.min()
+        if math.isnan(result):
+            result = config.dataset_to_edit[
+                (config.dataset_to_edit.index < current_index)
+                & config.dataset_to_edit[config.text_column].str.contains(
+                    substring, regex=is_regex
+                )
+            ].index.min()
+        if math.isnan(result):
+            result = None
+        return result
 
     def is_texts_left_for_annotation(self):
         return False in config.dataset_to_edit[config.is_annotated_column].values
