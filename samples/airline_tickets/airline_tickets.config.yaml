@@ -8,22 +8,21 @@
 #          respective features.
 
 dataset:
-    source: csv:samples/airline_tickets/texts.csv
+    source: csv:samples/airline_tickets/texts.annotated.csv
     text_column: Text
     is_annotated_column: is_text_annotated
     target: csv:samples/airline_tickets/texts.annotated.csv
 
 categories:
   definitions:
-    - name: Ticketing
+    - name: Trip Planning
     - name: Service Offering
     - name: Technology
     - name: Mileage Plan
     - name: Security
-    - name: Customs
+    - name: Customs/Immigration
     - name: Legal
     - name: Complaint
-    - name: Misc
   column: categories
 
 key_terms:
@@ -31,9 +30,9 @@ key_terms:
     source:
       spec: csv:samples/airline_tickets/key_terms.autosuggest.csv
       writeback: True # TODO: implement writeback
-    #regexes:
-    #  - description: terminals
-    #    pattern: (?i)terminal\s*\d+\b
+    regexes:
+      - description: terminals
+        pattern: (?i)(\bterminal\s*\d+\b)|(\bT[1-9]\b)
   # shortcuts:
   #   standalone: Alt+1
   #   parented: Alt+2
@@ -42,19 +41,31 @@ key_terms:
 
 named_entities:
   definitions:
-      - code: LOCATION
-        shortcut: Alt+D
+      - code: FROM
+        shortcut: Alt+F
         # maincolor: "#ff8c31"
         # backcolor: "#333333"
         # forecolor: "#ff8c31"
-      - code: AIRLINE
+      - code: TO
+        shortcut: Alt+T
+      - code: VIA
+        shortcut: Alt+V
+      - code: AT
         shortcut: Alt+A
+      - code: AIRLINE
+        shortcut: Alt+L
       - code: AIRCRAFT
         shortcut: Alt+C
   auto_suggest:
     sources:
       - csv:samples/airline_tickets/airlines.autosuggest.csv
     regexes:
+      - entity: FROM
+        pattern: (?<=\bfrom\s)[A-Z][A-Za-z]+\b
+      - entity: TO
+        pattern: (?<=\bto\s)[A-Z][A-Za-z]+\b
+      - entity: VIA
+        pattern: (?<=\bvia\s)[A-Z][A-Za-z]+\b
       - entity: AIRCRAFT
         pattern: (A\s*)?3[28]0|(B\s*)?7\d7(-\d{3})|(Boeing\s*)?7\d7(-\d{3})CRJ|MD-\d{2}?
       #- entity: TIME
@@ -65,9 +76,9 @@ named_entities:
       #            | \\b(([01]?[0-9])|(2[0-3]))[:\\.]?[0-5][0-9]\\s*([Aa]\\.?[Mm]\\.?|[Pp]\\.?[Mm]\\.?|hrs)\\b
       #           "
 
-#spacy:
-#  source: blank:en
-#  target: models/airline_tickets
+# #spacy:
+# #  source: blank:en
+# #  target: models/airline_tickets
 
 instructions: "
 Put your instructions for the annotators here.

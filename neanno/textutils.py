@@ -40,7 +40,7 @@ def extract_annotations_by_term_type(
                 )
 
     # get plain text without annotations
-    plain_text = remove_all_annotations(annotated_text)
+    plain_text = remove_all_annotations_from_text(annotated_text)
 
     # match all annotations and assemble the relevant annotations
     annotations = {}
@@ -52,9 +52,9 @@ def extract_annotations_by_term_type(
         annotated_text,
         flags=re.DOTALL,
     ):
-        start_position = len(remove_all_annotations(annotated_text[: match.start()]))
+        start_position = len(remove_all_annotations_from_text(annotated_text[: match.start()]))
         end_position = start_position + len(
-            remove_all_annotations(annotated_text[match.start() : match.end()])
+            remove_all_annotations_from_text(annotated_text[match.start() : match.end()])
         )
         if match.group("term_type_tiny") == "SK" and (
             term_types_to_extract is None
@@ -129,9 +129,9 @@ def extract_annotations_as_list(
             match.group("term_type_tiny")
         )
         postfix = match.group("postfix")
-        start_position = len(remove_all_annotations(annotated_text[: match.start()]))
+        start_position = len(remove_all_annotations_from_text(annotated_text[: match.start()]))
         end_position = start_position + len(
-            remove_all_annotations(annotated_text[match.start() : match.end()])
+            remove_all_annotations_from_text(annotated_text[match.start() : match.end()])
         )
         dict_to_add = {
             "term": term,
@@ -237,9 +237,9 @@ def get_annotation_at_position(annotated_text, position):
             match.group("term_type_tiny")
         )
         postfix = match.group("postfix") or ""
-        start_position = len(remove_all_annotations(annotated_text[: match.start()]))
+        start_position = len(remove_all_annotations_from_text(annotated_text[: match.start()]))
         end_position = start_position + len(
-            remove_all_annotations(annotated_text[match.start() : match.end()])
+            remove_all_annotations_from_text(annotated_text[match.start() : match.end()])
         )
         result = {
             "term": term,
@@ -254,7 +254,7 @@ def get_annotation_at_position(annotated_text, position):
     return result
 
 
-def remove_all_annotations(annotated_text):
+def remove_all_annotations_from_text(annotated_text):
     new_text = re.sub(
         r"\((.*?)\|(((PK|SN) .+?)|(SK))\)",
         lambda match: match.group(1),

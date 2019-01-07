@@ -421,7 +421,7 @@ class AnnotationDialog(QMainWindow):
                 # remove comment to include categories too
                 ##self.categories_selector.get_selected_categories(),
                 [],
-                False,
+                True,
             )
         )
 
@@ -455,8 +455,8 @@ class AnnotationDialog(QMainWindow):
     def annotate_standalone_key_term(self):
         text_cursor = self.textedit.textCursor()
         if text_cursor.hasSelection():
-            # TODO: only match if not part of another annotation
             text_to_replace = text_cursor.selectedText()
+            # TODO: only match if not part of another annotation
             text_to_replace_pattern = r"(?<!\(){}(?!\|SK\))".format(
                 re.escape(text_to_replace)
             )
@@ -547,7 +547,7 @@ class AnnotationDialog(QMainWindow):
                 annotation["term"]
             )
         # update text
-        self.textedit.setPlainText(remove_all_annotations(self.textedit.toPlainText()))
+        self.textedit.setPlainText(remove_all_annotations_from_text(self.textedit.toPlainText()))
 
         # clear categories if categories are
         if config.is_categories_enabled:
