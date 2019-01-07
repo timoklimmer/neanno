@@ -460,7 +460,9 @@ class AnnotationDialog(QMainWindow):
             text_to_replace_pattern = r"(?<!\(){}(?!\|SK\))".format(
                 re.escape(text_to_replace)
             )
-            replace_against_text = "({}|SK)".format(text_to_replace)
+            replace_against_text = "({}|SK)".format(
+                remove_all_annotations_from_text(text_to_replace)
+            )
             self.replace_pattern_in_textedit(
                 text_to_replace_pattern, replace_against_text
             )
@@ -478,11 +480,12 @@ class AnnotationDialog(QMainWindow):
             )
             orig_selection_start = text_cursor.selectionStart()
             new_selection_start = orig_selection_start + len(
-                "({}|PK ".format(text_cursor.selectedText())
+                "({}|PK ".format(remove_all_annotations_from_text(text_to_replace))
             )
             new_selection_end = new_selection_start + len(default_parent_key_term)
             replace_against_text = "({}|PK {})".format(
-                text_to_replace, default_parent_key_term
+                remove_all_annotations_from_text(text_to_replace),
+                default_parent_key_term,
             )
             self.replace_pattern_in_textedit(
                 text_to_replace_pattern, replace_against_text
@@ -502,7 +505,11 @@ class AnnotationDialog(QMainWindow):
                 if named_entity_definition.key_sequence == key_sequence:
                     code = named_entity_definition.code
                     break
-            text_cursor.insertText("({}|SN {})".format(selected_text, code))
+            text_cursor.insertText(
+                "({}|SN {})".format(
+                    remove_all_annotations_from_text(selected_text), code
+                )
+            )
 
     def remove_annotation(self):
         annotation = get_annotation_at_position(
@@ -547,7 +554,9 @@ class AnnotationDialog(QMainWindow):
                 annotation["term"]
             )
         # update text
-        self.textedit.setPlainText(remove_all_annotations_from_text(self.textedit.toPlainText()))
+        self.textedit.setPlainText(
+            remove_all_annotations_from_text(self.textedit.toPlainText())
+        )
 
         # clear categories if categories are
         if config.is_categories_enabled:
