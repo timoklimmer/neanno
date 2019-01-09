@@ -30,7 +30,7 @@ class CategoriesSelectorWidget(QTableWidget):
         self.setShowGrid(False)
         self.horizontalHeader().hide()
         self.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
-        self.horizontalHeader().setStretchLastSection(True)
+        self.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
         self.verticalHeader().hide()
         self.verticalHeader().setDefaultSectionSize(
             self.verticalHeader().minimumSectionSize()
