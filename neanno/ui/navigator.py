@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QDataWidgetMapper
 
-from neanno.configuration import ConfigManager
+from neanno.configuration.configmanager import ConfigManager
 
 
 class TextNavigator(QDataWidgetMapper):

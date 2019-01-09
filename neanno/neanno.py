@@ -1,7 +1,7 @@
 import sys
 
-from neanno.models import TextModel
-from neanno.ui import AnnotationDialog
+from neanno.models.textmodel import TextModel
+from neanno.ui.annotationdialog import AnnotationDialog
 
 def main():
     try:

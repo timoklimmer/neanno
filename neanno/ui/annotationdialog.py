@@ -25,13 +25,13 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 
-from neanno.about import show_about_dialog
-from neanno.configuration import ConfigManager
-from neanno.custom_ui_controls import CategoriesSelectorWidget
-from neanno.navigator import TextNavigator
-from neanno.shortcuts import *
-from neanno.syntaxhighlighters import TextEditHighlighter
-from neanno.textutils import *
+from neanno.ui.about import show_about_dialog
+from neanno.configuration.configmanager import ConfigManager
+from neanno.ui.categoriesselector import CategoriesSelectorWidget
+from neanno.ui.navigator import TextNavigator
+from neanno.ui.shortcuts import *
+from neanno.ui.syntaxhighlighters import TextEditHighlighter
+from neanno.utils.text import *
 
 
 class AnnotationDialog(QMainWindow):
@@ -53,7 +53,7 @@ class AnnotationDialog(QMainWindow):
     def get_icon(file):
         return QIcon(
             os.path.join(
-                os.path.abspath(os.path.dirname(__file__)), "resources/{}".format(file)
+                os.path.abspath(os.path.dirname(__file__)), "../resources/{}".format(file)
             )
         )
 

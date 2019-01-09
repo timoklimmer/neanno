@@ -4,7 +4,7 @@ from PyQt5.QtGui import QColor, QFont, QSyntaxHighlighter, QTextCharFormat
 
 
 class TextEditHighlighter(QSyntaxHighlighter):
-    """Used to highlight the entities in the text field."""
+    """Used to highlight annotations in a text field."""
 
     highlighting_rules = []
 

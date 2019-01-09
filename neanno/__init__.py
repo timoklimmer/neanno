@@ -1,4 +1,4 @@
-from neanno.configuration import ConfigManager
+from neanno.configuration.configmanager import ConfigManager
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QApplication
 

@@ -12,9 +12,9 @@ import spacy
 from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant, pyqtSignal
 from spacy.util import compounding, minibatch
 
-from neanno.configuration import ConfigManager
-from neanno.dictutils import mergesum_dict
-from neanno.textutils import (
+from neanno.configuration.configmanager import ConfigManager
+from neanno.utils.dict import mergesum_dict
+from neanno.utils.text import (
     extract_annotations_by_term_type,
     extract_named_entities_distribution,
     mask_annotations,

@@ -8,16 +8,16 @@ import yaml
 from cerberus import Validator
 from flashtext import KeywordProcessor
 
-from neanno.colors import DEFAULT_ENTITY_COLORS_PALETTE
-from neanno.definitions import (
+from neanno.definitions.autosuggest import (
     AutoSuggestEntityRegex,
     AutoSuggestKeyTermRegex,
-    CategoryDefinition,
-    NamedEntityDefinition,
 )
-from neanno.dictutils import QueryDict, merge_dict
-from neanno.pandasutils import save_dataframe_to_csv
-from neanno.textutils import extract_annotations_as_list
+from neanno.definitions.category import CategoryDefinition
+from neanno.definitions.namedentity import NamedEntityDefinition
+from neanno.ui.colors import DEFAULT_ENTITY_COLORS_PALETTE
+from neanno.utils.dict import QueryDict, merge_dict
+from neanno.utils.pandas import save_dataframe_to_csv
+from neanno.utils.text import extract_annotations_as_list
 
 
 class ConfigManager:
@@ -67,7 +67,7 @@ class ConfigManager:
             with open(
                 os.path.join(
                     os.path.abspath(os.path.dirname(__file__)),
-                    "resources",
+                    "../resources",
                     "config.schema.yaml",
                 )
             ) as config_schema_file:
