@@ -364,7 +364,7 @@ class AnnotationDialog(QMainWindow):
             self.categories_selector.update_categories_distribution()
         # entity infos markup
         if config.is_named_entities_enabled:
-            entity_infos_markup = "<table style='font-size: 10pt;' width='100%'>"
+            entity_infos_markup = "<table width='100%'>"
             for named_entity_definition in config.named_entity_definitions:
                 entity_infos_markup += "<tr>"
                 entity_infos_markup += "<td style='background-color:{}; padding-left: 5'> </td>".format(
