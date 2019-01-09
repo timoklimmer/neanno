@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import QMessageBox, QShortcut
 
 
 SHORTCUT_SUBMIT_NEXT_BEST = "Ctrl+Return"
+SHORTCUT_SUBMIT_NEXT = "Ctrl+Shift+Return"
 SHORTCUT_BACKWARD = "Ctrl+Left"
 SHORTCUT_FORWARD = "Ctrl+Right"
 SHORTCUT_FIRST = "Ctrl+B"
@@ -37,6 +38,7 @@ def show_shortcuts_dialog(parent):
 
     message = "<table>"
     message += shortcut_fragment("Submit/Next Best", SHORTCUT_SUBMIT_NEXT_BEST)
+    message += shortcut_fragment("Submit/Next", SHORTCUT_SUBMIT_NEXT)
     message += shortcut_fragment("Backward", SHORTCUT_BACKWARD)
     message += shortcut_fragment("Forward", SHORTCUT_FORWARD)
     message += shortcut_fragment("First", SHORTCUT_FIRST)

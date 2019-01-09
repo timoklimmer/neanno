@@ -331,14 +331,17 @@ class TextModel(QAbstractTableModel):
     def get_annotated_texts_count(self):
         return config.dataset_to_edit[config.is_annotated_column].sum()
 
+    def get_next_row_index(self, current_index):
+        return (current_index + 1) % self.rowCount()
+
     def get_next_best_row_index(self, current_index):
         if self.is_texts_left_for_annotation():
             # return the next text which is not annotated yet
             return config.dataset_to_edit[config.is_annotated_column].idxmin()
         else:
             # there is no text that is not annotated yet
-            # return the next text (might start at the beginning if end of available texts is reads)
-            return (current_index + 1) % self.rowCount()
+            # fallback to just the next index
+            return self.get_next_row_index(current_index)
 
     def get_index_of_next_text_which_contains_substring(self, substring, current_index):
         is_regex = True if substring.startswith("regex:") else False

@@ -281,6 +281,10 @@ class AnnotationDialog(QMainWindow):
             register_shortcut(
                 self, named_entity_definition.key_sequence, self.annotate_entity
             )
+        # submit next
+        register_shortcut(
+            self, SHORTCUT_SUBMIT_NEXT, self.submit_and_go_to_next
+        )
         # submit next best
         register_shortcut(
             self, SHORTCUT_SUBMIT_NEXT_BEST, self.submit_and_go_to_next_best
@@ -575,7 +579,7 @@ class AnnotationDialog(QMainWindow):
             self.textmodel.save()
             self.navigator.toFirst()
 
-    def submit_and_go_to_next_best(self):
+    def submit(self):
         # submit changes of model-bound controls
         self.navigator.submit()
         # update controls
@@ -591,6 +595,18 @@ class AnnotationDialog(QMainWindow):
                 ),
                 QMessageBox.Ok,
             )
+
+    def submit_and_go_to_next(self):
+        # submit
+        self.submit()
+        # identify and go to next text
+        self.navigator.setCurrentIndex(
+            self.textmodel.get_next_row_index(self.navigator.currentIndex())
+        )
+
+    def submit_and_go_to_next_best(self):
+        # submit
+        self.submit()
         # identify and go to next best text
         self.navigator.setCurrentIndex(
             self.textmodel.get_next_best_row_index(self.navigator.currentIndex())
