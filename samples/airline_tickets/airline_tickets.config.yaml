@@ -16,7 +16,7 @@ dataset:
 categories:
   definitions:
     - name: Trip Planning
-    - name: Service Offering
+    - name: Service Offering/Procedure
     - name: Technology
     - name: Mileage Plan
     - name: Security

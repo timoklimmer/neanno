@@ -16,6 +16,7 @@ from neanno.definitions import (
     NamedEntityDefinition,
 )
 from neanno.dictutils import QueryDict, merge_dict
+from neanno.pandasutils import save_dataframe_to_csv
 from neanno.textutils import extract_annotations_as_list
 
 
@@ -117,9 +118,7 @@ class ConfigManager:
             "csv:", "", 1
         )
         config.dataset_target_friendly = os.path.basename(dataset_target_csv)
-        config.save_callback = lambda df: df.to_csv(
-            dataset_target_csv, index=False, header=True
-        )
+        config.save_callback = lambda df: save_dataframe_to_csv(df, dataset_target_csv)
 
     def key_terms():
         config.key_terms_marked_for_removal_from_autosuggest_collection = []
@@ -487,4 +486,4 @@ class ConfigManager:
 
     def save_dataset_csv(dataframe, spec):
         file_path = spec.replace("csv:", "", 1)
-        dataframe.to_csv(file_path, header=True, index=False)
+        save_dataframe_to_csv(dataframe, file_path)

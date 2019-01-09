@@ -1,16 +1,22 @@
 term,entity_code
 Aeroflot,AIRLINE
+AA,AIRLINE
 Air Berlin,AIRLINE
+Air Canada,AIRLINE
 Alitalia,AIRLINE
+BA,AIRLINE
 Cabana,AIRLINE
+Cubana,AIRLINE
 Condor,AIRLINE
 Delta,AIRLINE
 Emirates,AIRLINE
 Iberia,AIRLINE
 Qantas,AIRLINE
 Ryanair,AIRLINE
+Sunwing,AIRLINE
 Thomas Cook,AIRLINE
 Lufthansa,AIRLINE
 UA,AIRLINE
 US Airways,AIRLINE
 United Airlines,AIRLINE
+Virgin,AIRLINE
