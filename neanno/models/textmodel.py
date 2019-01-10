@@ -229,7 +229,7 @@ class TextModel(QAbstractTableModel):
                     for autosuggest_regex in config.key_terms_autosuggest_regexes:
                         if autosuggest_regex.parent_terms:
                             result = re.sub(
-                                "(?P<term>{})".format(autosuggest_regex.pattern),
+                                r"(?P<term>{})".format(autosuggest_regex.pattern),
                                 "({}PK {})".format(
                                     "\g<term>", autosuggest_regex.parent_terms
                                 ),
@@ -237,7 +237,7 @@ class TextModel(QAbstractTableModel):
                             )
                         else:
                             result = re.sub(
-                                "(?P<term>{})".format(autosuggest_regex.pattern),
+                                r"(?P<term>{})".format(autosuggest_regex.pattern),
                                 "({}|SK)".format("\g<term>"),
                                 result,
                             )
@@ -252,7 +252,7 @@ class TextModel(QAbstractTableModel):
                 if config.is_autosuggest_entities_by_regexes:
                     for autosuggest_regex in config.named_entities_autosuggest_regexes:
                         result = re.sub(
-                            "(?P<term>{})".format(autosuggest_regex.pattern),
+                            r"(?P<term>{})".format(autosuggest_regex.pattern),
                             "({}|SN {})".format("\g<term>", autosuggest_regex.entity),
                             result,
                         )
@@ -346,7 +346,7 @@ class TextModel(QAbstractTableModel):
     def get_index_of_next_text_which_contains_substring(self, substring, current_index):
         is_regex = True if substring.startswith("regex:") else False
         if is_regex:
-            substring = re.sub("^regex:", "", substring)
+            substring = re.sub(r"^regex:", "", substring)
         result = config.dataset_to_edit[
             (config.dataset_to_edit.index > current_index)
             & config.dataset_to_edit[config.text_column].str.contains(
