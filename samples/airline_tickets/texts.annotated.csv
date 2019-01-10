@@ -371,14 +371,14 @@ Thanks SC",Service Offering/Procedure,True
 Or would the person who booked it have to do it? If you have a (reference number|SK), would you be able to (check in|PK check-in) just yourself or would you have to (check in|PK check-in) everyone or can each (family|SK) group/couple within that booking just sort their own OLCI and choose (seats|PK seating)?",Service Offering/Procedure,True
 2438,"Hi,
 
-We are flying to Sharm-el-Sheikh on a Thomsonfly aircraft and its out first flight with our baby who will be 10 months at the time.
+We are flying to (Sharm-el-Sheikh|SN TO) on a (Thomsonfly|SN AIRLINE) aircraft and its out first flight with our (baby|SK) who will be 10 months at the time.
 
-I was wondering if there is a size limit on pushchairs that are carried in the hold? We have a Cosatto Mobi that does fold down to L108 x W62 x H30cm but its still quite bulky due to the rear wheels!
+I was wondering if there is a (size limit|SK) on pushchairs that are carried in the hold? We have a Cosatto Mobi that does fold down to L108 x W62 x H30cm but its still quite bulky due to the rear wheels!
 
-Can some kind person let me know if our pushchair will be accepted at the airport or do we need a smaller fully collapsible one?
+Can some kind person let me know if our (pushchair|PK extra luggage) will be accepted at the airport or do we need a smaller fully collapsible one?
 
-Thanks in advance Daz",,False
-2455,"We are travelling from Washington DC to Manchester with a transfer of 90 minutes in JFK on same airline. Will we have to check out and recheck our luggage? If so, is the transfer time adequate?",,False
+Thanks in advance Daz",Service Offering/Procedure,True
+2455,"We are travelling from (Washington DC|SN FROM) to (Manchester|SN TO) with a transfer of 90 minutes in (JFK|SN VIA) on same airline. Will we have to check out and (recheck|SK) our (luggage|SK)? If so, is the (transfer time|SK) adequate?",Trip Planning|Service Offering/Procedure,True
 2397,"Not sure if this is exactly the right forum so apologies if not!
 
 We're looking at going to Cancun next May (2015) from London Gatwick. The cheapest deal we've found is via Expedia as part of a hotel+flight deal - the flights are with Virgin Airlines and this deal works out about £200 cheaper overall than any other way we've so far found.
