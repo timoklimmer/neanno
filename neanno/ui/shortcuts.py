@@ -2,6 +2,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import QMessageBox, QShortcut
 
+# TODO: add Mac shortcuts
 
 SHORTCUT_SUBMIT_NEXT_BEST = "Ctrl+Return"
 SHORTCUT_SUBMIT_NEXT = "Ctrl+Shift+Return"

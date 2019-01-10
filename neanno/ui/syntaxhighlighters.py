@@ -62,6 +62,12 @@ class TextEditHighlighter(QSyntaxHighlighter):
             )
 
     def highlightBlock(self, text):
+        # TODO: this does not match nested annotations, needs rewrite without regex (as balancing groups are not supported in Python)
+        #       cannot use extract_annotations_as_list() because the positions in its result do not respect annotation control chars
+
+        #   for index, char in enumerate('test'):
+        #       print index, char
+
         for (pattern, backcolor, forecolor, show_postfix) in self.highlighting_rules:
             open_paren_format = self.get_text_char_format(backcolor, backcolor)
             text_format = self.get_text_char_format(backcolor, forecolor)
@@ -78,12 +84,11 @@ class TextEditHighlighter(QSyntaxHighlighter):
                 QFont.Bold,
                 9,
             )
-            closing_paren_format = (
-                self.get_text_char_format(
-                    postfix_background_color, postfix_background_color
-                )
-                if show_postfix
-                else self.get_text_char_format(backcolor, backcolor)
+            closing_paren_format_postfix = self.get_text_char_format(
+                postfix_background_color, postfix_background_color
+            )
+            closing_paren_format_no_postfix = self.get_text_char_format(
+                backcolor, backcolor
             )
 
             expression = QRegularExpression(pattern)
@@ -107,7 +112,11 @@ class TextEditHighlighter(QSyntaxHighlighter):
                     postfix_text_format,
                 )
                 self.setFormat(
-                    match.capturedStart("closingParen"), 1, closing_paren_format
+                    match.capturedStart("closingParen"),
+                    1,
+                    closing_paren_format_postfix
+                    if show_postfix
+                    else closing_paren_format_no_postfix,
                 )
                 offset = match.capturedEnd("closingParen")
 

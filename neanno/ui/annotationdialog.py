@@ -394,10 +394,10 @@ class AnnotationDialog(QMainWindow):
         self.progressbar.setValue(new_progress_value)
 
     def textedit_text_changed(self):
-        self.sync_parented_keyterms()
+        self.sync_parented_annotations()
         self.update_annotation_monitor()
 
-    def sync_parented_keyterms(self):
+    def sync_parented_annotations(self):
         # get annotation at current cursor position
         annotation_at_current_cursor_pos = get_annotation_at_position(
             self.textedit.toPlainText(), self.textedit.textCursor().position()
