@@ -1,7 +1,7 @@
 import base64
 import re
 
-TERM_TYPE_TINY_TO_LONG_MAPPING = {
+TINY_TO_LONG_ANNOTATION_TYPE_MAPPING = {
     "SK": "standalone_keyterm",
     "PK": "parented_keyterm",
     "SN": "standalone_named_entity",
@@ -41,7 +41,7 @@ def extract_annotations_as_list(
     ):
         # compute full result
         term = match.group("term")
-        term_type_long = TERM_TYPE_TINY_TO_LONG_MAPPING.get(
+        term_type_long = TINY_TO_LONG_ANNOTATION_TYPE_MAPPING.get(
             match.group("term_type_tiny")
         )
         postfix = match.group("postfix")
@@ -99,7 +99,7 @@ def extract_annotations_as_text(
     ):
         term = match.group("term")
         term_type_tiny = match.group("term_type_tiny")
-        term_type_long = TERM_TYPE_TINY_TO_LONG_MAPPING.get(term_type_tiny)
+        term_type_long = TINY_TO_LONG_ANNOTATION_TYPE_MAPPING.get(term_type_tiny)
         # standalone key term
         if term_type_long == "standalone_keyterm":
             annotation_to_add = term
@@ -246,7 +246,7 @@ def get_annotation_at_position(annotated_text, position):
         if not (match.start() < position < match.end()):
             continue
         term = match.group("term")
-        term_type_long = TERM_TYPE_TINY_TO_LONG_MAPPING.get(
+        term_type_long = TINY_TO_LONG_ANNOTATION_TYPE_MAPPING.get(
             match.group("term_type_tiny")
         )
         postfix = match.group("postfix") or ""
