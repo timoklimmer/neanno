@@ -70,7 +70,7 @@ class AnnotationDialog(QMainWindow):
         # text edit
         self.textedit = QPlainTextEdit()
         self.textedit.setStyleSheet(
-            "font-size: 14pt; font-family: Consolas; color: lightgrey; background-color: black"
+            "QPlainTextEdit { font-size: 14pt; font-family: Consolas; color: lightgrey; background-color: black }"
         )
         self.textedit_highlighter = TextEditHighlighter(
             self.textedit.document(), config.named_entity_definitions
