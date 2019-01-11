@@ -6,6 +6,8 @@ from PyQt5.QtGui import QColor, QFont, QSyntaxHighlighter, QTextCharFormat
 class TextEditHighlighter(QSyntaxHighlighter):
     """Used to highlight annotations in a text field."""
 
+    # TODO: use common annotation extraction
+
     highlighting_rules = []
 
     def __init__(self, parent, named_definitions):
@@ -18,7 +20,7 @@ class TextEditHighlighter(QSyntaxHighlighter):
                 (
                     QRegularExpression(
                         r"(?<openParen>´\<`)"
-                        + r"(?<term>[^|´`]+?)"
+                        + r"(?<term>[^´`]*?)"
                         + r"(?<pipe>´\|`)"
                         + r"(?<type>SK)"
                         + r"(?<closingParen>´\>`)"
@@ -33,7 +35,7 @@ class TextEditHighlighter(QSyntaxHighlighter):
                 (
                     QRegularExpression(
                         r"(?<openParen>´\<`)"
-                        + r"(?<term>[^|´`]+?)"
+                        + r"(?<term>[^´`]*?)"
                         + r"(?<pipe>´\|`)"
                         + r"(?<type>PK)"
                         + r"(?<postfix> "
@@ -51,7 +53,7 @@ class TextEditHighlighter(QSyntaxHighlighter):
                 (
                     QRegularExpression(
                         r"(?<openParen>´\<`)"
-                        + r"(?<term>[^|´`]+?)"
+                        + r"(?<term>[^´`]*?)"
                         + r"(?<pipe>´\|`)"
                         + r"(?<type>SN)"
                         + r"(?<postfix> "
@@ -65,12 +67,6 @@ class TextEditHighlighter(QSyntaxHighlighter):
             )
 
     def highlightBlock(self, text):
-        # TODO: this does not match nested annotations, needs rewrite without regex (as balancing groups are not supported in Python)
-        #       cannot use extract_annotations_as_list() because the positions in its result do not respect annotation control chars
-
-        #   for index, char in enumerate('test'):
-        #       print index, char
-
         for (pattern, backcolor, forecolor, show_postfix) in self.highlighting_rules:
             open_paren_format = self.get_text_char_format(backcolor, backcolor, 100 / 3)
             text_format = self.get_text_char_format(backcolor, forecolor)

@@ -203,6 +203,7 @@ class TextModel(QAbstractTableModel):
         if index.column() == 0:
             result = str(config.dataset_to_edit.ix[index.row(), self.text_column_index])
             # mask annotations to avoid that we get nested annotations
+            # note: the masking has to be repeated at several places below to avoid double nested annotations
             result = mask_annotations(result)
             # add predicted and/or suggested entities if needed
             if not is_annotated and config.is_named_entities_enabled:
@@ -218,12 +219,14 @@ class TextModel(QAbstractTableModel):
                             result[ent.end_char + shift :],
                         )
                         shift += len(result) - old_result_length
+                    result = mask_annotations(result)
                 # autosuggest key terms
                 # source
                 if config.is_autosuggest_key_terms_by_source:
                     result = config.key_terms_autosuggest_flashtext.replace_keywords(
                         result
                     )
+                    result = mask_annotations(result)
                 # regexes
                 if config.is_autosuggest_key_terms_by_regexes:
                     for autosuggest_regex in config.key_terms_autosuggest_regexes:
@@ -241,6 +244,7 @@ class TextModel(QAbstractTableModel):
                                 "´<`{}´|`SK´>`".format("\g<term>"),
                                 result,
                             )
+                        result = mask_annotations(result)
 
                 # autosuggest entities
                 # sources
@@ -248,14 +252,18 @@ class TextModel(QAbstractTableModel):
                     result = config.named_entities_autosuggest_flashtext.replace_keywords(
                         result
                     )
+                    result = mask_annotations(result)
                 # regexes
                 if config.is_autosuggest_entities_by_regexes:
                     for autosuggest_regex in config.named_entities_autosuggest_regexes:
                         result = re.sub(
                             r"(?P<term>{})".format(autosuggest_regex.pattern),
-                            "´<`{}´|`SN {}´>`".format("\g<term>", autosuggest_regex.entity),
+                            "´<`{}´|`SN {}´>`".format(
+                                "\g<term>", autosuggest_regex.entity
+                            ),
                             result,
                         )
+                        result = mask_annotations(result)
             # unmask masked annotations
             result = unmask_annotations(result)
             # return result

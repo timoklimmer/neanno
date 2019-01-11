@@ -21,6 +21,8 @@ def extract_annotations_as_list(
           the desired result while annotated_text[14] may encounter an index out of range exception.
     """
 
+    # TODO: rework, add gross/net start/end positions
+
     # ensure that types_to_extract has valid entries
     if term_types_to_extract:
         for type_to_extract in term_types_to_extract:
@@ -35,7 +37,7 @@ def extract_annotations_as_list(
 
     result = []
     for match in re.finditer(
-        r"´\<`(?P<term>[^´`]+?)´\|`(?P<term_type_tiny>(SK|PK|SN))( (?P<postfix>[^´`]+?))?´\>`",
+        r"´\<`(?P<term>.*?)´\|`(?P<term_type_tiny>(SK|PK|SN))( (?P<postfix>.+?))?´\>`",
         annotated_text,
         flags=re.DOTALL,
     ):
@@ -93,7 +95,7 @@ def extract_annotations_as_text(
 
     result_list = []
     for match in re.finditer(
-        r"´\<`(?P<term>[^´`]+?)´\|`(?P<term_type_tiny>(SK|PK|SN))( (?P<postfix>[^´`]+?))?´\>`",
+        r"´\<`(?P<term>.*?)´\|`(?P<term_type_tiny>(SK|PK|SN))( (?P<postfix>.+?))?´\>`",
         annotated_text,
         flags=re.DOTALL,
     ):

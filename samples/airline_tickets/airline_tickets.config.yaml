@@ -29,7 +29,7 @@ key_terms:
   auto_suggest:
     source:
       spec: csv:samples/airline_tickets/key_terms.autosuggest.csv
-      writeback: True # TODO: implement writeback
+      writeback: True
     regexes:
       - description: terminals
         pattern: (?i)(\bterminal\s*\d+\b)|(\bT[1-9]\b)
