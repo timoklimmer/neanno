@@ -1,110 +1,91 @@
 import base64
 import re
 
+from neanno.utils.list import ensure_items_within_set
+
+ANNOTATION_TYPES = ["standalone_keyterm", "parented_keyterm", "standalone_named_entity"]
+
 TINY_TO_LONG_ANNOTATION_TYPE_MAPPING = {
     "SK": "standalone_keyterm",
     "PK": "parented_keyterm",
     "SN": "standalone_named_entity",
 }
 
+ANNOTATION_REGEX = re.compile(
+    r"´\<`(?P<term>.*?)´\|`(?P<type_tiny>(SK|PK|SN))( (?P<postfix>.+?))?´\>`",
+    flags=re.DOTALL,
+)
 
-def extract_annotations_as_list(
-    annotated_text, term_types_to_extract=None, entity_names_to_extract=None
+
+def extract_annotations_as_generator(
+    annotated_text, types_to_extract=None, entity_names_to_extract=None
 ):
-
-    """ Returns all annotations from an annotated text as a list of dictionaries.
-    
-        - Valid types to extract: 'standalone_keyterm', 'parented_keyterm', 'named_entity'.        
-        - If types_to_extract and/or entity_names_to_extract are None, all types/entities are extracted.
-        - The returned position ranges ignore other annotations, ie. as if the other annotations did not exist.
-        - Beware that the returned positions are meant to be used as ranges. annotated_text[5:14] might return
-          the desired result while annotated_text[14] may encounter an index out of range exception.
-    """
-
-    # TODO: rework, add gross/net start/end positions
+    """ Yields all annotations from an annotated text as a list."""
 
     # ensure that types_to_extract has valid entries
-    if term_types_to_extract:
-        for type_to_extract in term_types_to_extract:
-            if type_to_extract not in [
-                "standalone_keyterm",
-                "parented_keyterm",
-                "standalone_named_entity",
-            ]:
-                raise ValueError(
-                    "At least one entry in param 'types_to_extract' is invalid. Ensure that only valid types are used."
-                )
+    ensure_items_within_set(types_to_extract, ANNOTATION_TYPES, True)
 
     result = []
-    for match in re.finditer(
-        r"´\<`(?P<term>.*?)´\|`(?P<term_type_tiny>(SK|PK|SN))( (?P<postfix>.+?))?´\>`",
-        annotated_text,
-        flags=re.DOTALL,
-    ):
-        # compute full result
-        term = match.group("term")
-        term_type_long = TINY_TO_LONG_ANNOTATION_TYPE_MAPPING.get(
-            match.group("term_type_tiny")
+    for match in re.finditer(ANNOTATION_REGEX, annotated_text):
+        # assemble annotation and do the filtering in parallel
+        annotation = {}
+        annotation["term"] = match.group("term")
+        annotation["type"] = TINY_TO_LONG_ANNOTATION_TYPE_MAPPING.get(
+            match.group("type_tiny")
         )
-        postfix = match.group("postfix")
-        start_position = len(
+        if annotation["type"] == "standalone_named_entity":
+            annotation["entity_name"] = match.group("postfix")
+            if (
+                entity_names_to_extract is not None
+                and annotation["entity_name"] not in entity_names_to_extract
+            ):
+                continue
+        if types_to_extract is not None and annotation["type"] not in types_to_extract:
+            continue
+        if annotation["type"] == "parented_keyterm":
+            annotation["parent_terms"] = ", ".join(
+                [
+                    parent_term.strip()
+                    for parent_term in (match.group("postfix") or "").split(",")
+                ]
+            )
+        annotation["start_net"] = len(
             remove_all_annotations_from_text(annotated_text[: match.start()])
         )
-        end_position = start_position + len(
+        annotation["end_net"] = annotation["start_net"] + len(
             remove_all_annotations_from_text(
                 annotated_text[match.start() : match.end()]
             )
         )
-        dict_to_add = {
-            "term": term,
-            "start": start_position,
-            "end": end_position,
-            "term_type_long": term_type_long,
-        }
-        if term_type_long == "parented_keyterm":
-            dict_to_add["parent_terms"] = postfix
-        if term_type_long == "standalone_named_entity":
-            dict_to_add["entity_name"] = postfix
-        result.append(dict_to_add)
-        # apply filters if needed
-        if term_types_to_extract:
-            result = [
-                item
-                for item in result
-                if item["term_type_long"] in term_types_to_extract
-            ]
-        if entity_names_to_extract:
-            result = [
-                item
-                for item in result
-                if item["term_type_long"] != "standalone_named_entity"
-                or (
-                    item["term_type_long"] == "standalone_named_entity"
-                    and "entity_name" in item
-                    and item["entity_name"] in entity_names_to_extract
-                )
-            ]
-    return result
+        annotation["start_gross"] = match.start()
+        annotation["end_gross"] = match.end()
+
+        # yield annotation
+        yield annotation
+
+
+def extract_annotations_as_list(
+    annotated_text, types_to_extract=None, entity_names_to_extract=None
+):
+    """ Extracts a list of annotations in the specified text."""
+    return [
+        annotation
+        for annotation in extract_annotations_as_generator(
+            annotated_text, types_to_extract=None, entity_names_to_extract=None
+        )
+    ]
 
 
 def extract_annotations_as_text(
     annotated_text, external_annotations_to_add=[], include_entity_names=True
 ):
-
-    # TODO: reuse extract_annotations_as_list to support once and only once
+    """Extracts all annotations from the specified text and returns a string describing the set of contained annotations."""
 
     result_list = []
-    for match in re.finditer(
-        r"´\<`(?P<term>.*?)´\|`(?P<term_type_tiny>(SK|PK|SN))( (?P<postfix>.+?))?´\>`",
-        annotated_text,
-        flags=re.DOTALL,
-    ):
-        term = match.group("term")
-        term_type_tiny = match.group("term_type_tiny")
-        term_type_long = TINY_TO_LONG_ANNOTATION_TYPE_MAPPING.get(term_type_tiny)
+    for annotation in extract_annotations_as_generator(annotated_text):
         # standalone key term
-        if term_type_long == "standalone_keyterm":
-            annotation_to_add = term
+        if annotation["type"] == "standalone_keyterm":
+            annotation_to_add = annotation["term"]
             if annotation_to_add.lower() not in [
                 annotation.lower() for annotation in result_list
             ] and annotation_to_add.lower() not in [
@@ -112,12 +93,9 @@ def extract_annotations_as_text(
             ]:
                 result_list.append(annotation_to_add)
         # parented key terms
-        if term_type_long == "parented_keyterm":
+        if annotation["type"] == "parented_keyterm":
             parent_terms = []
-            parent_terms_str = match.group("postfix") or ""
-            for parent_term in set(
-                [parent_term.strip() for parent_term in parent_terms_str.split(",")]
-            ):
+            for parent_term in set(annotation["parent_terms"].split(",")):
                 annotation_to_add = parent_term
                 if annotation_to_add.lower() not in [
                     annotation.lower() for annotation in result_list
@@ -127,12 +105,11 @@ def extract_annotations_as_text(
                     parent_terms.append(annotation_to_add)
             result_list.extend(sorted(parent_terms))
         # named entity
-        if term_type_long == "standalone_named_entity":
-            entity_name = match.group("postfix")
+        if annotation["type"] == "standalone_named_entity":
             annotation_to_add = (
-                "{}:{}".format(entity_name.lower(), term)
+                "{}:{}".format(annotation["entity_name"].lower(), annotation["term"])
                 if include_entity_names
-                else term
+                else annotation["term"]
             )
             if annotation_to_add.lower() not in [
                 annotation.lower() for annotation in result_list
@@ -148,9 +125,10 @@ def extract_annotations_as_text(
     return ", ".join(result_list)
 
 
-def extract_annotations_by_term_type(
+# TODO: make compatible with spacy, add another method
+def extract_annotations_by_type(
     annotated_text,
-    term_types_to_extract=None,
+    types_to_extract=None,
     entity_names_to_extract=None,
     list_aliases={
         "standalone_keyterms": "standalone_keyterms",
@@ -158,122 +136,52 @@ def extract_annotations_by_term_type(
         "standalone_named_entities": "standalone_named_entities",
     },
 ):
-    """ Returns all annotations and their position ranges from an annotated text.
-    
-        - Valid types to extract: 'standalone_keyterm', 'parented_keyterm', 'named_entity'.        
-        - If types_to_extract and/or entity_names_to_extract are None, all types/entities are extracted.
-        - The returned position ranges ignore other annotations, ie. as if the other annotations did not exist.
-        - Beware that the returned positions are meant to be used as ranges. annotated_text[5:14] might return
-          the desired result while annotated_text[14] may encounter an index out of range exception.
-        - Use parameter list_aliases to control the name(s) of the lists in the result."""
-
-    # TODO: reuse extract_annotations_as_list to support once and only once
-
-    # ensure that types_to_extract has valid entries
-    if term_types_to_extract:
-        for type_to_extract in term_types_to_extract:
-            if type_to_extract not in [
-                "standalone_keyterm",
-                "parented_keyterm",
-                "standalone_named_entity",
-            ]:
-                raise ValueError(
-                    "At least one entry in param 'types_to_extract' is invalid. Ensure that only valid types are used."
-                )
+    """ Returns all annotations and their position ranges from an annotated text."""
 
     # get plain text without annotations
     plain_text = remove_all_annotations_from_text(annotated_text)
 
-    # match all annotations and assemble the relevant annotations
+    # get the annotations dictionary
     annotations = {}
-    standalone_keyterms = []
-    parented_keyterms = []
-    named_entities = []
-    for match in re.finditer(
-        r"´\<`(?P<term>[^´`]+?)´\|`(?P<term_type_tiny>(SK|PK|SN))( (?P<postfix>[^´`]+?))?´\>`",
-        annotated_text,
-        flags=re.DOTALL,
-    ):
-        start_position = len(
-            remove_all_annotations_from_text(annotated_text[: match.start()])
-        )
-        end_position = start_position + len(
-            remove_all_annotations_from_text(
-                annotated_text[match.start() : match.end()]
-            )
-        )
-        if match.group("term_type_tiny") == "SK" and (
-            term_types_to_extract is None
-            or "standalone_keyterm" in term_types_to_extract
-        ):
-            standalone_keyterms.append((start_position, end_position))
-        if match.group("term_type_tiny") == "PK" and (
-            term_types_to_extract is None or "parented_keyterm" in term_types_to_extract
-        ):
-            parented_keyterms.append(
-                (start_position, end_position, match.group("postfix"))
-            )
-        if (
-            match.group("term_type_tiny") == "SN"
-            and (
-                term_types_to_extract is None
-                or "standalone_named_entity" in term_types_to_extract
-            )
-            and (
-                entity_names_to_extract is None
-                or match.group("postfix") in entity_names_to_extract
-            )
-        ):
-            named_entities.append(
-                (start_position, end_position, match.group("postfix"))
-            )
+    # standalone key terms
+    standalone_keyterms = extract_annotations_as_list(
+        annotated_text, types_to_extract=["standalone_keyterm"]
+    )
     if len(standalone_keyterms) > 0:
         annotations[list_aliases["standalone_keyterms"]] = standalone_keyterms
+    # parented key terms
+    parented_keyterms = extract_annotations_as_list(
+        annotated_text, types_to_extract=["parented_keyterm"]
+    )
     if len(parented_keyterms) > 0:
         annotations[list_aliases["parented_keyterms"]] = parented_keyterms
-    if len(named_entities) > 0:
-        annotations[list_aliases["standalone_named_entities"]] = named_entities
+    # standalone named entities
+    standalone_named_entities = extract_annotations_as_list(
+        annotated_text, types_to_extract=["standalone_named_entity"]
+    )
+    if len(standalone_named_entities) > 0:
+        annotations[
+            list_aliases["standalone_named_entities"]
+        ] = standalone_named_entities
 
     # return result
     return (plain_text, annotations)
 
 
 def get_annotation_at_position(annotated_text, position):
+    """ Gets the annotation which is at the specified position. Returns None if that position is not an annotation."""
+
     result = None
-    for match in re.finditer(
-        r"´\<`(?P<term>[^´`]+?)´\|`(?P<term_type_tiny>(SK|PK|SN))( (?P<postfix>[^´`]*?))?´\>`",
-        annotated_text,
-        flags=re.DOTALL,
-    ):
-        if not (match.start() < position < match.end()):
+    for annotation in extract_annotations_as_generator(annotated_text):
+        if not (annotation["start_gross"] < position < annotation["end_gross"]):
             continue
-        term = match.group("term")
-        term_type_long = TINY_TO_LONG_ANNOTATION_TYPE_MAPPING.get(
-            match.group("term_type_tiny")
-        )
-        postfix = match.group("postfix") or ""
-        start_position = len(
-            remove_all_annotations_from_text(annotated_text[: match.start()])
-        )
-        end_position = start_position + len(
-            remove_all_annotations_from_text(
-                annotated_text[match.start() : match.end()]
-            )
-        )
-        result = {
-            "term": term,
-            "start": start_position,
-            "end": end_position,
-            "term_type_long": term_type_long,
-        }
-        if term_type_long == "parented_keyterm":
-            result["parent_terms"] = postfix
-        if term_type_long == "standalone_named_entity":
-            result["entity_name"] = postfix
-    return result
+        else:
+            return annotation
 
 
 def remove_all_annotations_from_text(annotated_text):
+    """Removes all annotations from the specified text."""
+
     new_text = re.sub(
         r"´\<`(.*?)´\|`(((PK|SN) .+?)|(SK))´\>`",
         lambda match: match.group(1),
@@ -284,6 +192,7 @@ def remove_all_annotations_from_text(annotated_text):
 
 
 def mask_annotations(text):
+    """Masks all annotations, eg. to avoid that terms which are already annotated are annotated again."""
     return re.sub(
         r"´\<`.*?´\|`(SK|PK .*?|SN .*?)´\>`",
         lambda match: "@neanno_masked_annotation:{}@".format(
@@ -294,6 +203,7 @@ def mask_annotations(text):
 
 
 def unmask_annotations(text_with_masked_annotations):
+    """Reverts a previous masking of all annotations."""
     return re.sub(
         r"@neanno_masked_annotation:(?P<base64string>.*?)@",
         lambda match: base64.b64decode(match.group("base64string")).decode(),

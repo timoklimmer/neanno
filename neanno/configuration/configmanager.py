@@ -17,7 +17,7 @@ from neanno.definitions.namedentity import NamedEntityDefinition
 from neanno.ui.colors import DEFAULT_ENTITY_COLORS_PALETTE
 from neanno.utils.dict import QueryDict, merge_dict
 from neanno.utils.pandas import save_dataframe_to_csv
-from neanno.utils.text import extract_annotations_as_list
+from neanno.utils.text import extract_annotations_as_generator
 
 
 class ConfigManager:
@@ -371,9 +371,9 @@ class ConfigManager:
             terms_to_add = {}
             parented_terms_to_update = []
             existing_terms_list = list(config.autosuggest_key_terms_dataset["term"])
-            for annotation in extract_annotations_as_list(
+            for annotation in extract_annotations_as_generator(
                 annotated_text,
-                term_types_to_extract=["standalone_keyterm", "parented_keyterm"],
+                types_to_extract=["standalone_keyterm", "parented_keyterm"],
             ):
                 if annotation["term"] not in existing_terms_list:
                     # term does not exist yet
