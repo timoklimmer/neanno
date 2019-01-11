@@ -162,15 +162,15 @@ class ConfigManager:
             autosuggest_key_terms_dataset.loc[
                 autosuggest_key_terms_dataset["parent_terms"] != "", "against"
             ] = (
-                "("
+                "´<`"
                 + autosuggest_key_terms_dataset["term"]
-                + "|PK "
+                + "´|`PK "
                 + autosuggest_key_terms_dataset["parent_terms"]
-                + ")"
+                + "´>`"
             )
             autosuggest_key_terms_dataset.loc[
                 autosuggest_key_terms_dataset["parent_terms"] == "", "against"
-            ] = ("(" + autosuggest_key_terms_dataset["term"] + "|SK)")
+            ] = ("´<`" + autosuggest_key_terms_dataset["term"] + "´|`SK´>`")
             autosuggest_key_terms_dataset = autosuggest_key_terms_dataset[
                 ["replace", "against"]
             ]
@@ -262,11 +262,11 @@ class ConfigManager:
             # setup flashtext for later string replacements
             config.named_entities_autosuggest_flashtext = KeywordProcessor()
             data_for_flashtext = pd.DataFrame(
-                "("
+                "´<`"
                 + autosuggest_entities_dataset["term"]
-                + "|SN "
+                + "´|`SN "
                 + autosuggest_entities_dataset["entity_code"]
-                + ")"
+                + "´>`"
             )
             data_for_flashtext["replace"] = autosuggest_entities_dataset["term"]
             data_for_flashtext.columns = ["against", "replace"]
@@ -444,11 +444,11 @@ class ConfigManager:
                 for term in terms_to_add:
                     if terms_to_add[term] != "":
                         config.key_terms_autosuggest_flashtext.add_keywords_from_dict(
-                            {"({}|PK {})".format(term, terms_to_add[term]): [term]}
+                            {"´<`{}´|`PK {}´>`".format(term, terms_to_add[term]): [term]}
                         )
                     else:
                         config.key_terms_autosuggest_flashtext.add_keywords_from_dict(
-                            {"({}|SK)".format(term): [term]}
+                            {"´<`{}´|`SK´>`".format(term): [term]}
                         )
 
     def writeback_autosuggest_key_terms_collection():

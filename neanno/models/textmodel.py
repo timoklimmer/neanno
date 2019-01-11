@@ -214,7 +214,7 @@ class TextModel(QAbstractTableModel):
                         old_result_length = len(result)
                         result = "{}{}{}".format(
                             result[: ent.start_char + shift],
-                            "({}|SN {})".format(ent.text, ent.label_),
+                            "´<`{}´|`SN {}´>`".format(ent.text, ent.label_),
                             result[ent.end_char + shift :],
                         )
                         shift += len(result) - old_result_length
@@ -230,7 +230,7 @@ class TextModel(QAbstractTableModel):
                         if autosuggest_regex.parent_terms:
                             result = re.sub(
                                 r"(?P<term>{})".format(autosuggest_regex.pattern),
-                                "({}PK {})".format(
+                                "({}PK {}´>`".format(
                                     "\g<term>", autosuggest_regex.parent_terms
                                 ),
                                 result,
@@ -238,7 +238,7 @@ class TextModel(QAbstractTableModel):
                         else:
                             result = re.sub(
                                 r"(?P<term>{})".format(autosuggest_regex.pattern),
-                                "({}|SK)".format("\g<term>"),
+                                "´<`{}´|`SK´>`".format("\g<term>"),
                                 result,
                             )
 
@@ -253,7 +253,7 @@ class TextModel(QAbstractTableModel):
                     for autosuggest_regex in config.named_entities_autosuggest_regexes:
                         result = re.sub(
                             r"(?P<term>{})".format(autosuggest_regex.pattern),
-                            "({}|SN {})".format("\g<term>", autosuggest_regex.entity),
+                            "´<`{}´|`SN {}´>`".format("\g<term>", autosuggest_regex.entity),
                             result,
                         )
             # unmask masked annotations

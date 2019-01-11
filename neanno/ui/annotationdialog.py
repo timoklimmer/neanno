@@ -407,10 +407,10 @@ class AnnotationDialog(QMainWindow):
             annotation_at_current_cursor_pos is not None
             and annotation_at_current_cursor_pos["term_type_long"] == "parented_keyterm"
         ):
-            text_to_replace_pattern = r"\({}\|PK .*?\)".format(
+            text_to_replace_pattern = r"´\<`{}´\|`PK .*?´\>`".format(
                 re.escape(annotation_at_current_cursor_pos["term"])
             )
-            replace_against_text = "({}|PK {})".format(
+            replace_against_text = "´<`{}´|`PK {}´>`".format(
                 annotation_at_current_cursor_pos["term"],
                 annotation_at_current_cursor_pos["parent_terms"],
             )
@@ -461,10 +461,10 @@ class AnnotationDialog(QMainWindow):
         if text_cursor.hasSelection():
             text_to_replace = text_cursor.selectedText()
             # TODO: only match if not part of another annotation
-            text_to_replace_pattern = r"(?<!\(){}(?!\|SK\))".format(
+            text_to_replace_pattern = r"(?<!´\<`){}(?!´\|`SK´\>`)".format(
                 re.escape(text_to_replace)
             )
-            replace_against_text = "({}|SK)".format(
+            replace_against_text = "´<`{}´|`SK´>`".format(
                 remove_all_annotations_from_text(text_to_replace)
             )
             self.replace_pattern_in_textedit(
@@ -476,7 +476,7 @@ class AnnotationDialog(QMainWindow):
         if text_cursor.hasSelection():
             text_to_replace = text_cursor.selectedText()
             # TODO: only match if not part of another annotation
-            text_to_replace_pattern = r"(?<!\(){}(?!\|PK .*?\))".format(
+            text_to_replace_pattern = r"(?<!´\<`){}(?!´\|`PK .*?´\>`)".format(
                 re.escape(text_to_replace)
             )
             default_parent_key_term = (
@@ -484,10 +484,10 @@ class AnnotationDialog(QMainWindow):
             )
             orig_selection_start = text_cursor.selectionStart()
             new_selection_start = orig_selection_start + len(
-                "({}|PK ".format(remove_all_annotations_from_text(text_to_replace))
+                "´<`{}´|`PK ".format(remove_all_annotations_from_text(text_to_replace))
             )
             new_selection_end = new_selection_start + len(default_parent_key_term)
-            replace_against_text = "({}|PK {})".format(
+            replace_against_text = "´<`{}´|`PK {}´>`".format(
                 remove_all_annotations_from_text(text_to_replace),
                 default_parent_key_term,
             )
@@ -510,7 +510,7 @@ class AnnotationDialog(QMainWindow):
                     code = named_entity_definition.code
                     break
             text_cursor.insertText(
-                "({}|SN {})".format(
+                "´<`{}´|`SN {}´>`".format(
                     remove_all_annotations_from_text(selected_text), code
                 )
             )
@@ -523,15 +523,15 @@ class AnnotationDialog(QMainWindow):
         if annotation is not None:
             # get the replace pattern and replace against text
             if annotation["term_type_long"] == "standalone_keyterm":
-                text_to_replace_pattern = r"\({}\|(SK|PK).*?\)".format(
+                text_to_replace_pattern = r"´\<`{}´\|`(SK|PK).*?´\>`".format(
                     annotation["term"]
                 )
             if annotation["term_type_long"] == "parented_keyterm":
-                text_to_replace_pattern = r"\({}\|(SK|PK).*?\)".format(
+                text_to_replace_pattern = r"´\<`{}´\|`(SK|PK).*?´\>`".format(
                     annotation["term"]
                 )
             if annotation["term_type_long"] == "standalone_named_entity":
-                text_to_replace_pattern = r"\({}\|SN {}?\)".format(
+                text_to_replace_pattern = r"´\<`{}´\|`SN {}?´\>`".format(
                     annotation["term"], annotation["entity_name"]
                 )
             replace_against_text = annotation["term"]

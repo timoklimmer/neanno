@@ -17,10 +17,11 @@ class TextEditHighlighter(QSyntaxHighlighter):
             self.highlighting_rules.append(
                 (
                     QRegularExpression(
-                        r"(?<openParen>\()"
-                        + r"(?<term>[^|()]+?)"
-                        + r"(?<pipeAndType>\|SK)"
-                        + r"(?<closingParen>\))"
+                        r"(?<openParen>´\<`)"
+                        + r"(?<term>[^|´`]+?)"
+                        + r"(?<pipe>´\|`)"
+                        + r"(?<type>SK)"
+                        + r"(?<closingParen>´\>`)"
                     ),
                     config.key_terms_backcolor,
                     config.key_terms_forecolor,
@@ -31,12 +32,13 @@ class TextEditHighlighter(QSyntaxHighlighter):
             self.highlighting_rules.append(
                 (
                     QRegularExpression(
-                        r"(?<openParen>\()"
-                        + r"(?<term>[^|()]+?)"
-                        + r"(?<pipeAndType>\|PK)"
+                        r"(?<openParen>´\<`)"
+                        + r"(?<term>[^|´`]+?)"
+                        + r"(?<pipe>´\|`)"
+                        + r"(?<type>PK)"
                         + r"(?<postfix> "
                         + r".*?"
-                        + r")(?<closingParen>\))"
+                        + r")(?<closingParen>´\>`)"
                     ),
                     config.key_terms_backcolor,
                     config.key_terms_forecolor,
@@ -48,12 +50,13 @@ class TextEditHighlighter(QSyntaxHighlighter):
             self.highlighting_rules.append(
                 (
                     QRegularExpression(
-                        r"(?<openParen>\()"
-                        + r"(?<term>[^|()]+?)"
-                        + r"(?<pipeAndType>\|SN)"
+                        r"(?<openParen>´\<`)"
+                        + r"(?<term>[^|´`]+?)"
+                        + r"(?<pipe>´\|`)"
+                        + r"(?<type>SN)"
                         + r"(?<postfix> "
                         + named_definition.code
-                        + r")(?<closingParen>\))"
+                        + r")(?<closingParen>´\>`)"
                     ),
                     named_definition.backcolor,
                     named_definition.forecolor,
@@ -69,13 +72,19 @@ class TextEditHighlighter(QSyntaxHighlighter):
         #       print index, char
 
         for (pattern, backcolor, forecolor, show_postfix) in self.highlighting_rules:
-            open_paren_format = self.get_text_char_format(backcolor, backcolor)
+            open_paren_format = self.get_text_char_format(backcolor, backcolor, 100 / 3)
             text_format = self.get_text_char_format(backcolor, forecolor)
-            pipeAndType_format = self.get_text_char_format(
-                backcolor, backcolor, 10 if not show_postfix else 50
-            )
+            pipe_format = self.get_text_char_format(backcolor, backcolor, 100 / 3)
             postfix_background_color = "lightgrey"
             postfix_foreground_color = "black"
+            type_format = self.get_text_char_format(
+                postfix_background_color if show_postfix else backcolor,
+                postfix_background_color if show_postfix else backcolor,
+                100 / 8,
+                "Segoe UI",
+                QFont.Bold,
+                9,
+            )
             postfix_text_format = self.get_text_char_format(
                 postfix_background_color,
                 postfix_foreground_color,
@@ -85,26 +94,31 @@ class TextEditHighlighter(QSyntaxHighlighter):
                 9,
             )
             closing_paren_format_postfix = self.get_text_char_format(
-                postfix_background_color, postfix_background_color
+                postfix_background_color, postfix_background_color, 100 / 4
             )
             closing_paren_format_no_postfix = self.get_text_char_format(
-                backcolor, backcolor
+                backcolor, backcolor, 1
             )
 
             expression = QRegularExpression(pattern)
             offset = 0
             while offset >= 0:
                 match = expression.match(text, offset)
-                self.setFormat(match.capturedStart("openParen"), 1, open_paren_format)
+                self.setFormat(match.capturedStart("openParen"), 3, open_paren_format)
                 self.setFormat(
                     match.capturedStart("term"),
                     match.capturedLength("term"),
                     text_format,
                 )
                 self.setFormat(
-                    match.capturedStart("pipeAndType"),
-                    match.capturedLength("pipeAndType"),
-                    pipeAndType_format,
+                    match.capturedStart("pipe"),
+                    match.capturedLength("pipe"),
+                    pipe_format,
+                )
+                self.setFormat(
+                    match.capturedStart("type"),
+                    match.capturedLength("type"),
+                    type_format,
                 )
                 self.setFormat(
                     match.capturedStart("postfix"),
@@ -113,7 +127,7 @@ class TextEditHighlighter(QSyntaxHighlighter):
                 )
                 self.setFormat(
                     match.capturedStart("closingParen"),
-                    1,
+                    3,
                     closing_paren_format_postfix
                     if show_postfix
                     else closing_paren_format_no_postfix,

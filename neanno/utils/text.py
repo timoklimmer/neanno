@@ -35,7 +35,7 @@ def extract_annotations_as_list(
 
     result = []
     for match in re.finditer(
-        r"\((?P<term>[^()]+?)\|(?P<term_type_tiny>(SK|PK|SN))( (?P<postfix>[^()]+?))?\)",
+        r"´\<`(?P<term>[^´`]+?)´\|`(?P<term_type_tiny>(SK|PK|SN))( (?P<postfix>[^´`]+?))?´\>`",
         annotated_text,
         flags=re.DOTALL,
     ):
@@ -93,7 +93,7 @@ def extract_annotations_as_text(
 
     result_list = []
     for match in re.finditer(
-        r"\((?P<term>[^()]+?)\|(?P<term_type_tiny>(SK|PK|SN))( (?P<postfix>[^()]+?))?\)",
+        r"´\<`(?P<term>[^´`]+?)´\|`(?P<term_type_tiny>(SK|PK|SN))( (?P<postfix>[^´`]+?))?´\>`",
         annotated_text,
         flags=re.DOTALL,
     ):
@@ -188,7 +188,7 @@ def extract_annotations_by_term_type(
     parented_keyterms = []
     named_entities = []
     for match in re.finditer(
-        r"\((?P<term>[^()]+?)\|(?P<term_type_tiny>(SK|PK|SN))( (?P<postfix>[^()]+?))?\)",
+        r"´\<`(?P<term>[^´`]+?)´\|`(?P<term_type_tiny>(SK|PK|SN))( (?P<postfix>[^´`]+?))?´\>`",
         annotated_text,
         flags=re.DOTALL,
     ):
@@ -239,7 +239,7 @@ def extract_annotations_by_term_type(
 def get_annotation_at_position(annotated_text, position):
     result = None
     for match in re.finditer(
-        r"\((?P<term>[^()]+?)\|(?P<term_type_tiny>(SK|PK|SN))( (?P<postfix>[^()]*?))?\)",
+        r"´\<`(?P<term>[^´`]+?)´\|`(?P<term_type_tiny>(SK|PK|SN))( (?P<postfix>[^´`]*?))?´\>`",
         annotated_text,
         flags=re.DOTALL,
     ):
@@ -273,7 +273,7 @@ def get_annotation_at_position(annotated_text, position):
 
 def remove_all_annotations_from_text(annotated_text):
     new_text = re.sub(
-        r"\((.*?)\|(((PK|SN) .+?)|(SK))\)",
+        r"´\<`(.*?)´\|`(((PK|SN) .+?)|(SK))´\>`",
         lambda match: match.group(1),
         annotated_text,
         flags=re.DOTALL,
@@ -283,7 +283,7 @@ def remove_all_annotations_from_text(annotated_text):
 
 def mask_annotations(text):
     return re.sub(
-        r"\(.*?\|(SK|PK .*?|SN .*?)\)",
+        r"´\<`.*?´\|`(SK|PK .*?|SN .*?)´\>`",
         lambda match: "@neanno_masked_annotation:{}@".format(
             base64.b64encode(match.group().encode("utf-8")).decode()
         ),
@@ -302,7 +302,7 @@ def unmask_annotations(text_with_masked_annotations):
 def extract_named_entities_distribution(annotated_text):
     """ Computes the types and frequencies of named entities in the specified text."""
     result = {}
-    find_entities_pattern = r"\((?P<term>.+?)\|SN (?P<label>.+?)\)"
+    find_entities_pattern = r"´\<`(?P<term>.+?)´\|`SN (?P<label>.+?)´\>`"
     for entity in re.findall(find_entities_pattern, annotated_text):
         entity_code = entity[1]
         if entity_code not in result:

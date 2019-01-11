@@ -1,384 +1,384 @@
 Request ID,Text,categories,is_text_annotated
 2047,"Hi all,
 
-I have booked to fly from (Australia|SN FROM) to (LAX|SN TO) return on a (747-400|SN AIRCRAFT) and have a couple of questions.
+I have booked to fly from ´<`Australia´|`SN FROM´>` to ´<`LAX´|`SN TO´>` return on a ´<`747-400´|`SN AIRCRAFT´>` and have a couple of questions.
 
 I am flyting
 
-1) Is there (wifi|SK) on the plane and do you have to (pay for|PK charges) it?
-2) Is there capability to (charge|SK) an (iPhone|SK) or (iPad|SK) (in flight|PK in-flight)?
-3) From what I can work out, (meals|SK) are included but you have to (pay for|PK charges) (alcohol|SK)??
+1) Is there ´<`wifi´|`SK´>` on the plane and do you have to ´<`pay for´|`PK charges´>` it?
+2) Is there capability to ´<`charge´|`SK´>` an ´<`iPhone´|`SK´>` or ´<`iPad´|`SK´>` ´<`in flight´|`PK in-flight´>`?
+3) From what I can work out, ´<`meals´|`SK´>` are included but you have to ´<`pay for´|`PK charges´>` ´<`alcohol´|`SK´>`??
 
 Any advice would be appreciated. Thanks in advance.",Service Offering/Procedure|Technology,True
-1997,"If my friend and I are turning 17, but want to (travel alone|SK), would there be any (legal issues|SK) with that?
+1997,"If my friend and I are turning 17, but want to ´<`travel alone´|`SK´>`, would there be any ´<`legal issues´|`SK´>` with that?
 
-I realize it may vary by country. As we live in the (United States|SN FROM), we were exploring options where (airfare|SK) would be relatively (affordable|SK) and (budget travel|SK) possible, such as (Canada|SN TO) and (certain Caribbean nations|SN TO).
+I realize it may vary by country. As we live in the ´<`United States´|`SN FROM´>`, we were exploring options where ´<`airfare´|`SK´>` would be relatively ´<`affordable´|`SK´>` and ´<`budget travel´|`SK´>` possible, such as ´<`Canada´|`SN TO´>` and ´<`certain Caribbean nations´|`SN TO´>`.
 
-I realize (minors|SK) (fly alone|PK travel alone) all the time, but I was wondering if the fact that we have nobody in the country looking after us would be a problem.
+I realize ´<`minors´|`SK´>` ´<`fly alone´|`PK travel alone´>` all the time, but I was wondering if the fact that we have nobody in the country looking after us would be a problem.
 
-ALSO, if we went on a techincally ""domestic"" trip, such as one to (Puerto Rico|SN TO) or (Virgin Islands|SN TO), would it make a difference as we do not have to deal with (customs|SK)?
+ALSO, if we went on a techincally ""domestic"" trip, such as one to ´<`Puerto Rico´|`SN TO´>` or ´<`Virgin Islands´|`SN TO´>`, would it make a difference as we do not have to deal with ´<`customs´|`SK´>`?
 
 Any help would be greatly appreciated!",Trip Planning|Customs/Immigration|Legal,True
 1999,"Hey All,
 
-In May, we'll be flying from (YYZ|SN FROM) to (JFK|SN TO) -(landing at 7:50 am at (Terminal 4|SK) - (Delta|SN AIRLINE)) and (JFK|SN FROM) to (BKK|SN TO), departing at 12:30 pm from (Terminal 7|SK).
+In May, we'll be flying from ´<`YYZ´|`SN FROM´>` to ´<`JFK´|`SN TO´>` -(landing at 7:50 am at ´<`Terminal 4´|`SK´>` - ´<`Delta´|`SN AIRLINE´>`) and ´<`JFK´|`SN FROM´>` to ´<`BKK´|`SN TO´>`, departing at 12:30 pm from ´<`Terminal 7´|`SK´>`.
 
-We have all our flights booked but I'm wondering if it would be (enough time|PK timing) to catch the flight from (JFK|SN FROM)? I'm assuming (pre-screening|SK) will be done at (YYZ|SN AT)?
+We have all our flights booked but I'm wondering if it would be ´<`enough time´|`PK timing´>` to catch the flight from ´<`JFK´|`SN FROM´>`? I'm assuming ´<`pre-screening´|`SK´>` will be done at ´<`YYZ´|`SN AT´>`?
 
-Is this a good (enough time|PK timing) frame?
+Is this a good ´<`enough time´|`PK timing´>` frame?
 
 Thanks",Trip Planning|Security,True
-2003,"Here is a little story for you (football|SK) fans out there.
+2003,"Here is a little story for you ´<`football´|`SK´>` fans out there.
 
-Couple of weeks ago My wife and I decide to book a flight to (Memphis|SN TO) Feb1 to Feb3, to meet up with relatives. Personally I didnt want to go. Now, we all know that Feb3 is the (superbowl|SK). I told my wife I was cool with coming home Feb3. I am a NY Giants fan and no one out there including myself(die hard fan) didnt think that the Giant would ever make it to the (superbowl|SK).
+Couple of weeks ago My wife and I decide to book a flight to ´<`Memphis´|`SN TO´>` Feb1 to Feb3, to meet up with relatives. Personally I didnt want to go. Now, we all know that Feb3 is the ´<`superbowl´|`SK´>`. I told my wife I was cool with coming home Feb3. I am a NY Giants fan and no one out there including myself(die hard fan) didnt think that the Giant would ever make it to the ´<`superbowl´|`SK´>`.
 
-OK, we are flying back Feb3 not too bad right? WRONG!!! Our flight is during the game. AHHH! So i decide to try to (change the flight|PK changing flight) to earlier time.
+OK, we are flying back Feb3 not too bad right? WRONG!!! Our flight is during the game. AHHH! So i decide to try to ´<`change the flight´|`PK changing flight´>` to earlier time.
 
-Well, online they wanted to (charge me|PK charges) $300 to change my flight to leave 3 hours earlier. So I figured that I will call them and maybe they can reason with me.
+Well, online they wanted to ´<`charge me´|`PK charges´>` $300 to change my flight to leave 3 hours earlier. So I figured that I will call them and maybe they can reason with me.
 
-Well, I called and waited 30 minutes to talk to someone and they told me the same thing $300. I told them it was highway robbery. I can understand why for changing times. I t makes more sense to penalize you if you (canceled|PK cancellation) or if you changed carriers, but not for changeing times.
+Well, I called and waited 30 minutes to talk to someone and they told me the same thing $300. I told them it was highway robbery. I can understand why for changing times. I t makes more sense to penalize you if you ´<`canceled´|`PK cancellation´>` or if you changed carriers, but not for changeing times.
 
-I dont think its right. There are many companies to choose from and I choose them. You would think a little help would be nice from them. What if there was an emergency at home? What are they going to (charge me|PK charges) $300 for that too.
+I dont think its right. There are many companies to choose from and I choose them. You would think a little help would be nice from them. What if there was an emergency at home? What are they going to ´<`charge me´|`PK charges´>` $300 for that too.
 
-Sorry, but I'm just (frustrated|SK) and I dont think it is fair for paying customers to pay a penalty to changes the times of their flight.
+Sorry, but I'm just ´<`frustrated´|`SK´>` and I dont think it is fair for paying customers to pay a penalty to changes the times of their flight.
 
-Back to the (superbowl|SK) issue... I am planning to do standby in case we get lucky. I will also record the game so I can watch it when I get home that night. I will have to not listen to the radio or look at an TVs before getting home.
+Back to the ´<`superbowl´|`SK´>` issue... I am planning to do standby in case we get lucky. I will also record the game so I can watch it when I get home that night. I will have to not listen to the radio or look at an TVs before getting home.
 
-So therefore NWA (is not cool|SK) and I wil (not choose them again|SK). And wish me luck on being able to watch he game. ----",,True
+So therefore NWA ´<`is not cool´|`SK´>` and I wil ´<`not choose them again´|`SK´>`. And wish me luck on being able to watch he game. ----",,True
 1549,"Quick question...
 
-I've just pre booked my (seats|PK seating) on a (return flight|SK) from (Kos|SN FROM) to (Newcastle|SN TO) in October, with (Thomas Cook|SN AIRLINE). I'm flying on a (320|SN AIRCRAFT) and have chosen Row 12, (seats|PK seating) B & C (exit/extra leg room|SK) (seats|PK seating)
+I've just pre booked my ´<`seats´|`PK seating´>` on a ´<`return flight´|`SK´>` from ´<`Kos´|`SN FROM´>` to ´<`Newcastle´|`SN TO´>` in October, with ´<`Thomas Cook´|`SN AIRLINE´>`. I'm flying on a ´<`320´|`SN AIRCRAFT´>` and have chosen Row 12, ´<`seats´|`PK seating´>` B & C ´<`exit/extra leg room´|`SK´>` ´<`seats´|`PK seating´>`
 
-However, on reading another website, its mentioned that this row does not (recline|SK) (as they are the front row of 2 rows of exit (seats|PK seating) therefore have an (emergency exit|SK) directly behind them)...can anyone (confirm|PK confirmation)/deny this?
+However, on reading another website, its mentioned that this row does not ´<`recline´|`SK´>` (as they are the front row of 2 rows of exit ´<`seats´|`PK seating´>` therefore have an ´<`emergency exit´|`SK´>` directly behind them)...can anyone ´<`confirm´|`PK confirmation´>`/deny this?
 
-The row behind is also (exit/extra leg room|SK)...should I move (seats|PK seating) back?
+The row behind is also ´<`exit/extra leg room´|`SK´>`...should I move ´<`seats´|`PK seating´>` back?
 
 I thought the front row would be better as there wouldn't be anyone's knees in my back :)
 
 TIA Laura x",,True
-2010,"Can anyone give me a suggestion on how to (exchange my inbound ticket|PK ticket changes) (New York City|SN FROM) - (Moscow|SN TO) via (Alitalia|SN AIRLINE)?
+2010,"Can anyone give me a suggestion on how to ´<`exchange my inbound ticket´|`PK ticket changes´>` ´<`New York City´|`SN FROM´>` - ´<`Moscow´|`SN TO´>` via ´<`Alitalia´|`SN AIRLINE´>`?
 
-I called their (call center|SK) at 800 223 5730 to (exchange my inbound ticket|PK ticket changes) from (JFK|SN FROM) to (SVO|SN TO) from (June|SN FROM), 22 to (July|SN TO) 29th or any further date. After the (representative|SK) checked the status, I was told that this would be impossible to do because (Aeroflot|SN AIRLINE) made a (mistake|SK) processing the inbound flight.
+I called their ´<`call center´|`SK´>` at 800 223 5730 to ´<`exchange my inbound ticket´|`PK ticket changes´>` from ´<`JFK´|`SN FROM´>` to ´<`SVO´|`SN TO´>` from ´<`June´|`SN FROM´>`, 22 to ´<`July´|`SN TO´>` 29th or any further date. After the ´<`representative´|`SK´>` checked the status, I was told that this would be impossible to do because ´<`Aeroflot´|`SN AIRLINE´>` made a ´<`mistake´|`SK´>` processing the inbound flight.
 
-Apparently, (Alitalia|SN AIRLINE) (canceled|PK cancellation) the outbound flight, and passengers including me were moved to (Aeroflot|SN AIRLINE) flight. Somehow, (Aeroflot|SN AIRLINE) marked the status as ""changed"" but did not mark it as ""flown"". 
+Apparently, ´<`Alitalia´|`SN AIRLINE´>` ´<`canceled´|`PK cancellation´>` the outbound flight, and passengers including me were moved to ´<`Aeroflot´|`SN AIRLINE´>` flight. Somehow, ´<`Aeroflot´|`SN AIRLINE´>` marked the status as ""changed"" but did not mark it as ""flown"". 
 
-The (representative|SK) at (Alitalia|SN AIRLINE) told me that there is nothing they could do now. He said ""you have a very slight chance that (Alitalia|SN AIRLINE) office at JFK would be able to help"". I live over 100 (miles|SK) away from (JFK|SN FROM) and going there for a ""very slight chance"" is not a great option. I don't see why should I be held responsible for any (mistakes|SK) made by airlines.
+The ´<`representative´|`SK´>` at ´<`Alitalia´|`SN AIRLINE´>` told me that there is nothing they could do now. He said ""you have a very slight chance that ´<`Alitalia´|`SN AIRLINE´>` office at JFK would be able to help"". I live over 100 ´<`miles´|`SK´>` away from ´<`JFK´|`SN FROM´>` and going there for a ""very slight chance"" is not a great option. I don't see why should I be held responsible for any ´<`mistakes´|`SK´>` made by airlines.
 
-Is there (Alitalia|SN AIRLINE) office in (New York City|SN AT)? Is there another (phone number|SK) that I could get a better help?
+Is there ´<`Alitalia´|`SN AIRLINE´>` office in ´<`New York City´|`SN AT´>`? Is there another ´<`phone number´|`SK´>` that I could get a better help?
 
 Any advice would be deeply appreciated.",Trip Planning,True
-1941,"One of our checked (bag|SK) was opened by (TSA|SK). All the stuff at the bottom ended up at the top. We know (TSA|SK) opened the (bag|SK) as they left their note inside on the top.
+1941,"One of our checked ´<`bag´|`SK´>` was opened by ´<`TSA´|`SK´>`. All the stuff at the bottom ended up at the top. We know ´<`TSA´|`SK´>` opened the ´<`bag´|`SK´>` as they left their note inside on the top.
 
-This isn't the first time we have had a (bag|SK) opened by them, but it's the first time they didn't replace the cable tie, and didn't close up the zips fully.
+This isn't the first time we have had a ´<`bag´|`SK´>` opened by them, but it's the first time they didn't replace the cable tie, and didn't close up the zips fully.
 
-The key thing is that my nice (hiking pole|SK) was (missing|SK) from the case. It had been at the very bottom of the case. We don't why the (hiking pole|SK) is (missing|SK). It's not a forbidden item, and the friends we travelled with who also had a (bag|SK) opened didnt get theirs taken.
+The key thing is that my nice ´<`hiking pole´|`SK´>` was ´<`missing´|`SK´>` from the case. It had been at the very bottom of the case. We don't why the ´<`hiking pole´|`SK´>` is ´<`missing´|`SK´>`. It's not a forbidden item, and the friends we travelled with who also had a ´<`bag´|`SK´>` opened didnt get theirs taken.
 
-The issue is, as the cable tie wasnt replaced, we don't know if the (missing|SK) (hiking pole|SK) was purposefully removed by (TSA|SK), not returned to our (bag|SK) in (error|SK) or removed by another party after (TSA|SK) opened our (bag|SK).
+The issue is, as the cable tie wasnt replaced, we don't know if the ´<`missing´|`SK´>` ´<`hiking pole´|`SK´>` was purposefully removed by ´<`TSA´|`SK´>`, not returned to our ´<`bag´|`SK´>` in ´<`error´|`SK´>` or removed by another party after ´<`TSA´|`SK´>` opened our ´<`bag´|`SK´>`.
 
 What can we do?
 
-Where do we stand with (TSA|SK) on this? Do (TSA|SK) have any responsibility for our (loss|SK)? (TSA|SK) provide email contact info on their form.
+Where do we stand with ´<`TSA´|`SK´>` on this? Do ´<`TSA´|`SK´>` have any responsibility for our ´<`loss´|`SK´>`? ´<`TSA´|`SK´>` provide email contact info on their form.
 
 Is it worth contacting them? Any better suggestions?",Security|Complaint,True
-1968,"My son will be flying home from college but needs to bring his very expensive (trombone|SK) back with him for the summer. The (trombone|SK) is certainly larger than the (carry on dimensions|SK) would allow and I am afraid to have him check it.
+1968,"My son will be flying home from college but needs to bring his very expensive ´<`trombone´|`SK´>` back with him for the summer. The ´<`trombone´|`SK´>` is certainly larger than the ´<`carry on dimensions´|`SK´>` would allow and I am afraid to have him check it.
 
-My thought is that we can buy the (trombone|SK) a (seat|PK seating) as that is what either (AA|SN AIRLINE) or (SWA|SN AIRLINE) say we can do. 
+My thought is that we can buy the ´<`trombone´|`SK´>` a ´<`seat´|`PK seating´>` as that is what either ´<`AA´|`SN AIRLINE´>` or ´<`SWA´|`SN AIRLINE´>` say we can do. 
 
 It actually works out financially as it is one way ticket so not too expensive and much easier than flying out renting a car and driving the 12+ hours home.
 
-My question is has anyone ever bought a (seat|PK seating) for their instrument or even 2 (seats|PK seating) for themselves?
+My question is has anyone ever bought a ´<`seat´|`PK seating´>` for their instrument or even 2 ´<`seats´|`PK seating´>` for themselves?
 
-Would their be issues getting the (trombone|SK) through (TSA|SK) or will the (trombone|SK) be given ""its own (boarding pass|SK)"" (under my sons name).
+Would their be issues getting the ´<`trombone´|`SK´>` through ´<`TSA´|`SK´>` or will the ´<`trombone´|`SK´>` be given ""its own ´<`boarding pass´|`SK´>`"" (under my sons name).
 
 Any other unexpected problems we should be aware of?
 
 TIA, -",Trip Planning|Service Offering/Procedure,True
-1881,"I have booked a (return flight|SK) from (Rio|SN FROM) to (Iguassu Falls|SN TO) ((Foz do Iguacu|SN TO)) for June, just before the start of the (World Cup|SK). Any comments (or warnings) from anyone?
+1881,"I have booked a ´<`return flight´|`SK´>` from ´<`Rio´|`SN FROM´>` to ´<`Iguassu Falls´|`SN TO´>` (´<`Foz do Iguacu´|`SN TO´>`) for June, just before the start of the ´<`World Cup´|`SK´>`. Any comments (or warnings) from anyone?
 
-They are only short flights so I'm not too worried about (in-flight service|PK in-flight) or (food|PK meals), but anything I need to know about other issues?
+They are only short flights so I'm not too worried about ´<`in-flight service´|`PK in-flight´>` or ´<`food´|`PK meals´>`, but anything I need to know about other issues?
 
-Do they have a habit of changing flight times last minute, or even (cancelling|PK cancellation) flights altogether?
+Do they have a habit of changing flight times last minute, or even ´<`cancelling´|`PK cancellation´>` flights altogether?
 
-Any tips for either airport - (GIG in Rio|SN AT) and (IGU in Iguassu Falls|SN AT) (Brazil side) that will avoid me getting stressed?
+Any tips for either airport - ´<`GIG in Rio´|`SN AT´>` and ´<`IGU in Iguassu Falls´|`SN AT´>` (Brazil side) that will avoid me getting stressed?
 
 Thanks in advance, ---------",Trip Planning|Service Offering/Procedure,True
-1895,"will I make it to (bus|SK) to (east Midlands|SN TO) 7.10 departure for pick up there by friend if I arrive (BA|SN AIRLINE) (terminal 5|SK) at 5.30 pm Sunday and - not sure which terminal the (bus|SK) station is at?
+1895,"will I make it to ´<`bus´|`SK´>` to ´<`east Midlands´|`SN TO´>` 7.10 departure for pick up there by friend if I arrive ´<`BA´|`SN AIRLINE´>` ´<`terminal 5´|`SK´>` at 5.30 pm Sunday and - not sure which terminal the ´<`bus´|`SK´>` station is at?
 
-or should i plan to or plan B -stay at cheaper (hotel|SK) nearby and if so many thanks which is best for (bus|SK) on the Monday please?",Trip Planning,True
+or should i plan to or plan B -stay at cheaper ´<`hotel´|`SK´>` nearby and if so many thanks which is best for ´<`bus´|`SK´>` on the Monday please?",Trip Planning,True
 1882,"Hello.
 
-I am struggling to find out the present situation regarding the new (Qatar airport|SK) in (Doha|SN AT). Some reports say its finished and others say not. Has anyone flown through there recently who can advise?
+I am struggling to find out the present situation regarding the new ´<`Qatar airport´|`SK´>` in ´<`Doha´|`SN AT´>`. Some reports say its finished and others say not. Has anyone flown through there recently who can advise?
 
-We will be transiting in September. What I would really like to know is - is the (business class|SK) (lounge|SK) now complete and open? And ... Is there a (smoking|SK) area in this (lounge|SK)? Are there ANY (smoking|SK) areas?
+We will be transiting in September. What I would really like to know is - is the ´<`business class´|`SK´>` ´<`lounge´|`SK´>` now complete and open? And ... Is there a ´<`smoking´|`SK´>` area in this ´<`lounge´|`SK´>`? Are there ANY ´<`smoking´|`SK´>` areas?
 
 Sorry, I know this is a sore subject to many but it's important to us. I would be grateful for any recent info regarding this new airport.
 
 Thank you. Sue",Trip Planning|Service Offering/Procedure,True
-1908,"1. Whether (Indian people|SK) having valid (visa|SK) require another '(transit visa|SK)' for going by flights to (Toronto|SN TO) via (New|SN VIA) York ?
+1908,"1. Whether ´<`Indian people´|`SK´>` having valid ´<`visa´|`SK´>` require another '´<`transit visa´|`SK´>`' for going by flights to ´<`Toronto´|`SN TO´>` via ´<`New´|`SN VIA´>` York ?
 
-2. What are the cheap flights for a round trip to (Toronto|SN TO) from (Kolkata|SN FROM) without requiring '(transit visa|SK)'? Journey period is July,2015.",Trip Planning|Customs/Immigration,True
-1889,"We are flying (Condor|SN AIRLINE) from (PVD|SN FROM) (Providence) to (Germany|SN TO).
+2. What are the cheap flights for a round trip to ´<`Toronto´|`SN TO´>` from ´<`Kolkata´|`SN FROM´>` without requiring '´<`transit visa´|`SK´>`'? Journey period is July,2015.",Trip Planning|Customs/Immigration,True
+1889,"We are flying ´<`Condor´|`SN AIRLINE´>` from ´<`PVD´|`SN FROM´>` (Providence) to ´<`Germany´|`SN TO´>`.
 
-I can't quite figure out what the process is like for checking in and selecting (seats|PK seating). The website advises checking in 3 hours in advance?
+I can't quite figure out what the process is like for checking in and selecting ´<`seats´|`PK seating´>`. The website advises checking in 3 hours in advance?
 
-When do we select/get assigned to (seats|PK seating)?
+When do we select/get assigned to ´<`seats´|`PK seating´>`?
 
-Is there any chance that our (family|SK) of 4 will be able to (sit next|SK) to or near each other?
+Is there any chance that our ´<`family´|`SK´>` of 4 will be able to ´<`sit next´|`SK´>` to or near each other?
 
 How do we maximize the possibility?
 
 Thanks!",Service Offering/Procedure,True
 1879,"Hi
 
-I am flying to (alicante|SN TO) from (leeds-bradford|SN FROM) (2.5 hr flight) using (Ryanair|SN AIRLINE) (for the first time) and I am unsure whether to reserve (seating|SK) - there are 3 of us flying - my husband, me and our 18 month old son.
+I am flying to ´<`alicante´|`SN TO´>` from ´<`leeds-bradford´|`SN FROM´>` (2.5 hr flight) using ´<`Ryanair´|`SN AIRLINE´>` (for the first time) and I am unsure whether to reserve ´<`seating´|`SK´>` - there are 3 of us flying - my husband, me and our 18 month old son.
 
-I have only ever gone away on package holidays where you are allocated a (seat|PK seating) when you check in at the airport but have just found out that this isn't the case with (Ryanair|SN AIRLINE). My original plan was to arrive nice and early to ensure we (get seated|PK seating) together but as this would be useless through (Ryanair|SN AIRLINE) I don't know whether to (pre-book|SK). Advice very much appreciated :)
+I have only ever gone away on package holidays where you are allocated a ´<`seat´|`PK seating´>` when you check in at the airport but have just found out that this isn't the case with ´<`Ryanair´|`SN AIRLINE´>`. My original plan was to arrive nice and early to ensure we ´<`get seated´|`PK seating´>` together but as this would be useless through ´<`Ryanair´|`SN AIRLINE´>` I don't know whether to ´<`pre-book´|`SK´>`. Advice very much appreciated :)
 
-I know it isn't a massive amount of money to (pre-book|SK) but we are trying to keep (costs|SK) down as much as possible - now thinking we should have just booked a package hol (I am also worried about the 'scrum', as ive seen it described on-line, when (boarding|SK) and getting pushed about with my son in my arms) Oh also one more thing - I use a (sling carrier|PK extra luggage) for my son as he is too heavy to carry - (will I be allowed|PK admission) on the flight with this? We are taking our (pushchair|PK extra luggage) but we were going to check this straight away and just use the (ring sling|PK extra luggage) in the airport.
+I know it isn't a massive amount of money to ´<`pre-book´|`SK´>` but we are trying to keep ´<`costs´|`SK´>` down as much as possible - now thinking we should have just booked a package hol (I am also worried about the 'scrum', as ive seen it described on-line, when ´<`boarding´|`SK´>` and getting pushed about with my son in my arms) Oh also one more thing - I use a ´<`sling carrier´|`PK extra luggage´>` for my son as he is too heavy to carry - ´<`will I be allowed´|`PK admission´>` on the flight with this? We are taking our ´<`pushchair´|`PK extra luggage´>` but we were going to check this straight away and just use the ´<`ring sling´|`PK extra luggage´>` in the airport.
 
 Again any advice appreciated
 
 Edited: 5:13 pm, August 18, 2013",Trip Planning|Service Offering/Procedure,True
-1845,"Quick question about ""(small portable electronic devices|SK)"" on (UA|SN AIRLINE) (or other USA carriers) over (USA airspace|SK).
+1845,"Quick question about ""´<`small portable electronic devices´|`SK´>`"" on ´<`UA´|`SN AIRLINE´>` (or other USA carriers) over ´<`USA airspace´|`SK´>`.
 
-(UA|SN AIRLINE) changed the (rules|SK) on ""(small portable electronic devices|SK)"" on their USA flights. I found out that my (kindle|SK) (in non-transmit ""Airplane Mode"") was OK, for the duration of the flight. However, my question is a bit specific, and the (UA|SN AIRLINE) site does not give me a definition, or list, that I can apply. Just acquired an (iPod Air 2|SK). Where does that fall in the (small portable electronic devices|SK)?
+´<`UA´|`SN AIRLINE´>` changed the ´<`rules´|`SK´>` on ""´<`small portable electronic devices´|`SK´>`"" on their USA flights. I found out that my ´<`kindle´|`SK´>` (in non-transmit ""Airplane Mode"") was OK, for the duration of the flight. However, my question is a bit specific, and the ´<`UA´|`SN AIRLINE´>` site does not give me a definition, or list, that I can apply. Just acquired an ´<`iPod Air 2´|`SK´>`. Where does that fall in the ´<`small portable electronic devices´|`SK´>`?
 
-Is is like my (kindle|SK), or is it in the category of a ""(computer|SK),"" which can only be used above 10K feet, and also (needs to be shut down|PK shutdown requirement), prior to landing? Just trying to learn a bit, prior to (boarding|SK), using and getting yelled at.
+Is is like my ´<`kindle´|`SK´>`, or is it in the category of a ""´<`computer´|`SK´>`,"" which can only be used above 10K feet, and also ´<`needs to be shut down´|`PK shutdown requirement´>`, prior to landing? Just trying to learn a bit, prior to ´<`boarding´|`SK´>`, using and getting yelled at.
 
 Thanks, ----",Service Offering/Procedure|Technology,True
 1832,"Hi...
 
 need some help from someone who has perhaps done this flight recently.
 
-We are booked on an (Emirates|SN AIRLINE) flight that leaves (Melbourne|SN FROM) at 0235 am (argghh!) and has stops in (KL|SN VIA) (about an hour) and in (Dubai|SN VIA) (2 hours) and arrives in (Paris|SN TO) at 2000hrs (8pm).
+We are booked on an ´<`Emirates´|`SN AIRLINE´>` flight that leaves ´<`Melbourne´|`SN FROM´>` at 0235 am (argghh!) and has stops in ´<`KL´|`SN VIA´>` (about an hour) and in ´<`Dubai´|`SN VIA´>` (2 hours) and arrives in ´<`Paris´|`SN TO´>` at 2000hrs (8pm).
 
-I am wondering...when is the (best time|SK) to try and get some (sleep|SK) and how much (sleep|SK) is needed, as we will probably try and go to bed pretty much straight away once we reach our accommodation in Paris.
+I am wondering...when is the ´<`best time´|`SK´>` to try and get some ´<`sleep´|`SK´>` and how much ´<`sleep´|`SK´>` is needed, as we will probably try and go to bed pretty much straight away once we reach our accommodation in Paris.
 
-I am hoping by doing everything possible that I will avoid the affects of (jet lag|SK) as much as possible. Are the (Emirates|SN AIRLINE) (seats|PK seating) ((economy|SK)) comfortable (by airline standards) and is there a ""good/ideal"" place to try and reserve a (seat|PK seating) to maximize (leg room|SK) and (comfort|SK)?
+I am hoping by doing everything possible that I will avoid the affects of ´<`jet lag´|`SK´>` as much as possible. Are the ´<`Emirates´|`SN AIRLINE´>` ´<`seats´|`PK seating´>` (´<`economy´|`SK´>`) comfortable (by airline standards) and is there a ""good/ideal"" place to try and reserve a ´<`seat´|`PK seating´>` to maximize ´<`leg room´|`SK´>` and ´<`comfort´|`SK´>`?
 
-I have a (chronic back condition|SK) and would like to try and minimize the effects of a long flight on my back...wish I could afford the luxury of (business class|SK) but short of an ""(upgrade|SK)"" it's not an option sadly ;(",Service Offering/Procedure,True
-1825,"Will arrive into (T2|SK) and fly out of (T3|SK) in (Heathrow|SN FROM). I understood we could walk from one terminal to the other, but the Heathrow flight connections page tells me that a (bus|SK) will take us and one departs every 7 minutes. Is it still (possible to walk|SK) from one to the other. If so I presume it would be the (quickest way|SK)?
+I have a ´<`chronic back condition´|`SK´>` and would like to try and minimize the effects of a long flight on my back...wish I could afford the luxury of ´<`business class´|`SK´>` but short of an ""´<`upgrade´|`SK´>`"" it's not an option sadly ;(",Service Offering/Procedure,True
+1825,"Will arrive into ´<`T2´|`SK´>` and fly out of ´<`T3´|`SK´>` in ´<`Heathrow´|`SN FROM´>`. I understood we could walk from one terminal to the other, but the Heathrow flight connections page tells me that a ´<`bus´|`SK´>` will take us and one departs every 7 minutes. Is it still ´<`possible to walk´|`SK´>` from one to the other. If so I presume it would be the ´<`quickest way´|`SK´>`?
 
 Thanks -----.",Trip Planning,True
-1852,"i will be going to (ireland|SN TO) march 31st. this is my first trip and first time flying and i have a couple questions.
+1852,"i will be going to ´<`ireland´|`SN TO´>` march 31st. this is my first trip and first time flying and i have a couple questions.
 
-i sent out for (passport|SK) a little over a week ago,(should i wait for it|SK) to get back before i book my flight?
+i sent out for ´<`passport´|`SK´>` a little over a week ago,´<`should i wait for it´|`SK´>` to get back before i book my flight?
 
-the flights i found for that day are already filling up. also i have looked on (TSA|SK) guidelines and cant find any info..would (roll-your-own cigarettes|SK) (be allowed|PK admission) the same as store bought? im doing carry on only..
+the flights i found for that day are already filling up. also i have looked on ´<`TSA´|`SK´>` guidelines and cant find any info..would ´<`roll-your-own cigarettes´|`SK´>` ´<`be allowed´|`PK admission´>` the same as store bought? im doing carry on only..
 
 any help would be appreciated
 
 thanks",Trip Planning|Security,True
-1863,"I am looking at snagging a FF (seat|PK seating) on this flight, now that (Qantas|SN AIRLINE) is using the (A 380|SN AIRCRAFT). I only have enough (miles|SK) to fly (economy|SK) for the almost 17 hours in the air.
+1863,"I am looking at snagging a FF ´<`seat´|`PK seating´>` on this flight, now that ´<`Qantas´|`SN AIRLINE´>` is using the ´<`A 380´|`SN AIRCRAFT´>`. I only have enough ´<`miles´|`SK´>` to fly ´<`economy´|`SK´>` for the almost 17 hours in the air.
 
-Relatively speaking, (how comfortable|PK comfort) are the (Qantas|SN AIRLINE) (economy|SK) (seats|PK seating)?
+Relatively speaking, ´<`how comfortable´|`PK comfort´>` are the ´<`Qantas´|`SN AIRLINE´>` ´<`economy´|`SK´>` ´<`seats´|`PK seating´>`?
 
 Is this flight generally full?",Trip Planning|Service Offering/Procedure,True
-1842,"This is our 1st flight, ever. We are flying from (Arkansas|SN FROM) to (Atlanta|SN TO) in a (CRJ|SN AIRCRAFT). From (Atlanta|SN FROM) to (LGA|SN TO) in a (Boeing 757|SN AIRCRAFT). From (LGA|SN FROM) to (Atlanta|SN TO) in a (MD-88|SN AIRCRAFT) & back to (Arkansas|SN TO) in a (CRJ|SN AIRCRAFT).
+1842,"This is our 1st flight, ever. We are flying from ´<`Arkansas´|`SN FROM´>` to ´<`Atlanta´|`SN TO´>` in a ´<`CRJ´|`SN AIRCRAFT´>`. From ´<`Atlanta´|`SN FROM´>` to ´<`LGA´|`SN TO´>` in a ´<`Boeing 757´|`SN AIRCRAFT´>`. From ´<`LGA´|`SN FROM´>` to ´<`Atlanta´|`SN TO´>` in a ´<`MD-88´|`SN AIRCRAFT´>` & back to ´<`Arkansas´|`SN TO´>` in a ´<`CRJ´|`SN AIRCRAFT´>`.
 
-Will any of these flights have (movies|PK entertainment)? 1 main (movie|PK entertainment)? Individual (seat|PK seating) (movies|PK entertainment)?
+Will any of these flights have ´<`movies´|`PK entertainment´>`? 1 main ´<`movie´|`PK entertainment´>`? Individual ´<`seat´|`PK seating´>` ´<`movies´|`PK entertainment´>`?
 
-Just wondering if we need to take (Tablets|SK) with us?",,True
+Just wondering if we need to take ´<`Tablets´|`SK´>` with us?",,True
 1802,"Hello,
 
-my name is --------------- and I'm a journalist working for UK Esquire magazine on a story about changes in the (First Class|SK) travel (market|SK). I've spoken to several people within the industry about (competition|SK) and changes in the (market|SK) (who's making the running, which airlines are innovating and so on). But I would really like to talk to some regular (First Class|SK) travellers who can give me their thoughts on different airlines' (First Class|SK) (offerings|SK), who's doing it best, what are the major developments, and so on.
+my name is --------------- and I'm a journalist working for UK Esquire magazine on a story about changes in the ´<`First Class´|`SK´>` travel ´<`market´|`SK´>`. I've spoken to several people within the industry about ´<`competition´|`SK´>` and changes in the ´<`market´|`SK´>` (who's making the running, which airlines are innovating and so on). But I would really like to talk to some regular ´<`First Class´|`SK´>` travellers who can give me their thoughts on different airlines' ´<`First Class´|`SK´>` ´<`offerings´|`SK´>`, who's doing it best, what are the major developments, and so on.
 
-If you are a regular (First Class|SK) flyer (preferably from the UK) and you'd like to share your thoughts, please get in touch via Personal Message.
+If you are a regular ´<`First Class´|`SK´>` flyer (preferably from the UK) and you'd like to share your thoughts, please get in touch via Personal Message.
 
 I would love to hear from you. many thanks,
 ------
 
 https:/…200615107",Service Offering/Procedure,True
-1799,"I am travelling from (Ottawa|SN FROM) to (Rome|SN TO) and I have a 2h 30 min (layover|PK connecting flight) in Montreal. I am buying a Longchamp Le Pliage tote ($144) from the (Duty Free|SK) store there to bring and use on the plane/while in Europe.
+1799,"I am travelling from ´<`Ottawa´|`SN FROM´>` to ´<`Rome´|`SN TO´>` and I have a 2h 30 min ´<`layover´|`PK connecting flight´>` in Montreal. I am buying a Longchamp Le Pliage tote ($144) from the ´<`Duty Free´|`SK´>` store there to bring and use on the plane/while in Europe.
 
-Am I (allowed to|PK admission) do this?
+Am I ´<`allowed to´|`PK admission´>` do this?
 
 Will I be able to take it on the plane with me?
 
-Will have to pay any (extra fees|PK charges)?",,True
-2094,"My scenario is like this: me, wife and daughter (10 yrs old) have equal no. of (Krisflyer points|SK) and we're trying to make (redemption|SK)s for all 3 of us at the same time and on the same flights. But I gather (Krisflyer|SN AIRLINE) don't allow (kids|SK) to make (online redemption|SK) if they are ""travelling alone"" - it's got to be done by calling their (membership services|SK).
+Will have to pay any ´<`extra fees´|`PK charges´>`?",,True
+2094,"My scenario is like this: me, wife and daughter (10 yrs old) have equal no. of ´<`Krisflyer points´|`SK´>` and we're trying to make ´<`redemption´|`SK´>`s for all 3 of us at the same time and on the same flights. But I gather ´<`Krisflyer´|`SN AIRLINE´>` don't allow ´<`kids´|`SK´>` to make ´<`online redemption´|`SK´>` if they are ""travelling alone"" - it's got to be done by calling their ´<`membership services´|`SK´>`.
 
-So, if I get her (redemption|SK) done through the (service centre|SK) would the 15% (discount|SK) for (online booking|SK) apply, or is it a case of ""that's too bad""?
+So, if I get her ´<`redemption´|`SK´>` done through the ´<`service centre´|`SK´>` would the 15% ´<`discount´|`SK´>` for ´<`online booking´|`SK´>` apply, or is it a case of ""that's too bad""?
 
-And to make (payment|SK)s of (taxes and fuel surcharge|SK) am I right to say the (payment|SK) can be made using my (credit card|SK)?",Trip Planning|Service Offering/Procedure,True
-1786,"I am planning a trip to the (US|SN TO) with my (family|SK) - 2 adults, 1 child, 1 infant - and am looking at the (most affordable|SK) way to do it. We will be travelling between June 25 and mid July this year. Original departure point is (VLI|SN FROM), with (connection|SK) in either (SYD|SN VIA) or (AKL|SN VIA). Possibly flying to (LA|SN TO) with (V Australia|SN AIRLINE).
+And to make ´<`payment´|`SK´>`s of ´<`taxes and fuel surcharge´|`SK´>` am I right to say the ´<`payment´|`SK´>` can be made using my ´<`credit card´|`SK´>`?",Trip Planning|Service Offering/Procedure,True
+1786,"I am planning a trip to the ´<`US´|`SN TO´>` with my ´<`family´|`SK´>` - 2 adults, 1 child, 1 infant - and am looking at the ´<`most affordable´|`SK´>` way to do it. We will be travelling between June 25 and mid July this year. Original departure point is ´<`VLI´|`SN FROM´>`, with ´<`connection´|`SK´>` in either ´<`SYD´|`SN VIA´>` or ´<`AKL´|`SN VIA´>`. Possibly flying to ´<`LA´|`SN TO´>` with ´<`V Australia´|`SN AIRLINE´>`.
 
-My question relates to (internal travel|SK) within the US. We plan on going to (LAX|SN TO), (SFO|SN TO), (CLT/RDU|SN TO), (MCO|SN TO) and perhaps (JFK|SN TO). Will be flights only, no driving as we have done that previously. So am wondering what would be the (best way|SK) to get around?
+My question relates to ´<`internal travel´|`SK´>` within the US. We plan on going to ´<`LAX´|`SN TO´>`, ´<`SFO´|`SN TO´>`, ´<`CLT/RDU´|`SN TO´>`, ´<`MCO´|`SN TO´>` and perhaps ´<`JFK´|`SN TO´>`. Will be flights only, no driving as we have done that previously. So am wondering what would be the ´<`best way´|`SK´>` to get around?
 
-I know there are (air passes|SK) available but are they the most (cost|PK charges) effective way? (VA|SN AIRLINE) does not have decent domestic partner in US from what I can see.
+I know there are ´<`air passes´|`SK´>` available but are they the most ´<`cost´|`PK charges´>` effective way? ´<`VA´|`SN AIRLINE´>` does not have decent domestic partner in US from what I can see.
 
-I am also mindful of the (extra cost|PK charges) involved for (baggage|SK) if I book international and domestic sectors (seperately|SK).
+I am also mindful of the ´<`extra cost´|`PK charges´>` involved for ´<`baggage´|`SK´>` if I book international and domestic sectors ´<`seperately´|`SK´>`.
 
-Our trip last year was with (UA|SN AIRLINE) all the way from (SYD|SN FROM) so there were no (baggage|SK) (charges|SK) involved. And I know it is a busy time of year to travel, so would that affect availability of (seats|PK seating) in (fare|SK) class used for (air passes|SK)?",Trip Planning|Service Offering/Procedure,True
-1735,"I'm flying later this year from (Tampa|SN FROM) -(London Heathrow|SN TO) with a 2h 10min (connection|SK) at (JFK|SN VIA). It's all on one ticket.
+Our trip last year was with ´<`UA´|`SN AIRLINE´>` all the way from ´<`SYD´|`SN FROM´>` so there were no ´<`baggage´|`SK´>` ´<`charges´|`SK´>` involved. And I know it is a busy time of year to travel, so would that affect availability of ´<`seats´|`PK seating´>` in ´<`fare´|`SK´>` class used for ´<`air passes´|`SK´>`?",Trip Planning|Service Offering/Procedure,True
+1735,"I'm flying later this year from ´<`Tampa´|`SN FROM´>` -´<`London Heathrow´|`SN TO´>` with a 2h 10min ´<`connection´|`SK´>` at ´<`JFK´|`SN VIA´>`. It's all on one ticket.
 
-(TPA|SN FROM) - (JFK|SN TO) is on (Delta|SN AIRLINE) and (JFK|SN FROM) - (LHR|SN TO) is on (Virgin|SN AIRLINE).
+´<`TPA´|`SN FROM´>` - ´<`JFK´|`SN TO´>` is on ´<`Delta´|`SN AIRLINE´>` and ´<`JFK´|`SN FROM´>` - ´<`LHR´|`SN TO´>` is on ´<`Virgin´|`SN AIRLINE´>`.
 
-Originally the (connection|SK) time was only 1h 40min, which I instantly regretted after parting with my cash but I'm relieved (Virgin|SN AIRLINE) have adjusted the departure time of VS46.
+Originally the ´<`connection´|`SK´>` time was only 1h 40min, which I instantly regretted after parting with my cash but I'm relieved ´<`Virgin´|`SN AIRLINE´>` have adjusted the departure time of VS46.
 
-How easy will this (connection|SK) be?
+How easy will this ´<`connection´|`SK´>` be?
 
-Will I need to (change terminals|PK terminal change)?
+Will I need to ´<`change terminals´|`PK terminal change´>`?
 
-Will I have to collect my (luggage|SK) and (recheck it in|PK re-checkin) or will it be tagged to (LHR|SN TO) via (JFK|SN VIA) when I check it in at (TPA|SN FROM)?",Trip Planning|Service Offering/Procedure,True
-1691,"I am flying to (Vancouver|SN TO) at the end of July (sometime between the 21st-26th) and returning in the second half of August (sometime between 15th-23rd).
+Will I have to collect my ´<`luggage´|`SK´>` and ´<`recheck it in´|`PK re-checkin´>` or will it be tagged to ´<`LHR´|`SN TO´>` via ´<`JFK´|`SN VIA´>` when I check it in at ´<`TPA´|`SN FROM´>`?",Trip Planning|Service Offering/Procedure,True
+1691,"I am flying to ´<`Vancouver´|`SN TO´>` at the end of July (sometime between the 21st-26th) and returning in the second half of August (sometime between 15th-23rd).
 
-I can't really book until April at the very earliest but my question is will I get (cheaper deals|SK) if I wait even longer?
+I can't really book until April at the very earliest but my question is will I get ´<`cheaper deals´|`SK´>` if I wait even longer?
 
-How long (should I wait|SK) - when is going to be the (cheapest possible|SK) time to book?
+How long ´<`should I wait´|`SK´>` - when is going to be the ´<`cheapest possible´|`SK´>` time to book?
 
 Thanks",Trip Planning,True
 1747,"Hi,
 
-I'm looking to fly to (Kuala Lumpur|SN TO) this year and obviously (Air Asia|SN AIRLINE) is by far the (cheapest option|SK). However, I'm not sure I would want to spend 13 hours or however long the flight is on a plane that's really cramped.
+I'm looking to fly to ´<`Kuala Lumpur´|`SN TO´>` this year and obviously ´<`Air Asia´|`SN AIRLINE´>` is by far the ´<`cheapest option´|`SK´>`. However, I'm not sure I would want to spend 13 hours or however long the flight is on a plane that's really cramped.
 
-Has anyone flown to (KL|SN TO) with (Air Asia|SN AIRLINE) from the (Uk|SN FROM) and if so, how did you find it?
+Has anyone flown to ´<`KL´|`SN TO´>` with ´<`Air Asia´|`SN AIRLINE´>` from the ´<`Uk´|`SN FROM´>` and if so, how did you find it?
 
-Would it be imperative to go (business class|SK) or is (economy|SK) (bearable|SK)?
+Would it be imperative to go ´<`business class´|`SK´>` or is ´<`economy´|`SK´>` ´<`bearable´|`SK´>`?
 
 Thanks for taking the time to read this.
 
 Cheers",Trip Planning|Service Offering/Procedure,True
-2357,"I have a single (Qantas|SN AIRLINE) issued ticket (YYZ|SN FROM)-(MEL|SN TO) via (LAX|SN VIA). The (YYZ|SN FROM)-(LAX|SN TO) portion is on a (AA|SN AIRLINE) coded flight and (LAX|SN FROM)-(MEL|SN TO) is on a (Qantas|SN AIRLINE) coded flight.
+2357,"I have a single ´<`Qantas´|`SN AIRLINE´>` issued ticket ´<`YYZ´|`SN FROM´>`-´<`MEL´|`SN TO´>` via ´<`LAX´|`SN VIA´>`. The ´<`YYZ´|`SN FROM´>`-´<`LAX´|`SN TO´>` portion is on a ´<`AA´|`SN AIRLINE´>` coded flight and ´<`LAX´|`SN FROM´>`-´<`MEL´|`SN TO´>` is on a ´<`Qantas´|`SN AIRLINE´>` coded flight.
 
-I believe (online check-in|SK) must be done with the first airline ((AA|SN AIRLINE)) using their (reference number|SK).
+I believe ´<`online check-in´|`SK´>` must be done with the first airline (´<`AA´|`SN AIRLINE´>`) using their ´<`reference number´|`SK´>`.
 
-Can anyone (confirm|PK confirmation) this?
+Can anyone ´<`confirm´|`PK confirmation´>` this?
 
-Also, does anyone know if (online check-in|SK) with (AA|SN AIRLINE) 24 hrs before their flight allows (printing of boarding passes|SK) and (seat|PK seating) allocations for both flights or can this only be done 24 hrs before the second (Qantas|SN AIRLINE) flight?
+Also, does anyone know if ´<`online check-in´|`SK´>` with ´<`AA´|`SN AIRLINE´>` 24 hrs before their flight allows ´<`printing of boarding passes´|`SK´>` and ´<`seat´|`PK seating´>` allocations for both flights or can this only be done 24 hrs before the second ´<`Qantas´|`SN AIRLINE´>` flight?
 
 Thanks",Service Offering/Procedure,True
 1663,"Hello there,
 
-Thinking of flying (Edinburgh|SN FROM) > (Doha|SN VIA) > (Kuala Lumpur|SN TO) next year. Have never flown via middle east and hence have not done two '(medium haul|SK)' flights before (usually do 1 short / 1 long)
+Thinking of flying ´<`Edinburgh´|`SN FROM´>` > ´<`Doha´|`SN VIA´>` > ´<`Kuala Lumpur´|`SN TO´>` next year. Have never flown via middle east and hence have not done two '´<`medium haul´|`SK´>`' flights before (usually do 1 short / 1 long)
 
-My question is really if anyone has done this journey and could tell me what the (seat|PK seating) configuration is?
+My question is really if anyone has done this journey and could tell me what the ´<`seat´|`PK seating´>` configuration is?
 
-I have checked several Qatar airlines (seat|PK seating) configs and they generally appear to be 2-4-2.
+I have checked several Qatar airlines ´<`seat´|`PK seating´>` configs and they generally appear to be 2-4-2.
 
-Also, I presume its possible to select (seat|PK seating) preferences at booking time?
+Also, I presume its possible to select ´<`seat´|`PK seating´>` preferences at booking time?
 
 Many thanks in advance for any advice.",,True
 2260,"My brother and I are considering sending my mom on a ($150) flight for the sole purpose of finishing off her A list requirements.
 
 Is this something she will enjoy?
 
-Are the (fly by security lines|SK) that useful? Last year she flew about once a month and usually does fly (southwest|SN AIRLINE).",Service Offering/Procedure,True
-1571,"My father has a lightweight (wheelchair|SK) which fold down and goes into a zipped (bag|SK).
+Are the ´<`fly by security lines´|`SK´>` that useful? Last year she flew about once a month and usually does fly ´<`southwest´|`SN AIRLINE´>`.",Service Offering/Procedure,True
+1571,"My father has a lightweight ´<`wheelchair´|`SK´>` which fold down and goes into a zipped ´<`bag´|`SK´>`.
 
-He would like to take it away with him this year instead of hiring. Can anyone tell the (procedure|SK) for doing this?
+He would like to take it away with him this year instead of hiring. Can anyone tell the ´<`procedure´|`SK´>` for doing this?
 
 When do i take him out of it, who takes it when we get on the plane and lastly does it come through on the belt with cases?
 
 I would be greatful for any info, worrying about it all ready.",Service Offering/Procedure,True
 1628,"I finally figured out how to leave a question!! DUH!!!
 
-So does anyone have recent photos of (Cabana Airlines|SN AIRLINE)?? We have never flown with them and a little nervous.
+So does anyone have recent photos of ´<`Cabana Airlines´|`SN AIRLINE´>`?? We have never flown with them and a little nervous.
 
-Do they have (First Class|SK)? What part of the plane is best for someone 6""4? Was there a (meal|PK meals)?
+Do they have ´<`First Class´|`SK´>`? What part of the plane is best for someone 6""4? Was there a ´<`meal´|`PK meals´>`?
 
-We leave at 6am on Saturday. Are the (earphones|SK) universal, I want to bring my own.
+We leave at 6am on Saturday. Are the ´<`earphones´|`SK´>` universal, I want to bring my own.
 
-One last thing, where is the best place to (convert the money|PK money exchange) to (CUC|SN TO)?
+One last thing, where is the best place to ´<`convert the money´|`PK money exchange´>` to ´<`CUC´|`SN TO´>`?
 
 Thanks Everyone",Service Offering/Procedure|Technology,True
-1574,I am flying from (LAX|SN FROM) to (Bahamas|SN TO) on 11/22 and I will have a (transit|SK) at (Miami International|SN VIA) (MIA). ? I will keep on using (American|SN AIRLINE). We have just 1 h 50m in (Miami|SN VIA). Are we need to go through (custom|SK) and/or (immigration|SK)? Is this (enough time|PK timing) for (transit|SK)?,Trip Planning|Customs/Immigration,True
+1574,I am flying from ´<`LAX´|`SN FROM´>` to ´<`Bahamas´|`SN TO´>` on 11/22 and I will have a ´<`transit´|`SK´>` at ´<`Miami International´|`SN VIA´>` (MIA). ? I will keep on using ´<`American´|`SN AIRLINE´>`. We have just 1 h 50m in ´<`Miami´|`SN VIA´>`. Are we need to go through ´<`custom´|`SK´>` and/or ´<`immigration´|`SK´>`? Is this ´<`enough time´|`PK timing´>` for ´<`transit´|`SK´>`?,Trip Planning|Customs/Immigration,True
 1593,"Hello,
 
-I recently read an article in a magazine with a bunch of (fare|SK) watching web sites. They would try to predict when the (best time|SK) to (buy|SK) will be. I lost the article.
+I recently read an article in a magazine with a bunch of ´<`fare´|`SK´>` watching web sites. They would try to predict when the ´<`best time´|`SK´>` to ´<`buy´|`SK´>` will be. I lost the article.
 
 Anyone use sites like this? If so, what are they?
 
 Thanks,
 -----",Trip Planning,True
-1482,"Has anyone had any problems with the (seat|PK seating) booking arrangements for the (A380|SN AIRCRAFT) from (LON|SN FROM) to (SIN|SN TO)?
+1482,"Has anyone had any problems with the ´<`seat´|`PK seating´>` booking arrangements for the ´<`A380´|`SN AIRCRAFT´>` from ´<`LON´|`SN FROM´>` to ´<`SIN´|`SN TO´>`?
 
-Briefly, I booked my (economy|SK) (seat|PK seating) in January 2012 for a flight from (London|SN FROM) in October 2012 so that I could get the (seat|PK seating) I wanted on the (upper deck|SK).. The (seat|PK seating) I was allocated was confirmed on several occasions but when I checked the website in early October no allocation was shown.
+Briefly, I booked my ´<`economy´|`SK´>` ´<`seat´|`PK seating´>` in January 2012 for a flight from ´<`London´|`SN FROM´>` in October 2012 so that I could get the ´<`seat´|`PK seating´>` I wanted on the ´<`upper deck´|`SK´>`.. The ´<`seat´|`PK seating´>` I was allocated was confirmed on several occasions but when I checked the website in early October no allocation was shown.
 
-It appears the (A380|SN AIRCRAFT)s (seating|SK) had been reconfigured but nobody told me! Anyway the (booking system|SK) is not much use because even though you get allocated a (seat|PK seating) you are not guaranteed that (seat|PK seating) when you check-in, as I and several other passengers found out.
+It appears the ´<`A380´|`SN AIRCRAFT´>`s ´<`seating´|`SK´>` had been reconfigured but nobody told me! Anyway the ´<`booking system´|`SK´>` is not much use because even though you get allocated a ´<`seat´|`PK seating´>` you are not guaranteed that ´<`seat´|`PK seating´>` when you check-in, as I and several other passengers found out.
 
-I have been in contact with the Airline's (Customer Affairs|SK) people in London and Singapore but so far have not received a satisfactory response. Also, I don't know who designed the (seats|PK seating) on the (A380|SN AIRCRAFT) but they must be the most uncomfortable ever, on long-haul flights.
+I have been in contact with the Airline's ´<`Customer Affairs´|`SK´>` people in London and Singapore but so far have not received a satisfactory response. Also, I don't know who designed the ´<`seats´|`PK seating´>` on the ´<`A380´|`SN AIRCRAFT´>` but they must be the most uncomfortable ever, on long-haul flights.
 
 Anyone agree?
 
-Is it better to use the (B777|SN AIRCRAFT) flight?",Service Offering/Procedure|Complaint,True
+Is it better to use the ´<`B777´|`SN AIRCRAFT´>` flight?",Service Offering/Procedure|Complaint,True
 1478,"Does anyone use this? With what airline?
 
-We fly from (Toronto|SN FROM) in Canada. We have tried it with a few on different trips and get very different experiences. From Toronto (Air Canada|SN AIRLINE) and (Transat|SN AIRLINE) seem to have a 12 hour window ahead that you can check your (seats|PK seating) and move them (at no (cost|PK charges)) and put in your (passport|SK) details to speed up your airport experience.
+We fly from ´<`Toronto´|`SN FROM´>` in Canada. We have tried it with a few on different trips and get very different experiences. From Toronto ´<`Air Canada´|`SN AIRLINE´>` and ´<`Transat´|`SN AIRLINE´>` seem to have a 12 hour window ahead that you can check your ´<`seats´|`PK seating´>` and move them (at no ´<`cost´|`PK charges´>`) and put in your ´<`passport´|`SK´>` details to speed up your airport experience.
 
 With both of them the process seems to work fairly smoothly with a separate line at the airport for those who have done it and maybe a few minutes quicker at the actual check in with your cases.
 
-(Cubana|SN AIRLINE) did not have this service the last time we used it. (Sunwing|SN AIRLINE) only had a 4 hour window which considering you have to be at the airport 3 hours ahead doesn't leave much time and for some people it just can't be done (we now live further from the airport and fall into that category).
+´<`Cubana´|`SN AIRLINE´>` did not have this service the last time we used it. ´<`Sunwing´|`SN AIRLINE´>` only had a 4 hour window which considering you have to be at the airport 3 hours ahead doesn't leave much time and for some people it just can't be done (we now live further from the airport and fall into that category).
 
-The last time we did use this at the airport they had kiosks that if you hadn't already done it on line they had you use, then everyone was still put into one large line for the actual suitcase check in - so it did not on that day seem to be any quicker. Granted that day we went (Sunwing|SN AIRLINE) had about 4 flights going out within a short period of time of each other all checking in at the same desks.",Complaint/Feedback,True
-1469,"Hi - does anyone know how easy it is to (upgrade|SK) at the airport on (BA|SN AIRLINE)?
+The last time we did use this at the airport they had kiosks that if you hadn't already done it on line they had you use, then everyone was still put into one large line for the actual suitcase check in - so it did not on that day seem to be any quicker. Granted that day we went ´<`Sunwing´|`SN AIRLINE´>` had about 4 flights going out within a short period of time of each other all checking in at the same desks.",Complaint/Feedback,True
+1469,"Hi - does anyone know how easy it is to ´<`upgrade´|`SK´>` at the airport on ´<`BA´|`SN AIRLINE´>`?
 
-I know (Virgin|SN AIRLINE) do discounted upgrades at the airport upon checkin.
+I know ´<`Virgin´|`SN AIRLINE´>` do discounted upgrades at the airport upon checkin.
 
-Do (BA|SN AIRLINE) offer similar?",Trip Planning|Service Offering/Procedure,True
-1529,"I have not had the pleasure of flying short haul with them for quite sometime, before the merger in fact. Although I have flown with them long haul to (Cuba|SN TO) and (Aruba|SN TO) and found them to be fine. But I am flying with them to (Cape Verde|SN TO) on monday which is 6hrs which (Thomson|SN AIRLINE) deem to be short haul and so configure their aircraft for that flight.
+Do ´<`BA´|`SN AIRLINE´>` offer similar?",Trip Planning|Service Offering/Procedure,True
+1529,"I have not had the pleasure of flying short haul with them for quite sometime, before the merger in fact. Although I have flown with them long haul to ´<`Cuba´|`SN TO´>` and ´<`Aruba´|`SN TO´>` and found them to be fine. But I am flying with them to ´<`Cape Verde´|`SN TO´>` on monday which is 6hrs which ´<`Thomson´|`SN AIRLINE´>` deem to be short haul and so configure their aircraft for that flight.
 
-The Aircraft is a (757|SN AIRCRAFT) which I can find no information about it having seat back (screens|SK) or is it still using the old Isle drop down (screens|SK). I have been told that if it was a (737|SN AIRCRAFT) then we would have nothing at all.
+The Aircraft is a ´<`757´|`SN AIRCRAFT´>` which I can find no information about it having seat back ´<`screens´|`SK´>` or is it still using the old Isle drop down ´<`screens´|`SK´>`. I have been told that if it was a ´<`737´|`SN AIRCRAFT´>` then we would have nothing at all.
 
 Also since when has a flight 6 hrs possible more with head winds been deemed short haul , looking at the pitch 28 inches seem very tight for that length of time in the air.",Service Offering/Procedure,True
 1524,"My apologies, since I'm not sure if this is the proper forum.
 
-My primary question is whether airlines still allow booking/ purchasing flights with stopovers (for several days) and whether this can be done online or whether it must be done by phone. I am interested in booking a trip from (Syracuse|SN FROM) to (Honolulu|SN TO) (or wherever is least expensive to fly into in Hawaii) with a stopover in Los Angeles for several days.
+My primary question is whether airlines still allow booking/ purchasing flights with stopovers (for several days) and whether this can be done online or whether it must be done by phone. I am interested in booking a trip from ´<`Syracuse´|`SN FROM´>` to ´<`Honolulu´|`SN TO´>` (or wherever is least expensive to fly into in Hawaii) with a stopover in Los Angeles for several days.
 
-When I tried a google search, the results all had to do with redeeming (award miles|SK)/ frequent flyer (miles|SK) with stopovers.
+When I tried a google search, the results all had to do with redeeming ´<`award miles´|`SK´>`/ frequent flyer ´<`miles´|`SK´>` with stopovers.
 
 Unfortunately, we'll be purchasing our tickets. Can anyone give some tips on booking stopovers, if they still exist?",Trip Planning,True
 1487,"Hi, I am from the UK and have never taken a domestic flight within the US before. I'm not sure of the best places to look for flights and routes and prices and whethere there are any pitfalls.
 
-I am flying to (Denver|SN TO) from (UK|SN FROM) on 29 April. And then on 30 April I need to fly from (Denver|SN FROM) to (San Antonio|SN TO) or (Midland/Odessa|SN TO). And then from there back to (Denver|SN TO) five days later.
+I am flying to ´<`Denver´|`SN TO´>` from ´<`UK´|`SN FROM´>` on 29 April. And then on 30 April I need to fly from ´<`Denver´|`SN FROM´>` to ´<`San Antonio´|`SN TO´>` or ´<`Midland/Odessa´|`SN TO´>`. And then from there back to ´<`Denver´|`SN TO´>` five days later.
 
-Where is the best place to look for best routes and prices? And anything we should watch out for - like (baggage|SK) (charges|SK) etc.
+Where is the best place to look for best routes and prices? And anything we should watch out for - like ´<`baggage´|`SK´>` ´<`charges´|`SK´>` etc.
 
 With thanks Julie",Trip Planning|Service Offering/Procedure,True
 1486,"Hi, Air travel newbie here just trying to figure out how to solve a problem...
 
-My wife and I are flying to the (Big Island of Hawaii|SN TO) from (Kentucky|SN FROM) for a couple of weeks after which she will return.
+My wife and I are flying to the ´<`Big Island of Hawaii´|`SN TO´>` from ´<`Kentucky´|`SN FROM´>` for a couple of weeks after which she will return.
 
-Due to a variety of circumstances I don't know exactly when I'll be flying back. It could be as much as several months. Any travel veterans care to advise me on the (most economical|SK) way to book this?
+Due to a variety of circumstances I don't know exactly when I'll be flying back. It could be as much as several months. Any travel veterans care to advise me on the ´<`most economical´|`SK´>` way to book this?
 
-If we both book (round-trip|SK), can I simply reschedule my (return flight|SK) for a fee? We normally book through (Kayak|SK) for the (best price|SK) possible.
+If we both book ´<`round-trip´|`SK´>`, can I simply reschedule my ´<`return flight´|`SK´>` for a fee? We normally book through ´<`Kayak´|`SK´>` for the ´<`best price´|`SK´>` possible.
 
 Any help appreciated!
 
 John",Trip Planning,True
-1509,"We are due to fly on 29nov to (Orlando|SN TO)
+1509,"We are due to fly on 29nov to ´<`Orlando´|`SN TO´>`
 
-we are flying from (Durham tees valley|SN FROM) to (schipol|SN VIA) then to (Minneapolis|SN VIA) then (Orlando|SN TO)
+we are flying from ´<`Durham tees valley´|`SN FROM´>` to ´<`schipol´|`SN VIA´>` then to ´<`Minneapolis´|`SN VIA´>` then ´<`Orlando´|`SN TO´>`
 
-if this (weather|SK) persists our flight will be (cancelled|PK cancellation), (dtvalley|SN AT) is a small airport
+if this ´<`weather´|`SK´>` persists our flight will be ´<`cancelled´|`PK cancellation´>`, ´<`dtvalley´|`SN AT´>` is a small airport
 
 does any one know if say the day before we are due to fly if the conditions are bad could we change our departure airport or is it just a straight cancellation?
 
-klm (refund|SK) policy is you would get your money back 8 weeks later
+klm ´<`refund´|`SK´>` policy is you would get your money back 8 weeks later
 
 what to do?",Service Offering/Procedure,True
 1473,"Hi guys,
 
-i book the ticket from (PG|SN FROM)-(KL|SN VIA)-(OSAKA|SN TO) and it should fly thru where the (luggage|SK) directly arrive at final distination which is (Osaka|SN TO).
+i book the ticket from ´<`PG´|`SN FROM´>`-´<`KL´|`SN VIA´>`-´<`OSAKA´|`SN TO´>` and it should fly thru where the ´<`luggage´|`SK´>` directly arrive at final distination which is ´<`Osaka´|`SN TO´>`.
 
-My question come is how do i purchase (luggage|SK)? Let said i want to purchase 30kg (luggage|SK), i need to purchase (PG|SN FROM)-(KL|SN TO) and (KL|SN FROM) to (Osaka|SN TO) OR i only need to purchase 1 time since i do not need to take my (luggage|SK) and recheck in again in (KL|SN AT)?
+My question come is how do i purchase ´<`luggage´|`SK´>`? Let said i want to purchase 30kg ´<`luggage´|`SK´>`, i need to purchase ´<`PG´|`SN FROM´>`-´<`KL´|`SN TO´>` and ´<`KL´|`SN FROM´>` to ´<`Osaka´|`SN TO´>` OR i only need to purchase 1 time since i do not need to take my ´<`luggage´|`SK´>` and recheck in again in ´<`KL´|`SN AT´>`?
 
 Please help?
 
 Thanks SC",Service Offering/Procedure,True
-1471,"If a (family|SK) member wanted to (book flights|PK booking) for all the (family|SK) and they had booked it. Even though they had booked your tickets in your name but under one booking, could I still (check in|PK check-in) on line or (pick a seat|PK seating) myself as long as you have the (e-ticket number|SK)/(reference number|SK).
+1471,"If a ´<`family´|`SK´>` member wanted to ´<`book flights´|`PK booking´>` for all the ´<`family´|`SK´>` and they had booked it. Even though they had booked your tickets in your name but under one booking, could I still ´<`check in´|`PK check-in´>` on line or ´<`pick a seat´|`PK seating´>` myself as long as you have the ´<`e-ticket number´|`SK´>`/´<`reference number´|`SK´>`.
 
-Or would the person who booked it have to do it? If you have a (reference number|SK), would you be able to (check in|PK check-in) just yourself or would you have to (check in|PK check-in) everyone or can each (family|SK) group/couple within that booking just sort their own OLCI and choose (seats|PK seating)?",Service Offering/Procedure,True
+Or would the person who booked it have to do it? If you have a ´<`reference number´|`SK´>`, would you be able to ´<`check in´|`PK check-in´>` just yourself or would you have to ´<`check in´|`PK check-in´>` everyone or can each ´<`family´|`SK´>` group/couple within that booking just sort their own OLCI and choose ´<`seats´|`PK seating´>`?",Service Offering/Procedure,True
 2438,"Hi,
 
-We are flying to (Sharm-el-Sheikh|SN TO) on a (Thomsonfly|SN AIRLINE) aircraft and its out first flight with our (baby|SK) who will be 10 months at the time.
+We are flying to ´<`Sharm-el-Sheikh´|`SN TO´>` on a ´<`Thomsonfly´|`SN AIRLINE´>` aircraft and its out first flight with our ´<`baby´|`SK´>` who will be 10 months at the time.
 
-I was wondering if there is a (size limit|SK) on pushchairs that are carried in the hold? We have a Cosatto Mobi that does fold down to L108 x W62 x H30cm but its still quite bulky due to the rear wheels!
+I was wondering if there is a ´<`size limit´|`SK´>` on pushchairs that are carried in the hold? We have a Cosatto Mobi that does fold down to L108 x W62 x H30cm but its still quite bulky due to the rear wheels!
 
-Can some kind person let me know if our (pushchair|PK extra luggage) will be accepted at the airport or do we need a smaller fully collapsible one?
+Can some kind person let me know if our ´<`pushchair´|`PK extra luggage´>` will be accepted at the airport or do we need a smaller fully collapsible one?
 
 Thanks in advance Daz",Service Offering/Procedure,True
-2455,"We are travelling from (Washington DC|SN FROM) to (Manchester|SN TO) with a transfer of 90 minutes in (JFK|SN VIA) on same airline. Will we have to check out and (recheck|SK) our (luggage|SK)? If so, is the (transfer time|SK) adequate?",Trip Planning|Service Offering/Procedure,True
+2455,"We are travelling from ´<`Washington DC´|`SN FROM´>` to ´<`Manchester´|`SN TO´>` with a transfer of 90 minutes in ´<`JFK´|`SN VIA´>` on same airline. Will we have to check out and ´<`recheck´|`SK´>` our ´<`luggage´|`SK´>`? If so, is the ´<`transfer time´|`SK´>` adequate?",Trip Planning|Service Offering/Procedure,True
 2397,"Not sure if this is exactly the right forum so apologies if not!
 
 We're looking at going to Cancun next May (2015) from London Gatwick. The cheapest deal we've found is via Expedia as part of a hotel+flight deal - the flights are with Virgin Airlines and this deal works out about £200 cheaper overall than any other way we've so far found.
