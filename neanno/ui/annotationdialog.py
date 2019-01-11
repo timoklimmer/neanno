@@ -460,7 +460,6 @@ class AnnotationDialog(QMainWindow):
         text_cursor = self.textedit.textCursor()
         if text_cursor.hasSelection():
             text_to_replace = text_cursor.selectedText()
-            # TODO: only match if not part of another annotation
             text_to_replace_pattern = r"(?<!´\<`){}(?!´\|`SK´\>`)".format(
                 re.escape(text_to_replace)
             )
@@ -475,7 +474,6 @@ class AnnotationDialog(QMainWindow):
         text_cursor = self.textedit.textCursor()
         if text_cursor.hasSelection():
             text_to_replace = text_cursor.selectedText()
-            # TODO: only match if not part of another annotation
             text_to_replace_pattern = r"(?<!´\<`){}(?!´\|`PK .*?´\>`)".format(
                 re.escape(text_to_replace)
             )

@@ -125,7 +125,6 @@ def extract_annotations_as_text(
     return ", ".join(result_list)
 
 
-# TODO: make compatible with spacy, add another method
 def extract_annotations_by_type(
     annotated_text,
     types_to_extract=None,
@@ -163,6 +162,27 @@ def extract_annotations_by_type(
         annotations[
             list_aliases["standalone_named_entities"]
         ] = standalone_named_entities
+
+    # return result
+    return (plain_text, annotations)
+
+
+def extract_annotations_for_spacy_ner(annotated_text, entity_names_to_extract=None):
+    """ Returns a tuple which for the specified text that can be used to train a named entity recognition (NER) with spacy."""
+
+    # get plain text without annotations
+    plain_text = remove_all_annotations_from_text(annotated_text)
+
+    # get the annotations dictionary
+    annotations = []
+    for annotation in extract_annotations_as_generator(
+        annotated_text,
+        types_to_extract=["standalone_named_entity"],
+        entity_names_to_extract=entity_names_to_extract,
+    ):
+        annotations.append(
+            (annotation["start_net"], annotation["end_net"], annotation["entity_name"])
+        )
 
     # return result
     return (plain_text, annotations)

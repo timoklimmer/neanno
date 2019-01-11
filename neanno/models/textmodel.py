@@ -15,7 +15,7 @@ from spacy.util import compounding, minibatch
 from neanno.configuration.configmanager import ConfigManager
 from neanno.utils.dict import mergesum_dict
 from neanno.utils.text import (
-    extract_annotations_by_type,
+    extract_annotations_for_spacy_ner,
     extract_named_entities_distribution,
     mask_annotations,
     unmask_annotations,
@@ -138,7 +138,7 @@ class TextModel(QAbstractTableModel):
                 config.dataset_to_edit[config.is_annotated_column] == True
             ][config.text_column]
             .map(
-                lambda text: extract_annotations_by_type(
+                lambda text: extract_annotations_for_spacy_ner(
                     text,
                     ["standalone_named_entities"],
                     [
@@ -233,7 +233,7 @@ class TextModel(QAbstractTableModel):
                         if autosuggest_regex.parent_terms:
                             result = re.sub(
                                 r"(?P<term>{})".format(autosuggest_regex.pattern),
-                                "({}PK {}´>`".format(
+                                "´<`{}´|`PK {}´>`".format(
                                     "\g<term>", autosuggest_regex.parent_terms
                                 ),
                                 result,
