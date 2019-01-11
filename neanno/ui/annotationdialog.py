@@ -405,7 +405,7 @@ class AnnotationDialog(QMainWindow):
         # update annotation for same parented keyterm
         if (
             annotation_at_current_cursor_pos is not None
-            and annotation_at_current_cursor_pos["type_long"] == "parented_keyterm"
+            and annotation_at_current_cursor_pos["type"] == "parented_key_term"
         ):
             text_to_replace_pattern = r"´\<`{}´\|`PK .*?´\>`".format(
                 re.escape(annotation_at_current_cursor_pos["term"])
@@ -520,15 +520,15 @@ class AnnotationDialog(QMainWindow):
         # ensure there is an annotation to remove
         if annotation is not None:
             # get the replace pattern and replace against text
-            if annotation["type_long"] == "standalone_keyterm":
+            if annotation["type"] == "standalone_key_term":
                 text_to_replace_pattern = r"´\<`{}´\|`(SK|PK).*?´\>`".format(
                     annotation["term"]
                 )
-            if annotation["type_long"] == "parented_keyterm":
+            if annotation["type"] == "parented_key_term":
                 text_to_replace_pattern = r"´\<`{}´\|`(SK|PK).*?´\>`".format(
                     annotation["term"]
                 )
-            if annotation["type_long"] == "standalone_named_entity":
+            if annotation["type"] == "standalone_named_entity":
                 text_to_replace_pattern = r"´\<`{}´\|`SN {}?´\>`".format(
                     annotation["term"], annotation["entity_name"]
                 )
@@ -538,9 +538,9 @@ class AnnotationDialog(QMainWindow):
                 text_to_replace_pattern, replace_against_text
             )
             # mark key term for removal from autosuggest collection (if it is a key term and not a named entity)
-            if annotation["type_long"] in [
-                "standalone_keyterm",
-                "parented_keyterm",
+            if annotation["type"] in [
+                "standalone_key_term",
+                "parented_key_term",
             ]:
                 ConfigManager.mark_key_term_for_removal_from_autosuggest_collection(
                     annotation["term"]
@@ -550,7 +550,7 @@ class AnnotationDialog(QMainWindow):
         # mark all key terms for removal
         for annotation in extract_annotations_as_generator(
             self.textedit.toPlainText(),
-            types_to_extract=["standalone_keyterm", "parented_keyterm"],
+            types_to_extract=["standalone_key_term", "parented_key_term"],
         ):
             ConfigManager.mark_key_term_for_removal_from_autosuggest_collection(
                 annotation["term"]

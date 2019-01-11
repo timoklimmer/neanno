@@ -1,82 +1,59 @@
 import config
-from PyQt5.QtCore import QRegularExpression, Qt
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QFont, QSyntaxHighlighter, QTextCharFormat
+from neanno.utils.text import extract_annotations_as_generator
 
 
 class TextEditHighlighter(QSyntaxHighlighter):
     """Used to highlight annotations in a text field."""
 
-    # TODO: use common annotation extraction
-
-    highlighting_rules = []
+    format_info = {}
 
     def __init__(self, parent, named_definitions):
         super(TextEditHighlighter, self).__init__(parent)
 
-        # append highlighting rules
-        if config.is_key_terms_enabled:
-            # standalone key terms
-            self.highlighting_rules.append(
-                (
-                    QRegularExpression(
-                        r"(?<openParen>´\<`)"
-                        + r"(?<term>[^´`]*?)"
-                        + r"(?<pipe>´\|`)"
-                        + r"(?<type>SK)"
-                        + r"(?<closingParen>´\>`)"
-                    ),
-                    config.key_terms_backcolor,
-                    config.key_terms_forecolor,
-                    False,
-                )
-            )
-            # parented key terms
-            self.highlighting_rules.append(
-                (
-                    QRegularExpression(
-                        r"(?<openParen>´\<`)"
-                        + r"(?<term>[^´`]*?)"
-                        + r"(?<pipe>´\|`)"
-                        + r"(?<type>PK)"
-                        + r"(?<postfix> "
-                        + r".*?"
-                        + r")(?<closingParen>´\>`)"
-                    ),
-                    config.key_terms_backcolor,
-                    config.key_terms_forecolor,
-                    True,
-                )
-            )
-        # named entities
+        # populate format infos
+        self.format_info = {
+            "standalone_key_term": {
+                "backcolor": config.key_terms_backcolor,
+                "forecolor": config.key_terms_forecolor,
+                "show_postfix": False,
+            },
+            "parented_key_term": {
+                "backcolor": config.key_terms_backcolor,
+                "forecolor": config.key_terms_forecolor,
+                "show_postfix": True,
+            },
+            "standalone_named_entity": {},
+        }
         for named_definition in named_definitions:
-            self.highlighting_rules.append(
-                (
-                    QRegularExpression(
-                        r"(?<openParen>´\<`)"
-                        + r"(?<term>[^´`]*?)"
-                        + r"(?<pipe>´\|`)"
-                        + r"(?<type>SN)"
-                        + r"(?<postfix> "
-                        + named_definition.code
-                        + r")(?<closingParen>´\>`)"
-                    ),
-                    named_definition.backcolor,
-                    named_definition.forecolor,
-                    True,
-                )
-            )
+            self.format_info["standalone_named_entity"][named_definition.code] = {
+                "backcolor": named_definition.backcolor,
+                "forecolor": named_definition.forecolor,
+                "show_postfix": True,
+            }
 
     def highlightBlock(self, text):
-        for (pattern, backcolor, forecolor, show_postfix) in self.highlighting_rules:
+        for annotation in extract_annotations_as_generator(text):
+            # get formats
+            format_info_to_apply = (
+                self.format_info[annotation["type"]][annotation["entity_name"]]
+                if annotation["type"] == "standalone_named_entity"
+                else self.format_info[annotation["type"]]
+            )
+            backcolor = format_info_to_apply["backcolor"]
+            forecolor = format_info_to_apply["forecolor"]
+            show_postfix = format_info_to_apply["show_postfix"]
+            
             open_paren_format = self.get_text_char_format(backcolor, backcolor, 100 / 3)
-            text_format = self.get_text_char_format(backcolor, forecolor)
+            term_format = self.get_text_char_format(backcolor, forecolor)
             pipe_format = self.get_text_char_format(backcolor, backcolor, 100 / 3)
             postfix_background_color = "lightgrey"
             postfix_foreground_color = "black"
             type_format = self.get_text_char_format(
                 postfix_background_color if show_postfix else backcolor,
                 postfix_background_color if show_postfix else backcolor,
-                100 / 8,
+                100 / 4,
                 "Segoe UI",
                 QFont.Bold,
                 9,
@@ -89,46 +66,39 @@ class TextEditHighlighter(QSyntaxHighlighter):
                 QFont.Bold,
                 9,
             )
-            closing_paren_format_postfix = self.get_text_char_format(
-                postfix_background_color, postfix_background_color, 100 / 4
-            )
-            closing_paren_format_no_postfix = self.get_text_char_format(
-                backcolor, backcolor, 1
+            closing_paren_format = (
+                self.get_text_char_format(
+                    postfix_background_color, postfix_background_color, 100 / 4
+                )
+                if show_postfix
+                else self.get_text_char_format(backcolor, backcolor, 1)
             )
 
-            expression = QRegularExpression(pattern)
-            offset = 0
-            while offset >= 0:
-                match = expression.match(text, offset)
-                self.setFormat(match.capturedStart("openParen"), 3, open_paren_format)
-                self.setFormat(
-                    match.capturedStart("term"),
-                    match.capturedLength("term"),
-                    text_format,
-                )
-                self.setFormat(
-                    match.capturedStart("pipe"),
-                    match.capturedLength("pipe"),
-                    pipe_format,
-                )
-                self.setFormat(
-                    match.capturedStart("type"),
-                    match.capturedLength("type"),
-                    type_format,
-                )
-                self.setFormat(
-                    match.capturedStart("postfix"),
-                    match.capturedLength("postfix"),
-                    postfix_text_format,
-                )
-                self.setFormat(
-                    match.capturedStart("closingParen"),
-                    3,
-                    closing_paren_format_postfix
-                    if show_postfix
-                    else closing_paren_format_no_postfix,
-                )
-                offset = match.capturedEnd("closingParen")
+            # set formats
+            # opening parenthesis
+            from_position = annotation["start_gross"]
+            length = len("´<`")
+            self.setFormat(from_position, length, open_paren_format)
+            # term
+            from_position += length
+            length = len(annotation["term"])
+            self.setFormat(from_position, length, term_format)
+            # pipe
+            from_position += length
+            length = len("´|`")
+            self.setFormat(from_position, length, pipe_format)
+            # type
+            from_position += length
+            length = len("XX ")
+            self.setFormat(from_position, length, type_format)
+            # postfix
+            from_position += length
+            length = annotation["end_gross"] - (from_position + length)
+            self.setFormat(from_position, length, postfix_text_format)
+            # closing parenthesis
+            from_position += length
+            length = len("´>`")
+            self.setFormat(from_position, length, closing_paren_format)
 
     def get_text_char_format(
         self,

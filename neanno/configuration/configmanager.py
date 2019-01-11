@@ -373,7 +373,7 @@ class ConfigManager:
             existing_terms_list = list(config.autosuggest_key_terms_dataset["term"])
             for annotation in extract_annotations_as_generator(
                 annotated_text,
-                types_to_extract=["standalone_keyterm", "parented_keyterm"],
+                types_to_extract=["standalone_key_term", "parented_key_term"],
             ):
                 if annotation["term"] not in existing_terms_list:
                     # term does not exist yet

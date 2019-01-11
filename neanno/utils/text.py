@@ -3,11 +3,11 @@ import re
 
 from neanno.utils.list import ensure_items_within_set
 
-ANNOTATION_TYPES = ["standalone_keyterm", "parented_keyterm", "standalone_named_entity"]
+ANNOTATION_TYPES = ["standalone_key_term", "parented_key_term", "standalone_named_entity"]
 
 TINY_TO_LONG_ANNOTATION_TYPE_MAPPING = {
-    "SK": "standalone_keyterm",
-    "PK": "parented_keyterm",
+    "SK": "standalone_key_term",
+    "PK": "parented_key_term",
     "SN": "standalone_named_entity",
 }
 
@@ -42,7 +42,7 @@ def extract_annotations_as_generator(
                 continue
         if types_to_extract is not None and annotation["type"] not in types_to_extract:
             continue
-        if annotation["type"] == "parented_keyterm":
+        if annotation["type"] == "parented_key_term":
             annotation["parent_terms"] = ", ".join(
                 [
                     parent_term.strip()
@@ -84,7 +84,7 @@ def extract_annotations_as_text(
     result_list = []
     for annotation in extract_annotations_as_generator(annotated_text):
         # standalone key term
-        if annotation["type"] == "standalone_keyterm":
+        if annotation["type"] == "standalone_key_term":
             annotation_to_add = annotation["term"]
             if annotation_to_add.lower() not in [
                 annotation.lower() for annotation in result_list
@@ -93,7 +93,7 @@ def extract_annotations_as_text(
             ]:
                 result_list.append(annotation_to_add)
         # parented key terms
-        if annotation["type"] == "parented_keyterm":
+        if annotation["type"] == "parented_key_term":
             parent_terms = []
             for parent_term in set(annotation["parent_terms"].split(",")):
                 annotation_to_add = parent_term
@@ -130,8 +130,8 @@ def extract_annotations_by_type(
     types_to_extract=None,
     entity_names_to_extract=None,
     list_aliases={
-        "standalone_keyterms": "standalone_keyterms",
-        "parented_keyterms": "parented_keyterms",
+        "standalone_key_terms": "standalone_key_terms",
+        "parented_key_terms": "parented_key_terms",
         "standalone_named_entities": "standalone_named_entities",
     },
 ):
@@ -143,17 +143,17 @@ def extract_annotations_by_type(
     # get the annotations dictionary
     annotations = {}
     # standalone key terms
-    standalone_keyterms = extract_annotations_as_list(
-        annotated_text, types_to_extract=["standalone_keyterm"]
+    standalone_key_terms = extract_annotations_as_list(
+        annotated_text, types_to_extract=["standalone_key_term"]
     )
-    if len(standalone_keyterms) > 0:
-        annotations[list_aliases["standalone_keyterms"]] = standalone_keyterms
+    if len(standalone_key_terms) > 0:
+        annotations[list_aliases["standalone_key_terms"]] = standalone_key_terms
     # parented key terms
-    parented_keyterms = extract_annotations_as_list(
-        annotated_text, types_to_extract=["parented_keyterm"]
+    parented_key_terms = extract_annotations_as_list(
+        annotated_text, types_to_extract=["parented_key_term"]
     )
-    if len(parented_keyterms) > 0:
-        annotations[list_aliases["parented_keyterms"]] = parented_keyterms
+    if len(parented_key_terms) > 0:
+        annotations[list_aliases["parented_key_terms"]] = parented_key_terms
     # standalone named entities
     standalone_named_entities = extract_annotations_as_list(
         annotated_text, types_to_extract=["standalone_named_entity"]
