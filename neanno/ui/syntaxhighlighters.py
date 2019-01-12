@@ -35,7 +35,7 @@ class TextEditHighlighter(QSyntaxHighlighter):
 
     def highlightBlock(self, text):
         for annotation in extract_annotations_as_generator(text):
-            # get formats
+            # get common format infos
             format_info_to_apply = (
                 self.format_info[annotation["type"]][annotation["entity_name"]]
                 if annotation["type"] == "standalone_named_entity"
@@ -44,35 +44,34 @@ class TextEditHighlighter(QSyntaxHighlighter):
             backcolor = format_info_to_apply["backcolor"]
             forecolor = format_info_to_apply["forecolor"]
             show_postfix = format_info_to_apply["show_postfix"]
-            
-            open_paren_format = self.get_text_char_format(backcolor, backcolor, 100 / 3)
-            term_format = self.get_text_char_format(backcolor, forecolor)
-            pipe_format = self.get_text_char_format(backcolor, backcolor, 100 / 3)
             postfix_background_color = "lightgrey"
             postfix_foreground_color = "black"
-            type_format = self.get_text_char_format(
-                postfix_background_color if show_postfix else backcolor,
-                postfix_background_color if show_postfix else backcolor,
-                100 / 4,
-                "Segoe UI",
-                QFont.Bold,
-                9,
+
+            # assemble formats
+            open_paren_format = self.get_text_char_format(
+                backcolor, backcolor, int(100 / 3)
             )
-            postfix_text_format = self.get_text_char_format(
-                postfix_background_color,
-                postfix_foreground_color,
-                None,
-                "Segoe UI",
-                QFont.Bold,
-                9,
-            )
-            closing_paren_format = (
-                self.get_text_char_format(
-                    postfix_background_color, postfix_background_color, 100 / 4
+            term_format = self.get_text_char_format(backcolor, forecolor)
+            pipe_format = self.get_text_char_format(backcolor, backcolor, int(100 / 3))
+            if show_postfix:
+                type_format = self.get_text_char_format(
+                    postfix_background_color, postfix_background_color, int(100 / 4)
                 )
-                if show_postfix
-                else self.get_text_char_format(backcolor, backcolor, 1)
-            )
+                postfix_text_format = self.get_text_char_format(
+                    postfix_background_color,
+                    postfix_foreground_color,
+                    None,
+                    "Segoe UI",
+                    QFont.Bold,
+                    10,
+                )
+                closing_paren_format = self.get_text_char_format(
+                    postfix_background_color, postfix_background_color, int(100 / 4)
+                )
+            else:
+                type_format = self.get_text_char_format(backcolor, backcolor, 1)
+                postfix_text_format = self.get_text_char_format(backcolor, backcolor, 1)
+                closing_paren_format = self.get_text_char_format(backcolor, backcolor, 1)
 
             # set formats
             # opening parenthesis
