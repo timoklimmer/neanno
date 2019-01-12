@@ -3,7 +3,11 @@ import re
 
 from neanno.utils.list import ensure_items_within_set
 
-ANNOTATION_TYPES = ["standalone_key_term", "parented_key_term", "standalone_named_entity"]
+ANNOTATION_TYPES = [
+    "standalone_key_term",
+    "parented_key_term",
+    "standalone_named_entity",
+]
 
 TINY_TO_LONG_ANNOTATION_TYPE_MAPPING = {
     "SK": "standalone_key_term",
@@ -12,8 +16,16 @@ TINY_TO_LONG_ANNOTATION_TYPE_MAPPING = {
 }
 
 ANNOTATION_REGEX = re.compile(
-    r"´\<`(?P<term>.*?)´\|`(?P<type_tiny>(SK|PK|SN))( (?P<postfix>.+?))?´\>`",
-    flags=re.DOTALL,
+    r"""
+        ´\<`
+        (?P<term>.*?)
+        ´\|`
+        (?P<type_tiny>((?P<standalone_key_term>SK)|(?P<parented_key_term>PK)|(?P<standalone_named_entity>SN)))
+        (?(parented_key_term)\s(?P<parent_terms>.+?))
+        (?(standalone_named_entity)\s(?P<entity_name>.+?))
+        ´\>`
+    """,
+    flags=re.DOTALL | re.VERBOSE,
 )
 
 
@@ -33,20 +45,20 @@ def extract_annotations_as_generator(
         annotation["type"] = TINY_TO_LONG_ANNOTATION_TYPE_MAPPING.get(
             match.group("type_tiny")
         )
+        if types_to_extract is not None and annotation["type"] not in types_to_extract:
+            continue
         if annotation["type"] == "standalone_named_entity":
-            annotation["entity_name"] = match.group("postfix")
+            annotation["entity_name"] = match.group("entity_name")
             if (
                 entity_names_to_extract is not None
                 and annotation["entity_name"] not in entity_names_to_extract
             ):
                 continue
-        if types_to_extract is not None and annotation["type"] not in types_to_extract:
-            continue
         if annotation["type"] == "parented_key_term":
             annotation["parent_terms"] = ", ".join(
                 [
                     parent_term.strip()
-                    for parent_term in (match.group("postfix") or "").split(",")
+                    for parent_term in (match.group("parent_terms") or "").split(",")
                 ]
             )
         annotation["start_net"] = len(
