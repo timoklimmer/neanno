@@ -43,7 +43,7 @@ def extract_annotations_as_generator(
 
     def extract_normalized_parent_terms(parent_terms):
         result = []
-        for parent_term in (parent_terms.strip() or "").split(","):
+        for parent_term in ((parent_terms or "").strip()).split(","):
             parent_term = parent_term.strip()
             if parent_term and parent_term not in result:
                 result.append(parent_term)
@@ -62,10 +62,6 @@ def extract_annotations_as_generator(
         )
         if types_to_extract is not None and annotation["type"] not in types_to_extract:
             continue
-        if annotation["type"] == "parented_key_term":
-            annotation["parent_terms"] = extract_normalized_parent_terms(
-                match.group("parent_terms_pk")
-            )
         if annotation["type"] == "standalone_named_entity":
             annotation["entity_name"] = match.group("entity_name_sn")
             if (
@@ -80,8 +76,14 @@ def extract_annotations_as_generator(
                 and annotation["entity_name"] not in entity_names_to_extract
             ):
                 continue
+            annotation["parent_terms_raw"] = match.group("parent_terms_pn")
             annotation["parent_terms"] = extract_normalized_parent_terms(
-                match.group("parent_terms_pn")
+                annotation["parent_terms_raw"]
+            )
+        if annotation["type"] == "parented_key_term":
+            annotation["parent_terms_raw"] = match.group("parent_terms_pk")
+            annotation["parent_terms"] = extract_normalized_parent_terms(
+                annotation["parent_terms_raw"]
             )
         annotation["start_net"] = len(
             remove_all_annotations_from_text(annotated_text[: match.start()])
@@ -265,10 +267,7 @@ def remove_all_annotations_from_text(annotated_text):
     """Removes all annotations from the specified text."""
 
     new_text = re.sub(
-        r"`(.*?)``(((PK|SN|PN) .+?)|(SK))`´",
-        lambda match: match.group(1),
-        annotated_text,
-        flags=re.DOTALL,
+        ANNOTATION_REGEX, lambda match: match.group("term"), annotated_text
     )
     return new_text
 
@@ -277,7 +276,7 @@ def mask_annotations(text):
     """Masks all annotations, eg. to avoid that terms which are already annotated are annotated again."""
 
     return re.sub(
-        r"`.*?``(SK|PK|PN .*?|SN .*?)`´",
+        ANNOTATION_REGEX,
         lambda match: "@neanno_masked_annotation:{}@".format(
             base64.b64encode(match.group().encode("utf-8")).decode()
         ),

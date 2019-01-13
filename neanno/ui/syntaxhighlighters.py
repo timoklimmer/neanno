@@ -114,7 +114,7 @@ class TextEditHighlighter(QSyntaxHighlighter):
                 self.setFormat(start_pos, length, format)
                 # parent terms
                 start_pos += length
-                length = annotation["end_gross"] - (start_pos + len("`´"))
+                length = len(annotation["parent_terms_raw"])#annotation["end_gross"] - (start_pos + len("`´"))
                 format = format_to_apply["parent_terms"]
                 self.setFormat(start_pos, length, format)
                 # space after parent terms

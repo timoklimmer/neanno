@@ -70,9 +70,13 @@ class AnnotationDialog(QMainWindow):
 
         # text edit
         self.textedit = QPlainTextEdit()
-        # self.textedit.setWordWrapMode(QTextOption.WordWrap)
         self.textedit.setStyleSheet(
-            "QPlainTextEdit { font-size: 14pt; font-family: Consolas; color: lightgrey; background-color: black }"
+            """QPlainTextEdit {
+                font-size: 14pt;
+                font-family: Consolas;
+                color: lightgrey;
+                background-color: black
+            }"""
         )
         self.textedit_highlighter = TextEditHighlighter(
             self.textedit.document(), config.named_entity_definitions
@@ -83,7 +87,12 @@ class AnnotationDialog(QMainWindow):
         self.annotation_monitor = QPlainTextEdit()
         self.annotation_monitor.setReadOnly(True)
         self.annotation_monitor.setStyleSheet(
-            "font-size: 14pt; font-family: Consolas; color: lightgrey; background-color: black"
+            """
+                font-size: 14pt;
+                font-family: Consolas;
+                color: lightgrey;
+                background-color: black
+            """
         )
 
         # navigation / about / shortcuts buttons
@@ -403,17 +412,30 @@ class AnnotationDialog(QMainWindow):
             self.textedit.toPlainText(), self.textedit.textCursor().position()
         )
         # update annotation for same parented keyterm
-        if (
-            annotation_at_current_cursor_pos is not None
-            and annotation_at_current_cursor_pos["type"] == "parented_key_term"
-        ):
-            text_to_replace_pattern = r"`{}``PK``.*?`´".format(
-                re.escape(annotation_at_current_cursor_pos["term"])
-            )
-            replace_against_text = "`{}``PK``{}`´".format(
-                annotation_at_current_cursor_pos["term"],
-                annotation_at_current_cursor_pos["parent_terms"],
-            )
+        if annotation_at_current_cursor_pos is not None and annotation_at_current_cursor_pos[
+            "type"
+        ] in [
+            "parented_key_term",
+            "parented_named_entity",
+        ]:
+            if annotation_at_current_cursor_pos["type"] == "parented_key_term":
+                text_to_replace_pattern = r"`{}``PK``.*?`´".format(
+                    re.escape(annotation_at_current_cursor_pos["term"])
+                )
+                replace_against_text = "`{}``PK``{}`´".format(
+                    annotation_at_current_cursor_pos["term"],
+                    annotation_at_current_cursor_pos["parent_terms_raw"],
+                )
+            if annotation_at_current_cursor_pos["type"] == "parented_named_entity":
+                text_to_replace_pattern = r"`{}``PN``{}``.*?`´".format(
+                    re.escape(annotation_at_current_cursor_pos["term"]),
+                    re.escape(annotation_at_current_cursor_pos["entity_name"]),
+                )
+                replace_against_text = "`{}``PN``{}``{}`´".format(
+                    annotation_at_current_cursor_pos["term"],
+                    annotation_at_current_cursor_pos["entity_name"],
+                    annotation_at_current_cursor_pos["parent_terms_raw"],
+                )
             self.replace_pattern_in_textedit(
                 text_to_replace_pattern, replace_against_text
             )
@@ -517,17 +539,16 @@ class AnnotationDialog(QMainWindow):
         # ensure there is an annotation to remove
         if annotation is not None:
             # get the replace pattern and replace against text
-            if annotation["type"] == "standalone_key_term":
+            if annotation["type"] in ["standalone_key_term", "parented_key_term"]:
                 text_to_replace_pattern = r"`{}``(SK|PK).*?`´".format(
-                    annotation["term"]
+                    re.escape(annotation["term"])
                 )
-            if annotation["type"] == "parented_key_term":
-                text_to_replace_pattern = r"`{}``(SK|PK).*?`´".format(
-                    annotation["term"]
-                )
-            if annotation["type"] == "standalone_named_entity":
-                text_to_replace_pattern = r"`{}``SN``{}?`´".format(
-                    annotation["term"], annotation["entity_name"]
+            if annotation["type"] in [
+                "standalone_named_entity",
+                "parented_named_entity",
+            ]:
+                text_to_replace_pattern = r"`{}``(SN|PN)``{}.*?`´".format(
+                    re.escape(annotation["term"]), re.escape(annotation["entity_name"])
                 )
             replace_against_text = annotation["term"]
             # do the replace
