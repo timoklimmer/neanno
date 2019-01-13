@@ -29,15 +29,15 @@ ANNOTATION_REGEX = re.compile(
             | (?P<parented_named_entity>PN))
         )
         (?(parented_key_term)``(?P<parent_terms_pk>.*?))
-        (?(standalone_named_entity)``(?P<entity_name_sn>.*?))
-        (?(parented_named_entity)``(?P<entity_name_pn>.*?)``(?P<parent_terms_pn>.*?))
+        (?(standalone_named_entity)``(?P<entity_code_sn>.*?))
+        (?(parented_named_entity)``(?P<entity_code_pn>.*?)``(?P<parent_terms_pn>.*?))
         `´
     """
 )
 
 
 def extract_annotations_as_generator(
-    annotated_text, types_to_extract=None, entity_names_to_extract=None
+    annotated_text, types_to_extract=None, entity_codes_to_extract=None
 ):
     """ Yields all annotations from an annotated text as a list."""
 
@@ -63,17 +63,17 @@ def extract_annotations_as_generator(
         if types_to_extract is not None and annotation["type"] not in types_to_extract:
             continue
         if annotation["type"] == "standalone_named_entity":
-            annotation["entity_name"] = match.group("entity_name_sn")
+            annotation["entity_code"] = match.group("entity_code_sn")
             if (
-                entity_names_to_extract is not None
-                and annotation["entity_name"] not in entity_names_to_extract
+                entity_codes_to_extract is not None
+                and annotation["entity_code"] not in entity_codes_to_extract
             ):
                 continue
         if annotation["type"] == "parented_named_entity":
-            annotation["entity_name"] = match.group("entity_name_pn")
+            annotation["entity_code"] = match.group("entity_code_pn")
             if (
-                entity_names_to_extract is not None
-                and annotation["entity_name"] not in entity_names_to_extract
+                entity_codes_to_extract is not None
+                and annotation["entity_code"] not in entity_codes_to_extract
             ):
                 continue
             annotation["parent_terms_raw"] = match.group("parent_terms_pn")
@@ -101,13 +101,13 @@ def extract_annotations_as_generator(
 
 
 def extract_annotations_as_list(
-    annotated_text, types_to_extract=None, entity_names_to_extract=None
+    annotated_text, types_to_extract=None, entity_codes_to_extract=None
 ):
     """ Extracts a list of annotations in the specified text."""
     return [
         annotation
         for annotation in extract_annotations_as_generator(
-            annotated_text, types_to_extract=None, entity_names_to_extract=None
+            annotated_text, types_to_extract=None, entity_codes_to_extract=None
         )
     ]
 
@@ -115,14 +115,14 @@ def extract_annotations_as_list(
 def extract_annotations_as_text(
     annotated_text,
     external_annotations_to_add=[],
-    entity_names_to_extract=None,
-    include_entity_names=True,
+    entity_codes_to_extract=None,
+    include_entity_codes=True,
 ):
     """Extracts all annotations from the specified text and returns a string describing the set of contained annotations."""
 
     result_list = []
     for annotation in extract_annotations_as_generator(
-        annotated_text, entity_names_to_extract=entity_names_to_extract
+        annotated_text, entity_codes_to_extract=entity_codes_to_extract
     ):
         # standalone key term
         if annotation["type"] == "standalone_key_term":
@@ -150,8 +150,8 @@ def extract_annotations_as_text(
         # standalone named entity
         if annotation["type"] == "standalone_named_entity":
             annotation_to_add = (
-                "{}:{}".format(annotation["entity_name"].lower(), annotation["term"])
-                if include_entity_names
+                "{}:{}".format(annotation["entity_code"].lower(), annotation["term"])
+                if include_entity_codes
                 else annotation["term"]
             )
             if annotation_to_add.lower() not in [
@@ -166,8 +166,8 @@ def extract_annotations_as_text(
                 annotation["parent_terms"].split(", ")
             ):
                 annotation_to_add = (
-                    "{}:{}".format(annotation["entity_name"].lower(), parent_term)
-                    if include_entity_names
+                    "{}:{}".format(annotation["entity_code"].lower(), parent_term)
+                    if include_entity_codes
                     else parent_term
                 )
                 if annotation_to_add.lower() not in [
@@ -187,7 +187,7 @@ def extract_annotations_as_text(
 def extract_annotations_by_type(
     annotated_text,
     types_to_extract=None,
-    entity_names_to_extract=None,
+    entity_codes_to_extract=None,
     list_aliases={
         "standalone_key_terms": "standalone_key_terms",
         "parented_key_terms": "parented_key_terms",
@@ -231,7 +231,7 @@ def extract_annotations_by_type(
     return (plain_text, annotations)
 
 
-def extract_annotations_for_spacy_ner(annotated_text, entity_names_to_extract=None):
+def extract_annotations_for_spacy_ner(annotated_text, entity_codes_to_extract=None):
     """ Returns a tuple which for the specified text that can be used to train a named entity recognition (NER) with spacy."""
 
     # get plain text without annotations
@@ -242,10 +242,10 @@ def extract_annotations_for_spacy_ner(annotated_text, entity_names_to_extract=No
     for annotation in extract_annotations_as_generator(
         annotated_text,
         types_to_extract=["standalone_named_entity", "parented_named_entity"],
-        entity_names_to_extract=entity_names_to_extract,
+        entity_codes_to_extract=entity_codes_to_extract,
     ):
         annotations.append(
-            (annotation["start_net"], annotation["end_net"], annotation["entity_name"])
+            (annotation["start_net"], annotation["end_net"], annotation["entity_code"])
         )
 
     # return result
@@ -302,7 +302,7 @@ def extract_named_entities_distribution(annotated_text):
         annotated_text,
         types_to_extract=["standalone_named_entity", "parented_named_entity"],
     ):
-        entity_code = entity_annotation["entity_name"]
+        entity_code = entity_annotation["entity_code"]
         if entity_code not in result:
             result[entity_code] = 0
         result[entity_code] += 1

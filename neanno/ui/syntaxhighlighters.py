@@ -9,8 +9,8 @@ class TextEditHighlighter(QSyntaxHighlighter):
 
     text_char_formats = {}
 
-    ENTITY_NAME_BACKGROUND_COLOR = "white"
-    ENTITY_NAME_FOREGROUND_COLOR = "black"
+    ENTITY_CODE_BACKGROUND_COLOR = "white"
+    ENTITY_CODE_FOREGROUND_COLOR = "black"
     PARENT_TERMS_BACKGROUND_COLOR = "lightgrey"
     PARENT_TERMS_FOREGROUND_COLOR = "black"
 
@@ -39,9 +39,9 @@ class TextEditHighlighter(QSyntaxHighlighter):
                 "term": self.get_text_char_format(
                     named_definition.backcolor, named_definition.forecolor
                 ),
-                "entity_name": self.get_text_char_format(
-                    self.ENTITY_NAME_BACKGROUND_COLOR,
-                    self.ENTITY_NAME_FOREGROUND_COLOR,
+                "entity_code": self.get_text_char_format(
+                    self.ENTITY_CODE_BACKGROUND_COLOR,
+                    self.ENTITY_CODE_FOREGROUND_COLOR,
                     None,
                     "Segoe UI",
                     QFont.Bold,
@@ -59,13 +59,13 @@ class TextEditHighlighter(QSyntaxHighlighter):
 
     def highlightBlock(self, text):
         for annotation in extract_annotations_as_generator(
-            text, entity_names_to_extract=config.named_entity_codes
+            text, entity_codes_to_extract=config.named_entity_codes
         ):
             # get common format infos
             format_to_apply = (
                 self.text_char_formats["key_term"]
                 if "key_term" in annotation["type"]
-                else self.text_char_formats["named_entity"][annotation["entity_name"]]
+                else self.text_char_formats["named_entity"][annotation["entity_code"]]
             )
             # set formats
             # space before term
@@ -94,17 +94,17 @@ class TextEditHighlighter(QSyntaxHighlighter):
                 # space before named entity
                 start_pos += length
                 length = 1
-                format = self.no_chars(format_to_apply["entity_name"])
+                format = self.no_chars(format_to_apply["entity_code"])
                 self.setFormat(start_pos, length, format)
                 # named entity
                 start_pos += length
-                length = len(annotation["entity_name"])
-                format = format_to_apply["entity_name"]
+                length = len(annotation["entity_code"])
+                format = format_to_apply["entity_code"]
                 self.setFormat(start_pos, length, format)
                 # space after named entity
                 start_pos += length
                 length = 1
-                format = self.no_chars(format_to_apply["entity_name"])
+                format = self.no_chars(format_to_apply["entity_code"])
                 self.setFormat(start_pos, length, format)
             if "parented" in annotation["type"]:
                 # space before parent terms

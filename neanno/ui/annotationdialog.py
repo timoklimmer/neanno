@@ -442,11 +442,11 @@ class AnnotationDialog(QMainWindow):
             if annotation_at_current_cursor_pos["type"] == "parented_named_entity":
                 text_to_replace_pattern = r"`{}``PN``{}``.*?`´".format(
                     re.escape(annotation_at_current_cursor_pos["term"]),
-                    re.escape(annotation_at_current_cursor_pos["entity_name"]),
+                    re.escape(annotation_at_current_cursor_pos["entity_code"]),
                 )
                 replace_against_text = "`{}``PN``{}``{}`´".format(
                     annotation_at_current_cursor_pos["term"],
-                    annotation_at_current_cursor_pos["entity_name"],
+                    annotation_at_current_cursor_pos["entity_code"],
                     annotation_at_current_cursor_pos["parent_terms_raw"],
                 )
             self.replace_pattern_in_textedit(
@@ -457,7 +457,7 @@ class AnnotationDialog(QMainWindow):
         self.annotation_monitor.setPlainText(
             extract_annotations_as_text(
                 self.textedit.toPlainText(),
-                entity_names_to_extract=config.named_entity_codes,
+                entity_codes_to_extract=config.named_entity_codes,
             )
         )
 
@@ -585,7 +585,7 @@ class AnnotationDialog(QMainWindow):
                 "parented_named_entity",
             ]:
                 text_to_replace_pattern = r"`{}``(SN|PN)``{}.*?`´".format(
-                    re.escape(annotation["term"]), re.escape(annotation["entity_name"])
+                    re.escape(annotation["term"]), re.escape(annotation["entity_code"])
                 )
             replace_against_text = annotation["term"]
             # do the replace
