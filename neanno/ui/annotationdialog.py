@@ -53,7 +53,8 @@ class AnnotationDialog(QMainWindow):
     def get_icon(file):
         return QIcon(
             os.path.join(
-                os.path.abspath(os.path.dirname(__file__)), "../resources/{}".format(file)
+                os.path.abspath(os.path.dirname(__file__)),
+                "../resources/{}".format(file),
             )
         )
 
@@ -69,7 +70,7 @@ class AnnotationDialog(QMainWindow):
 
         # text edit
         self.textedit = QPlainTextEdit()
-        #self.textedit.setWordWrapMode(QTextOption.WordWrap)
+        # self.textedit.setWordWrapMode(QTextOption.WordWrap)
         self.textedit.setStyleSheet(
             "QPlainTextEdit { font-size: 14pt; font-family: Consolas; color: lightgrey; background-color: black }"
         )
@@ -283,9 +284,7 @@ class AnnotationDialog(QMainWindow):
                 self, named_entity_definition.key_sequence, self.annotate_entity
             )
         # submit next
-        register_shortcut(
-            self, SHORTCUT_SUBMIT_NEXT, self.submit_and_go_to_next
-        )
+        register_shortcut(self, SHORTCUT_SUBMIT_NEXT, self.submit_and_go_to_next)
         # submit next best
         register_shortcut(
             self, SHORTCUT_SUBMIT_NEXT_BEST, self.submit_and_go_to_next_best
@@ -408,10 +407,10 @@ class AnnotationDialog(QMainWindow):
             annotation_at_current_cursor_pos is not None
             and annotation_at_current_cursor_pos["type"] == "parented_key_term"
         ):
-            text_to_replace_pattern = r"´\<`{}´\|`PK .*?´\>`".format(
+            text_to_replace_pattern = r"`{}``PK``.*?`´".format(
                 re.escape(annotation_at_current_cursor_pos["term"])
             )
-            replace_against_text = "´<`{}´|`PK {}´>`".format(
+            replace_against_text = "`{}``PK``{}`´".format(
                 annotation_at_current_cursor_pos["term"],
                 annotation_at_current_cursor_pos["parent_terms"],
             )
@@ -423,10 +422,7 @@ class AnnotationDialog(QMainWindow):
         self.annotation_monitor.setPlainText(
             extract_annotations_as_text(
                 self.textedit.toPlainText(),
-                # remove comment to include categories too
-                ##self.categories_selector.get_selected_categories(),
-                [],
-                True,
+                entity_names_to_extract=config.named_entity_codes,
             )
         )
 
@@ -461,10 +457,10 @@ class AnnotationDialog(QMainWindow):
         text_cursor = self.textedit.textCursor()
         if text_cursor.hasSelection():
             text_to_replace = text_cursor.selectedText()
-            text_to_replace_pattern = r"(?<!´\<`){}(?!´\|`SK´\>`)".format(
+            text_to_replace_pattern = r"(?<!`){}(?!``SK`´)".format(
                 re.escape(text_to_replace)
             )
-            replace_against_text = "´<`{}´|`SK´>`".format(
+            replace_against_text = "`{}``SK`´".format(
                 remove_all_annotations_from_text(text_to_replace)
             )
             self.replace_pattern_in_textedit(
@@ -475,7 +471,7 @@ class AnnotationDialog(QMainWindow):
         text_cursor = self.textedit.textCursor()
         if text_cursor.hasSelection():
             text_to_replace = text_cursor.selectedText()
-            text_to_replace_pattern = r"(?<!´\<`){}(?!´\|`PK .*?´\>`)".format(
+            text_to_replace_pattern = r"(?<!`){}(?!``PK``.*?`´)".format(
                 re.escape(text_to_replace)
             )
             default_parent_key_term = (
@@ -483,10 +479,10 @@ class AnnotationDialog(QMainWindow):
             )
             orig_selection_start = text_cursor.selectionStart()
             new_selection_start = orig_selection_start + len(
-                "´<`{}´|`PK ".format(remove_all_annotations_from_text(text_to_replace))
+                "`{}``PK``".format(remove_all_annotations_from_text(text_to_replace))
             )
             new_selection_end = new_selection_start + len(default_parent_key_term)
-            replace_against_text = "´<`{}´|`PK {}´>`".format(
+            replace_against_text = "`{}``PK``{}`´".format(
                 remove_all_annotations_from_text(text_to_replace),
                 default_parent_key_term,
             )
@@ -509,7 +505,7 @@ class AnnotationDialog(QMainWindow):
                     code = named_entity_definition.code
                     break
             text_cursor.insertText(
-                "´<`{}´|`SN {}´>`".format(
+                "`{}``SN``{}`´".format(
                     remove_all_annotations_from_text(selected_text), code
                 )
             )
@@ -522,15 +518,15 @@ class AnnotationDialog(QMainWindow):
         if annotation is not None:
             # get the replace pattern and replace against text
             if annotation["type"] == "standalone_key_term":
-                text_to_replace_pattern = r"´\<`{}´\|`(SK|PK).*?´\>`".format(
+                text_to_replace_pattern = r"`{}``(SK|PK).*?`´".format(
                     annotation["term"]
                 )
             if annotation["type"] == "parented_key_term":
-                text_to_replace_pattern = r"´\<`{}´\|`(SK|PK).*?´\>`".format(
+                text_to_replace_pattern = r"`{}``(SK|PK).*?`´".format(
                     annotation["term"]
                 )
             if annotation["type"] == "standalone_named_entity":
-                text_to_replace_pattern = r"´\<`{}´\|`SN {}?´\>`".format(
+                text_to_replace_pattern = r"`{}``SN``{}?`´".format(
                     annotation["term"], annotation["entity_name"]
                 )
             replace_against_text = annotation["term"]
@@ -539,10 +535,7 @@ class AnnotationDialog(QMainWindow):
                 text_to_replace_pattern, replace_against_text
             )
             # mark key term for removal from autosuggest collection (if it is a key term and not a named entity)
-            if annotation["type"] in [
-                "standalone_key_term",
-                "parented_key_term",
-            ]:
+            if annotation["type"] in ["standalone_key_term", "parented_key_term"]:
                 ConfigManager.mark_key_term_for_removal_from_autosuggest_collection(
                     annotation["term"]
                 )

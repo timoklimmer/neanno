@@ -7,7 +7,6 @@ from neanno.utils.text import extract_annotations_as_generator
 class TextEditHighlighter(QSyntaxHighlighter):
     """Used to highlight annotations in a text field."""
 
-    relevant_entity_names = []
     text_char_formats = {}
 
     ENTITY_NAME_BACKGROUND_COLOR = "white"
@@ -17,12 +16,6 @@ class TextEditHighlighter(QSyntaxHighlighter):
 
     def __init__(self, parent, named_definitions):
         super(TextEditHighlighter, self).__init__(parent)
-
-        # populate relevant entity names (as cache)
-        self.relevant_entity_names = [
-            named_entity_definition.code
-            for named_entity_definition in config.named_entity_definitions
-        ]
 
         # populate formats
         self.text_char_formats = {
@@ -35,8 +28,8 @@ class TextEditHighlighter(QSyntaxHighlighter):
                     self.PARENT_TERMS_FOREGROUND_COLOR,
                     None,
                     "Segoe UI",
-                    None,
-                    11,
+                    QFont.Bold,
+                    9,
                 ),
             },
             "named_entity": {},
@@ -52,21 +45,21 @@ class TextEditHighlighter(QSyntaxHighlighter):
                     None,
                     "Segoe UI",
                     QFont.Bold,
-                    11,
+                    9,
                 ),
                 "parent_terms": self.get_text_char_format(
                     self.PARENT_TERMS_BACKGROUND_COLOR,
                     self.PARENT_TERMS_FOREGROUND_COLOR,
                     None,
                     "Segoe UI",
-                    None,
-                    11,
+                    QFont.Bold,
+                    9,
                 ),
             }
 
     def highlightBlock(self, text):
         for annotation in extract_annotations_as_generator(
-            text, entity_names_to_extract=self.relevant_entity_names
+            text, entity_names_to_extract=config.named_entity_codes
         ):
             # get common format infos
             format_to_apply = (
@@ -121,7 +114,7 @@ class TextEditHighlighter(QSyntaxHighlighter):
                 self.setFormat(start_pos, length, format)
                 # parent terms
                 start_pos += length
-                length = annotation["end_gross"] - (start_pos + len('`´'))
+                length = annotation["end_gross"] - (start_pos + len("`´"))
                 format = format_to_apply["parent_terms"]
                 self.setFormat(start_pos, length, format)
                 # space after parent terms

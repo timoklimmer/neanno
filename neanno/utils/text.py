@@ -111,12 +111,17 @@ def extract_annotations_as_list(
 
 
 def extract_annotations_as_text(
-    annotated_text, external_annotations_to_add=[], include_entity_names=True
+    annotated_text,
+    external_annotations_to_add=[],
+    entity_names_to_extract=None,
+    include_entity_names=True,
 ):
     """Extracts all annotations from the specified text and returns a string describing the set of contained annotations."""
 
     result_list = []
-    for annotation in extract_annotations_as_generator(annotated_text):
+    for annotation in extract_annotations_as_generator(
+        annotated_text, entity_names_to_extract=entity_names_to_extract
+    ):
         # standalone key term
         if annotation["type"] == "standalone_key_term":
             annotation_to_add = annotation["term"]
@@ -260,7 +265,7 @@ def remove_all_annotations_from_text(annotated_text):
     """Removes all annotations from the specified text."""
 
     new_text = re.sub(
-        r"´\<`(.*?)´\|`(((PK|SN|PN) .+?)|(SK))´\>`",
+        r"`(.*?)``(((PK|SN|PN) .+?)|(SK))`´",
         lambda match: match.group(1),
         annotated_text,
         flags=re.DOTALL,
@@ -272,7 +277,7 @@ def mask_annotations(text):
     """Masks all annotations, eg. to avoid that terms which are already annotated are annotated again."""
 
     return re.sub(
-        r"´\<`.*?´\|`(SK|PK|PN .*?|SN .*?)´\>`",
+        r"`.*?``(SK|PK|PN .*?|SN .*?)`´",
         lambda match: "@neanno_masked_annotation:{}@".format(
             base64.b64encode(match.group().encode("utf-8")).decode()
         ),
