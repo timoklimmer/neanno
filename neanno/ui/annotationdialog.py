@@ -33,6 +33,9 @@ from neanno.ui.shortcuts import *
 from neanno.ui.syntaxhighlighters import TextEditHighlighter
 from neanno.utils.text import *
 
+DEFAULT_PARENT_KEY_TERM = (
+    "<add your consolidating terms here, separated by commas>"
+)
 
 class AnnotationDialog(QMainWindow):
     """ The dialog shown to the user to do the annotation/labeling."""
@@ -289,8 +292,17 @@ class AnnotationDialog(QMainWindow):
             )
         # named entity shortcuts
         for named_entity_definition in config.named_entity_definitions:
+            # standalone
             register_shortcut(
-                self, named_entity_definition.key_sequence, self.annotate_entity
+                self,
+                named_entity_definition.key_sequence,
+                self.annotate_standalone_named_entity,
+            )
+            # parented
+            register_shortcut(
+                self,
+                "Shift+{}".format(named_entity_definition.key_sequence),
+                self.annotate_parented_named_entity,
             )
         # submit next
         register_shortcut(self, SHORTCUT_SUBMIT_NEXT, self.submit_and_go_to_next)
@@ -497,17 +509,14 @@ class AnnotationDialog(QMainWindow):
             text_to_replace_pattern = r"(?<!`){}(?!``PK``.*?`´)".format(
                 re.escape(text_to_replace)
             )
-            default_parent_key_term = (
-                "<add your consolidating terms here, separated by commas>"
-            )
             orig_selection_start = text_cursor.selectionStart()
             new_selection_start = orig_selection_start + len(
                 "`{}``PK``".format(remove_all_annotations_from_text(text_to_replace))
             )
-            new_selection_end = new_selection_start + len(default_parent_key_term)
+            new_selection_end = new_selection_start + len(DEFAULT_PARENT_KEY_TERM)
             replace_against_text = "`{}``PK``{}`´".format(
                 remove_all_annotations_from_text(text_to_replace),
-                default_parent_key_term,
+                DEFAULT_PARENT_KEY_TERM,
             )
             self.replace_pattern_in_textedit(
                 text_to_replace_pattern, replace_against_text
@@ -516,22 +525,49 @@ class AnnotationDialog(QMainWindow):
             text_cursor.setPosition(new_selection_end, QTextCursor.KeepAnchor)
             self.textedit.setTextCursor(text_cursor)
 
-    def annotate_entity(self):
+    def annotate_standalone_named_entity(self):
         text_cursor = self.textedit.textCursor()
         if text_cursor.hasSelection():
-            # change text
-            key_sequence = self.sender().key().toString()
             selected_text = text_cursor.selectedText()
-            code = ""
-            for named_entity_definition in config.named_entity_definitions:
-                if named_entity_definition.key_sequence == key_sequence:
-                    code = named_entity_definition.code
-                    break
+            named_entity_definition = ConfigManager.get_named_entity_definition_by_key_sequence(
+                self.sender().key().toString()
+            )
             text_cursor.insertText(
                 "`{}``SN``{}`´".format(
-                    remove_all_annotations_from_text(selected_text), code
+                    remove_all_annotations_from_text(selected_text),
+                    named_entity_definition.code,
                 )
             )
+
+    def annotate_parented_named_entity(self):
+        text_cursor = self.textedit.textCursor()
+        if text_cursor.hasSelection():
+            named_entity_definition = ConfigManager.get_named_entity_definition_by_key_sequence(
+                self.sender().key().toString()
+            )
+            text_to_replace = text_cursor.selectedText()
+            text_to_replace_pattern = r"(?<!`){}(?!``PN``{}``.*?`´)".format(
+                re.escape(text_to_replace), re.escape(named_entity_definition.code)
+            )
+            orig_selection_start = text_cursor.selectionStart()
+            new_selection_start = orig_selection_start + len(
+                "`{}``PN``{}``".format(
+                    remove_all_annotations_from_text(text_to_replace),
+                    named_entity_definition.code,
+                )
+            )
+            new_selection_end = new_selection_start + len(DEFAULT_PARENT_KEY_TERM)
+            replace_against_text = "`{}``PN``{}``{}`´".format(
+                remove_all_annotations_from_text(text_to_replace),
+                named_entity_definition.code,
+                DEFAULT_PARENT_KEY_TERM,
+            )
+            self.replace_pattern_in_textedit(
+                text_to_replace_pattern, replace_against_text
+            )
+            text_cursor.setPosition(new_selection_start)
+            text_cursor.setPosition(new_selection_end, QTextCursor.KeepAnchor)
+            self.textedit.setTextCursor(text_cursor)
 
     def remove_annotation(self):
         annotation = get_annotation_at_position(

@@ -241,6 +241,14 @@ class ConfigManager:
             config.named_entity_codes.append(code)
             index += 1
 
+    def get_named_entity_definition_by_key_sequence(key_sequence):
+        for named_entity_definition in config.named_entity_definitions:
+            if named_entity_definition.key_sequence == re.sub(
+                "(Shift\+|\+Shift)", "", key_sequence
+            ):
+                return named_entity_definition
+                break
+
     def named_entities_autosuggest():
         # sources
         config.is_autosuggest_entities_by_sources = ConfigManager.has_config_value(
