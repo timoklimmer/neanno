@@ -179,12 +179,12 @@ class AnnotationDialog(QMainWindow):
 
         # entity shortcuts / counts
         if config.is_named_entities_enabled:
-            entity_infos_layout = QHBoxLayout()
-            self.entity_infos_markup_control = QLabel()
-            self.entity_infos_markup_control.setTextFormat(Qt.RichText)
-            entity_infos_layout.addWidget(self.entity_infos_markup_control)
-            entities_groupbox = QGroupBox("Entities")
-            entities_groupbox.setLayout(entity_infos_layout)
+            named_entity_infos_layout = QHBoxLayout()
+            self.named_entity_infos_markup_control = QLabel()
+            self.named_entity_infos_markup_control.setTextFormat(Qt.RichText)
+            named_entity_infos_layout.addWidget(self.named_entity_infos_markup_control)
+            named_entities_groupbox = QGroupBox("Named Entities")
+            named_entities_groupbox.setLayout(named_entity_infos_layout)
 
         # spacy model
         if config.is_spacy_enabled:
@@ -250,7 +250,7 @@ class AnnotationDialog(QMainWindow):
         if config.is_key_terms_enabled:
             right_panel_layout.addWidget(key_terms_groupbox)
         if config.is_named_entities_enabled:
-            right_panel_layout.addWidget(entities_groupbox)
+            right_panel_layout.addWidget(named_entities_groupbox)
         right_panel_layout.addWidget(dataset_groupbox)
         if config.is_spacy_enabled:
             right_panel_layout.addWidget(spacy_groupbox)
@@ -395,7 +395,8 @@ class AnnotationDialog(QMainWindow):
                 )
                 entity_infos_markup += "</tr>"
             entity_infos_markup += "</table>"
-            self.entity_infos_markup_control.setText(entity_infos_markup)
+            entity_infos_markup += "<p>Add Shift key to add consolidating terms.</p>"
+            self.named_entity_infos_markup_control.setText(entity_infos_markup)
         # progress
         new_progress_value = (
             self.textmodel.get_annotated_texts_count() * 100 / self.textmodel.rowCount()
