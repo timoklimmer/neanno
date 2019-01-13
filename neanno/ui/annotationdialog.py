@@ -3,7 +3,7 @@ import re
 
 import config
 from PyQt5.QtCore import QByteArray, Qt
-from PyQt5.QtGui import QIcon, QKeySequence, QTextCursor
+from PyQt5.QtGui import QIcon, QKeySequence, QTextCursor, QTextOption
 from PyQt5.QtWidgets import (
     QApplication,
     QDataWidgetMapper,
@@ -69,6 +69,7 @@ class AnnotationDialog(QMainWindow):
 
         # text edit
         self.textedit = QPlainTextEdit()
+        #self.textedit.setWordWrapMode(QTextOption.WordWrap)
         self.textedit.setStyleSheet(
             "QPlainTextEdit { font-size: 14pt; font-family: Consolas; color: lightgrey; background-color: black }"
         )

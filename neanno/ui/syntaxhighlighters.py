@@ -7,100 +7,128 @@ from neanno.utils.text import extract_annotations_as_generator
 class TextEditHighlighter(QSyntaxHighlighter):
     """Used to highlight annotations in a text field."""
 
-    format_info = {}
+    relevant_entity_names = []
+    text_char_formats = {}
 
     ENTITY_NAME_BACKGROUND_COLOR = "lightgrey"
     ENTITY_NAME_FOREGROUND_COLOR = "black"
-    PARENT_TERMS_FOREGROUND_COLOR = "darkgrey"
-    PARENT_TERMS_BACKGROUND_COLOR = "black"
+    PARENT_TERMS_BACKGROUND_COLOR = "darkgrey"
+    PARENT_TERMS_FOREGROUND_COLOR = "black"
 
     def __init__(self, parent, named_definitions):
         super(TextEditHighlighter, self).__init__(parent)
 
-        # populate format infos
-        self.format_info = {
-            "standalone_key_term": {
-                "main_backcolor": config.key_terms_backcolor,
-                "main_forecolor": config.key_terms_forecolor,
-                "show_entity_name": False,
-                "show_key_terms": False
+        # populate relevant entity names (as cache)
+        self.relevant_entity_names = [
+            named_entity_definition.code
+            for named_entity_definition in config.named_entity_definitions
+        ]
+
+        # populate formats
+        self.text_char_formats = {
+            "key_term": {
+                "term": self.get_text_char_format(
+                    config.key_terms_backcolor, config.key_terms_forecolor
+                ),
+                "parent_terms": self.get_text_char_format(
+                    self.PARENT_TERMS_BACKGROUND_COLOR,
+                    self.PARENT_TERMS_FOREGROUND_COLOR,
+                    None,
+                    "Segoe UI",
+                    None,
+                    11,
+                ),
             },
-            "parented_key_term": {
-                "main_backcolor": config.key_terms_backcolor,
-                "main_forecolor": config.key_terms_forecolor,
-                "show_entity_name": False,
-                "show_key_terms": True
-            },
-            "standalone_named_entity": {},
-            "parented_named_entity": {},
+            "named_entity": {},
         }
         for named_definition in named_definitions:
-            self.format_info["standalone_named_entity"][named_definition.code] = {
-                "main_backcolor": named_definition.backcolor,
-                "main_forecolor": named_definition.forecolor,
-                "show_entity_name": True,
-                "show_key_terms": False
-            }
-            self.format_info["parented_named_entity"][named_definition.code] = {
-                "main_backcolor": named_definition.backcolor,
-                "main_forecolor": named_definition.forecolor,
-                "show_entity_name": True,
-                "show_key_terms": True
+            self.text_char_formats["named_entity"][named_definition.code] = {
+                "term": self.get_text_char_format(
+                    named_definition.backcolor, named_definition.forecolor
+                ),
+                "entity_name": self.get_text_char_format(
+                    self.ENTITY_NAME_BACKGROUND_COLOR,
+                    self.ENTITY_NAME_FOREGROUND_COLOR,
+                    None,
+                    "Segoe UI",
+                    QFont.Bold,
+                    11,
+                ),
+                "parent_terms": self.get_text_char_format(
+                    self.PARENT_TERMS_BACKGROUND_COLOR,
+                    self.PARENT_TERMS_FOREGROUND_COLOR,
+                    None,
+                    "Segoe UI",
+                    None,
+                    11,
+                ),
             }
 
     def highlightBlock(self, text):
-        for annotation in extract_annotations_as_generator(text):
+        for annotation in extract_annotations_as_generator(
+            text, entity_names_to_extract=self.relevant_entity_names
+        ):
             # get common format infos
-            format_info_to_apply = (
-                self.format_info[annotation["type"]]
-                if "named_entity" not in annotation["type"]
-                else self.format_info[annotation["type"]][annotation["entity_name"]]
+            format_to_apply = (
+                self.text_char_formats["key_term"]
+                if "key_term" in annotation["type"]
+                else self.text_char_formats["named_entity"][annotation["entity_name"]]
             )
-            main_backcolor = format_info_to_apply["main_backcolor"]
-            main_forecolor = format_info_to_apply["main_forecolor"]
-            show_entity_name = format_info_to_apply["show_entity_name"]
-            show_parent_terms = format_info_to_apply["show_parent_terms"]
-
-            term_text_char_format = self.get_text_char_format(main_backcolor, main_forecolor)
-            
-
-
-
-
             # set formats
-            # opening parenthesis
-            open_paren_format = self.get_text_char_format(
-                main_backcolor, main_backcolor, int(100 / 3)
-            )
-            from_position = annotation["start_gross"]
-            length = len("´<`")
-            self.setFormat(from_position, length, open_paren_format)
+            # opening tick
+            start_pos = annotation["start_gross"]
+            length = 1
+            self.setFormat(start_pos, length, self.no_chars(format_to_apply["term"]))
             # term
-            term_format = self.get_text_char_format(main_backcolor, main_forecolor)
-            from_position += length
+            start_pos += length
             length = len(annotation["term"])
-            self.setFormat(from_position, length, term_format)
-            # pipe
-            pipe_format = self.get_text_char_format(
-                main_backcolor, main_backcolor, int(100 / 3)
-            )
-            from_position += length
-            length = len("´|`")
-            self.setFormat(from_position, length, pipe_format)
+            self.setFormat(start_pos, length, format_to_apply["term"])
+            # space after term
+            start_pos += length
+            length = 1
+            self.setFormat(start_pos, length, self.no_chars(format_to_apply["term"]))
             # type
-            type_color = "red"
-            type_format = self.get_text_char_format(type_color, type_color, int(100 / 4))
-            from_position += length
-            length = len("XX ")
-            self.setFormat(from_position, length, type_format)
-            # postfix
-            from_position += length
-            length = annotation["end_gross"] - (from_position + length)
-            self.setFormat(from_position, length, postfix_text_format)
-            # closing parenthesis
-            from_position += length
-            length = len("´>`")
-            self.setFormat(from_position, length, closing_paren_format)
+            start_pos += length
+            length = 4
+            self.setFormat(
+                start_pos,
+                length,
+                self.as_invisible_as_possible(self.no_chars(format_to_apply["term"])),
+            )
+            if "named_entity" in annotation["type"]:
+                # space before named entity
+                start_pos += length
+                length = 1
+                self.setFormat(
+                    start_pos, length, self.no_chars(format_to_apply["entity_name"])
+                )
+                # named entity
+                start_pos += length
+                length = len(annotation["entity_name"])
+                self.setFormat(start_pos, length, format_to_apply["entity_name"])
+                # space after named entity
+                start_pos += length
+                length = 1
+                self.setFormat(
+                    start_pos, length, self.no_chars(format_to_apply["entity_name"])
+                )
+            if "parented" in annotation["type"]:
+                # space before parent terms
+                start_pos += length
+                length = 1
+                self.setFormat(
+                    start_pos, length, self.no_chars(format_to_apply["parent_terms"])
+                )
+                # parent terms
+                start_pos += length
+                length = annotation["end_gross"] - (start_pos + 1)
+                self.setFormat(start_pos, length, format_to_apply["parent_terms"])
+                # space after parent terms
+                start_pos += length
+                length = 1
+                self.setFormat(
+                    start_pos, length, self.no_chars(format_to_apply["parent_terms"])
+                )
 
     def get_text_char_format(
         self,
@@ -124,7 +152,12 @@ class TextEditHighlighter(QSyntaxHighlighter):
             result.setFontPointSize(font_size)
         return result
 
-    def get_hide_chars_format(self, text_char_format):
-        result = text_char_format
+    def no_chars(self, text_char_format):
+        result = QTextCharFormat(text_char_format)
         result.setForeground(result.background())
+        return result
+
+    def as_invisible_as_possible(self, text_char_format):
+        result = QTextCharFormat(text_char_format)
+        result.setFontStretch(1)
         return result

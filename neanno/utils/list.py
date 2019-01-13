@@ -1,5 +1,5 @@
 def ensure_items_within_set(list, set, list_none_means_pass=False, error_message=None):
-    """Ensures that all items in the specified list are within the specified set."""
+    """ Ensures that all items in the specified list are within the specified set."""
     if list is None:
         return
     for item in list:
@@ -11,3 +11,9 @@ def ensure_items_within_set(list, set, list_none_means_pass=False, error_message
                     ),
                 )
             raise ValueError(error_message)
+
+
+def get_set_of_list_keep_sequence(list):
+    """ Returns the set of the specified list but keeps the sequence of the items."""
+    seen = set()
+    return [x for x in list if not (x in seen or seen.add(x))]

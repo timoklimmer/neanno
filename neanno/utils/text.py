@@ -1,7 +1,7 @@
 import base64
 import re
 
-from neanno.utils.list import ensure_items_within_set
+from neanno.utils.list import ensure_items_within_set, get_set_of_list_keep_sequence
 
 ANNOTATION_TYPES = [
     "standalone_key_term",
@@ -18,22 +18,21 @@ TINY_TO_LONG_ANNOTATION_TYPE_MAPPING = {
 }
 
 ANNOTATION_REGEX = re.compile(
-    r"""
-        ´\<`
-        (?P<term>.*?)
-        ´\|`
+    r"""(?xs)
+        `
+        (?P<term>[^`]*?)
+        ``
         (?P<type_tiny>(
               (?P<standalone_key_term>SK)
             | (?P<parented_key_term>PK)
             | (?P<standalone_named_entity>SN)
-            | (?P<parented_named_entity>SN))
+            | (?P<parented_named_entity>PN))
         )
-        (?(parented_key_term)\s(?P<parent_terms_pk>.*?))
-        (?(standalone_named_entity)\s(?P<entity_name_sn>.+?))
-        (?(parented_named_entity)\s(?P<entity_name_pn>.+?\s(?P<parent_terms_pn>.*?)))
-        ´\>`
-    """,
-    flags=re.DOTALL | re.VERBOSE,
+        (?(parented_key_term)``(?P<parent_terms_pk>.*?))
+        (?(standalone_named_entity)``(?P<entity_name_sn>.*?))
+        (?(parented_named_entity)``(?P<entity_name_pn>.*?)``(?P<parent_terms_pn>.*?))
+        ´
+    """
 )
 
 
@@ -43,9 +42,12 @@ def extract_annotations_as_generator(
     """ Yields all annotations from an annotated text as a list."""
 
     def extract_normalized_parent_terms(parent_terms):
-        return ", ".join(
-            [parent_terms.strip() for parent_term in (parent_terms or "").split(",")]
-        )
+        result = []
+        for parent_term in (parent_terms.strip() or "").split(","):
+            parent_term = parent_term.strip()
+            if parent_term and parent_term not in result:
+                result.append(parent_term)
+        return ", ".join(result)
 
     # ensure that types_to_extract has valid entries
     ensure_items_within_set(types_to_extract, ANNOTATION_TYPES, True)
@@ -60,6 +62,10 @@ def extract_annotations_as_generator(
         )
         if types_to_extract is not None and annotation["type"] not in types_to_extract:
             continue
+        if annotation["type"] == "parented_key_term":
+            annotation["parent_terms"] = extract_normalized_parent_terms(
+                match.group("parent_terms_pk")
+            )
         if annotation["type"] == "standalone_named_entity":
             annotation["entity_name"] = match.group("entity_name_sn")
             if (
@@ -67,12 +73,13 @@ def extract_annotations_as_generator(
                 and annotation["entity_name"] not in entity_names_to_extract
             ):
                 continue
-        if annotation["type"] == "parented_key_term":
-            annotation["parent_terms"] = extract_normalized_parent_terms(
-                match.group("parent_terms_pk")
-            )
         if annotation["type"] == "parented_named_entity":
             annotation["entity_name"] = match.group("entity_name_pn")
+            if (
+                entity_names_to_extract is not None
+                and annotation["entity_name"] not in entity_names_to_extract
+            ):
+                continue
             annotation["parent_terms"] = extract_normalized_parent_terms(
                 match.group("parent_terms_pn")
             )
@@ -122,7 +129,9 @@ def extract_annotations_as_text(
         # parented key term
         if annotation["type"] == "parented_key_term":
             parent_terms = []
-            for parent_term in set(annotation["parent_terms"].split(",")):
+            for parent_term in get_set_of_list_keep_sequence(
+                annotation["parent_terms"].split(", ")
+            ):
                 annotation_to_add = parent_term
                 if annotation_to_add.lower() not in [
                     annotation.lower() for annotation in result_list
@@ -146,19 +155,20 @@ def extract_annotations_as_text(
                 result_list.append(annotation_to_add)
         # parented named entity
         if annotation["type"] == "parented_named_entity":
-            annotation_to_add = (
-                "{}:{}".format(
-                    annotation["entity_name"].lower(), annotation["parent_terms"]
+            for parent_term in get_set_of_list_keep_sequence(
+                annotation["parent_terms"].split(", ")
+            ):
+                annotation_to_add = (
+                    "{}:{}".format(annotation["entity_name"].lower(), parent_term)
+                    if include_entity_names
+                    else parent_term
                 )
-                if include_entity_names
-                else annotation["parent_terms"]
-            )
-            if annotation_to_add.lower() not in [
-                annotation.lower() for annotation in result_list
-            ] and annotation_to_add.lower() not in [
-                annotation.lower() for annotation in external_annotations_to_add
-            ]:
-                result_list.append(annotation_to_add)
+                if annotation_to_add.lower() not in [
+                    annotation.lower() for annotation in result_list
+                ] and annotation_to_add.lower() not in [
+                    annotation.lower() for annotation in external_annotations_to_add
+                ]:
+                    result_list.append(annotation_to_add)
 
     # external annotations
     result_list.extend(external_annotations_to_add)
@@ -282,7 +292,7 @@ def unmask_annotations(text_with_masked_annotations):
 
 def extract_named_entities_distribution(annotated_text):
     """ Computes the types and frequencies of named entities in the specified text."""
-    
+
     result = {}
     for entity_annotation in extract_annotations_as_generator(
         annotated_text,
