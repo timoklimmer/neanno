@@ -31,7 +31,7 @@ ANNOTATION_REGEX = re.compile(
         (?(parented_key_term)``(?P<parent_terms_pk>.*?))
         (?(standalone_named_entity)``(?P<entity_name_sn>.*?))
         (?(parented_named_entity)``(?P<entity_name_pn>.*?)``(?P<parent_terms_pn>.*?))
-        ´
+        `´
     """
 )
 

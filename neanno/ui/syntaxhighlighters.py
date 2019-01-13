@@ -10,9 +10,9 @@ class TextEditHighlighter(QSyntaxHighlighter):
     relevant_entity_names = []
     text_char_formats = {}
 
-    ENTITY_NAME_BACKGROUND_COLOR = "lightgrey"
+    ENTITY_NAME_BACKGROUND_COLOR = "white"
     ENTITY_NAME_FOREGROUND_COLOR = "black"
-    PARENT_TERMS_BACKGROUND_COLOR = "darkgrey"
+    PARENT_TERMS_BACKGROUND_COLOR = "lightgrey"
     PARENT_TERMS_FOREGROUND_COLOR = "black"
 
     def __init__(self, parent, named_definitions):
@@ -75,60 +75,65 @@ class TextEditHighlighter(QSyntaxHighlighter):
                 else self.text_char_formats["named_entity"][annotation["entity_name"]]
             )
             # set formats
-            # opening tick
+            # space before term
             start_pos = annotation["start_gross"]
             length = 1
-            self.setFormat(start_pos, length, self.no_chars(format_to_apply["term"]))
+            format = self.no_chars(format_to_apply["term"])
+            self.setFormat(start_pos, length, format)
             # term
             start_pos += length
             length = len(annotation["term"])
-            self.setFormat(start_pos, length, format_to_apply["term"])
+            format = format_to_apply["term"]
+            self.setFormat(start_pos, length, format)
             # space after term
             start_pos += length
             length = 1
-            self.setFormat(start_pos, length, self.no_chars(format_to_apply["term"]))
+            format = self.no_chars(format_to_apply["term"])
+            self.setFormat(start_pos, length, format)
             # type
             start_pos += length
             length = 4
-            self.setFormat(
-                start_pos,
-                length,
-                self.as_invisible_as_possible(self.no_chars(format_to_apply["term"])),
+            format = self.as_invisible_as_possible(
+                self.no_chars(format_to_apply["term"])
             )
+            self.setFormat(start_pos, length, format)
             if "named_entity" in annotation["type"]:
                 # space before named entity
                 start_pos += length
                 length = 1
-                self.setFormat(
-                    start_pos, length, self.no_chars(format_to_apply["entity_name"])
-                )
+                format = self.no_chars(format_to_apply["entity_name"])
+                self.setFormat(start_pos, length, format)
                 # named entity
                 start_pos += length
                 length = len(annotation["entity_name"])
-                self.setFormat(start_pos, length, format_to_apply["entity_name"])
+                format = format_to_apply["entity_name"]
+                self.setFormat(start_pos, length, format)
                 # space after named entity
                 start_pos += length
                 length = 1
-                self.setFormat(
-                    start_pos, length, self.no_chars(format_to_apply["entity_name"])
-                )
+                format = self.no_chars(format_to_apply["entity_name"])
+                self.setFormat(start_pos, length, format)
             if "parented" in annotation["type"]:
                 # space before parent terms
                 start_pos += length
                 length = 1
-                self.setFormat(
-                    start_pos, length, self.no_chars(format_to_apply["parent_terms"])
-                )
+                format = self.no_chars(format_to_apply["parent_terms"])
+                self.setFormat(start_pos, length, format)
                 # parent terms
                 start_pos += length
-                length = annotation["end_gross"] - (start_pos + 1)
-                self.setFormat(start_pos, length, format_to_apply["parent_terms"])
+                length = annotation["end_gross"] - (start_pos + len('`´'))
+                format = format_to_apply["parent_terms"]
+                self.setFormat(start_pos, length, format)
                 # space after parent terms
                 start_pos += length
                 length = 1
-                self.setFormat(
-                    start_pos, length, self.no_chars(format_to_apply["parent_terms"])
-                )
+                format = self.no_chars(format_to_apply["parent_terms"])
+                self.setFormat(start_pos, length, format)
+            # terminal char
+            start_pos += length
+            length = 1
+            format = self.as_invisible_as_possible(self.no_chars(format))
+            self.setFormat(start_pos, length, format)
 
     def get_text_char_format(
         self,
