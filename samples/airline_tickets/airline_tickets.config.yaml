@@ -31,8 +31,8 @@ key_terms:
       location: csv:samples/airline_tickets/key_terms.autosuggest.csv
       writeback: True
     regexes:
-      - description: terminals
-        pattern: (?i)(\bterminal\s*\d+\b)|(\bT[1-9]\b)
+      - name: terminals
+        pattern: (?i)(\bterminal\s*\d+\b)|(\bT[1-9]\b)|(\bterminal\b)
   # shortcuts:
   #   standalone: Alt+1
   #   parented: Alt+2

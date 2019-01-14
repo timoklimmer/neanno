@@ -63,7 +63,7 @@ key_terms:
                     schema:
                         type: dict
                         schema:
-                            description:
+                            name:
                                 type: string
                                 required: True
                             pattern:

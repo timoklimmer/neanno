@@ -228,33 +228,19 @@ class TextModel(QAbstractTableModel):
                     )
                     result = mask_annotations(result)
                 # regexes
-                if config.is_autosuggest_key_terms_by_regexes:
-                    for autosuggest_regex in config.key_terms_autosuggest_regexes:
-                        if autosuggest_regex.parent_terms:
-                            result = re.sub(
-                                r"(?P<term>{})".format(autosuggest_regex.pattern),
-                                "`{}``PK``{}`´".format(
-                                    "\g<term>", autosuggest_regex.parent_terms
-                                ),
-                                result,
-                            )
-                        else:
-                            result = re.sub(
-                                r"(?P<term>{})".format(autosuggest_regex.pattern),
-                                "`{}``SK`´".format("\g<term>"),
-                                result,
-                            )
-                        result = mask_annotations(result)
+                result = config.autosuggester.suggest(result)
 
                 # autosuggest entities
                 # sources
                 if config.is_autosuggest_entities_by_datasets:
+                    result = mask_annotations(result)
                     result = config.named_entities_autosuggest_flashtext.replace_keywords(
                         result
                     )
                     result = mask_annotations(result)
                 # regexes
                 if config.is_autosuggest_entities_by_regexes:
+                    result = mask_annotations(result)
                     for autosuggest_regex in config.named_entities_autosuggest_regexes:
                         result = re.sub(
                             r"(?P<term>{})".format(autosuggest_regex.pattern),

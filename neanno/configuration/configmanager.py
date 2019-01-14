@@ -8,6 +8,7 @@ import yaml
 from cerberus import Validator
 from flashtext import KeywordProcessor
 
+from neanno.autosuggest.autosuggester import AutoSuggester
 from neanno.autosuggest.definitions import KeyTermRegex, NamedEntityRegex
 from neanno.configuration.colors import DEFAULT_ENTITY_COLORS_PALETTE
 from neanno.configuration.definitions import CategoryDefinition, NamedEntityDefinition
@@ -24,6 +25,8 @@ class ConfigManager:
     def __init__(self):
         # specify neanno's args and load/validate the required config file
         ConfigManager.define_args_and_load_config_yaml()
+        # instantiate annotation suggester (setup/population will be done below)
+        config.autosuggester = AutoSuggester()
         # derive further configuration objects from specified arguments
         # dataset source-related
         ConfigManager.dataset_source()
@@ -95,8 +98,12 @@ class ConfigManager:
     def dataset_target():
         config.dataset_target_friendly = None
         if ConfigManager.has_config_value("dataset/target"):
-            dataset_location = DatasetLocation(ConfigManager.get_config_value("dataset/target"))
-            getattr(ConfigManager, "dataset_target_{}".format(dataset_location.type))(dataset_location)
+            dataset_location = DatasetLocation(
+                ConfigManager.get_config_value("dataset/target")
+            )
+            getattr(ConfigManager, "dataset_target_{}".format(dataset_location.type))(
+                dataset_location
+            )
 
     def dataset_target_csv(dataset_location):
         config.dataset_target_friendly = os.path.basename(dataset_location.path)
@@ -170,21 +177,16 @@ class ConfigManager:
             )
 
         # regexes
-        config.key_terms_autosuggest_regexes = []
-        config.is_autosuggest_key_terms_by_regexes = ConfigManager.has_config_value(
-            "key_terms/auto_suggest/regexes"
-        )
-        if config.is_autosuggest_key_terms_by_regexes:
-            for autosuggest_regex in ConfigManager.get_config_value(
+        if ConfigManager.has_config_value("key_terms/auto_suggest/regexes"):
+            for key_term_regex in ConfigManager.get_config_value(
                 "key_terms/auto_suggest/regexes"
             ):
-                config.key_terms_autosuggest_regexes.append(
-                    KeyTermRegex(
-                        autosuggest_regex["pattern"],
-                        autosuggest_regex["parent_terms"]
-                        if "parent_terms" in autosuggest_regex
-                        else None,
-                    )
+                config.autosuggester.add_key_term_regex(
+                    key_term_regex["name"],
+                    key_term_regex["pattern"],
+                    key_term_regex["parent_terms"]
+                    if "parent_terms" in key_term_regex
+                    else None,
                 )
 
     def named_entities():
