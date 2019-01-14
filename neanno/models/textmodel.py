@@ -222,7 +222,7 @@ class TextModel(QAbstractTableModel):
                     result = mask_annotations(result)
                 # autosuggest key terms
                 # source
-                if config.is_autosuggest_key_terms_by_source:
+                if config.is_autosuggest_key_terms_by_dataset:
                     result = config.key_terms_autosuggest_flashtext.replace_keywords(
                         result
                     )
@@ -248,7 +248,7 @@ class TextModel(QAbstractTableModel):
 
                 # autosuggest entities
                 # sources
-                if config.is_autosuggest_entities_by_sources:
+                if config.is_autosuggest_entities_by_datasets:
                     result = config.named_entities_autosuggest_flashtext.replace_keywords(
                         result
                     )

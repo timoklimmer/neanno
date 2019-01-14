@@ -27,8 +27,8 @@ categories:
 
 key_terms:
   auto_suggest:
-    source:
-      spec: csv:samples/airline_tickets/key_terms.autosuggest.csv
+    dataset:
+      location: csv:samples/airline_tickets/key_terms.autosuggest.csv
       writeback: True
     regexes:
       - description: terminals
@@ -57,7 +57,7 @@ named_entities:
       - code: AIRCRAFT
         shortcut: Alt+C
   auto_suggest:
-    sources:
+    datasets:
       - csv:samples/airline_tickets/airlines.autosuggest.csv
     regexes:
       - entity: FROM

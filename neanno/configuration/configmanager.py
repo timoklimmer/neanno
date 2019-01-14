@@ -8,15 +8,11 @@ import yaml
 from cerberus import Validator
 from flashtext import KeywordProcessor
 
-from neanno.definitions.autosuggest import (
-    AutoSuggestEntityRegex,
-    AutoSuggestKeyTermRegex,
-)
-from neanno.definitions.category import CategoryDefinition
-from neanno.definitions.namedentity import NamedEntityDefinition
-from neanno.ui.colors import DEFAULT_ENTITY_COLORS_PALETTE
+from neanno.autosuggest.definitions import KeyTermRegex, NamedEntityRegex
+from neanno.configuration.colors import DEFAULT_ENTITY_COLORS_PALETTE
+from neanno.configuration.definitions import CategoryDefinition, NamedEntityDefinition
+from neanno.utils.dataset import DatasetManager
 from neanno.utils.dict import QueryDict, merge_dict
-from neanno.utils.pandas import save_dataframe_to_csv
 from neanno.utils.text import extract_annotations_as_generator
 
 
@@ -90,7 +86,7 @@ class ConfigManager:
         config.is_annotated_column = ConfigManager.get_config_value(
             "dataset/is_annotated_column"
         )
-        config.dataset_to_edit, config.dataset_source_friendly = ConfigManager.load_dataset(
+        config.dataset_to_edit, config.dataset_source_friendly = DatasetManager.load_dataset_from_location_string(
             ConfigManager.get_config_value("dataset/source"),
             {config.text_column: str},
             "dataset/source",
@@ -102,8 +98,8 @@ class ConfigManager:
     def dataset_target():
         config.dataset_target_friendly = None
         if ConfigManager.has_config_value("dataset/target"):
-            datasource_spec = ConfigManager.get_config_value("dataset/target")
-            datasource_type = datasource_spec.split(":")[0]
+            datasource_location = ConfigManager.get_config_value("dataset/target")
+            datasource_type = datasource_location.split(":")[0]
             supported_datasource_types = ["csv"]
             if datasource_type not in supported_datasource_types:
                 config.parser.error(
@@ -111,14 +107,16 @@ class ConfigManager:
                         datasource_type, ", ".join(supported_datasource_types)
                     )
                 )
-            getattr(ConfigManager, "dataset_target_" + datasource_type)()
+            getattr(ConfigManager, "dataset_target_{}".format(datasource_type))()
 
     def dataset_target_csv():
         dataset_target_csv = ConfigManager.get_config_value("dataset/target").replace(
             "csv:", "", 1
         )
         config.dataset_target_friendly = os.path.basename(dataset_target_csv)
-        config.save_callback = lambda df: save_dataframe_to_csv(df, dataset_target_csv)
+        config.save_callback = lambda df: DatasetManager.save_dataset_to_csv(
+            df, dataset_target_csv
+        )
 
     def key_terms():
         config.key_terms_marked_for_removal_from_autosuggest_collection = []
@@ -140,16 +138,18 @@ class ConfigManager:
 
     def key_terms_autosuggest():
         # source
-        config.is_autosuggest_key_terms_by_source = ConfigManager.has_config_value(
-            "key_terms/auto_suggest/source/spec"
+        config.is_autosuggest_key_terms_by_dataset = ConfigManager.has_config_value(
+            "key_terms/auto_suggest/dataset/location"
         )
-        if config.is_autosuggest_key_terms_by_source:
+        if config.is_autosuggest_key_terms_by_dataset:
             print("Loading autosuggest key terms dataset...")
             # load data
-            config.autosuggest_key_terms_dataset, friendly_dataset_name_never_used = ConfigManager.load_dataset(
-                ConfigManager.get_config_value("key_terms/auto_suggest/source/spec"),
+            config.autosuggest_key_terms_dataset, friendly_dataset_name_never_used = DatasetManager.load_dataset_from_location_string(
+                ConfigManager.get_config_value(
+                    "key_terms/auto_suggest/dataset/location"
+                ),
                 {"term": str, "parent_terms": str},
-                "key_terms/auto_suggest/source/spec",
+                "key_terms/auto_suggest/dataset/location",
             )
             # setup flashtext for later string replacements
             autosuggest_key_terms_dataset = config.autosuggest_key_terms_dataset.copy()
@@ -193,7 +193,7 @@ class ConfigManager:
                 "key_terms/auto_suggest/regexes"
             ):
                 config.key_terms_autosuggest_regexes.append(
-                    AutoSuggestKeyTermRegex(
+                    KeyTermRegex(
                         autosuggest_regex["pattern"],
                         autosuggest_regex["parent_terms"]
                         if "parent_terms" in autosuggest_regex
@@ -241,30 +241,22 @@ class ConfigManager:
             config.named_entity_codes.append(code)
             index += 1
 
-    def get_named_entity_definition_by_key_sequence(key_sequence):
-        for named_entity_definition in config.named_entity_definitions:
-            if named_entity_definition.key_sequence == re.sub(
-                "(Shift\+|\+Shift)", "", key_sequence
-            ):
-                return named_entity_definition
-                break
-
     def named_entities_autosuggest():
         # sources
-        config.is_autosuggest_entities_by_sources = ConfigManager.has_config_value(
-            "named_entities/auto_suggest/sources"
+        config.is_autosuggest_entities_by_datasets = ConfigManager.has_config_value(
+            "named_entities/auto_suggest/datasets"
         )
-        if config.is_autosuggest_entities_by_sources:
+        if config.is_autosuggest_entities_by_datasets:
             print("Loading autosuggest entities dataset(s)...")
             # combine data from multiple datasets
             autosuggest_entities_dataset = pd.DataFrame(columns=["term", "entity_code"])
-            for spec in ConfigManager.get_config_value(
-                "named_entities/auto_suggest/sources"
+            for location in ConfigManager.get_config_value(
+                "named_entities/auto_suggest/datasets"
             ):
-                new_data, friendly_dataset_name_never_used = ConfigManager.load_dataset(
-                    spec,
+                new_data, friendly_dataset_name_never_used = DatasetManager.load_dataset_from_location_string(
+                    location,
                     {"term": str, "entity_code": str},
-                    "named_entities/auto_suggest/sources",
+                    "named_entities/auto_suggest/datasets",
                 )
                 autosuggest_entities_dataset = autosuggest_entities_dataset.append(
                     new_data
@@ -297,7 +289,7 @@ class ConfigManager:
                 "named_entities/auto_suggest/regexes"
             ):
                 config.named_entities_autosuggest_regexes.append(
-                    AutoSuggestEntityRegex(
+                    NamedEntityRegex(
                         autosuggest_regex["entity"], autosuggest_regex["pattern"]
                     )
                 )
@@ -326,48 +318,6 @@ class ConfigManager:
         config.has_instructions = "instructions" in config.yaml
         config.instructions = ConfigManager.get_config_value("instructions")
 
-    def load_dataset(spec, schema, fillna=True, parameter=None):
-        supported_datasource_types = ["csv"]
-        datasource_type = spec.split(":")[0]
-        if datasource_type not in supported_datasource_types:
-            config.parser.error(
-                "Parameter '{}' uses a datasource type '{}' which is not supported. Ensure that a valid datasource type is specified. Valid datasource types are: {}.".format(
-                    parameter, datasource_type, ", ".join(supported_datasource_types)
-                )
-            )
-        parameter_hint = (
-            " specified in parameter '{}'".format(parameter)
-            if parameter is not None
-            else ""
-        )
-        required_columns = list(schema.keys())
-        result = getattr(ConfigManager, "load_dataset_" + datasource_type)(
-            spec, required_columns, parameter_hint, True
-        )
-        for column_name in schema.keys():
-            result[0][column_name] = result[0][column_name].astype(schema[column_name])
-        return result
-
-    def load_dataset_csv(spec, required_columns, parameter_hint, fill_na=True):
-        file_to_load = spec.replace("csv:", "", 1)
-        if not os.path.isfile(file_to_load):
-            config.parser.error(
-                "The file '{}'{} does not exist. Ensure that you specify a file which exists.".format(
-                    file_to_load, parameter_hint
-                )
-            )
-        result = pd.read_csv(file_to_load)
-        if fill_na:
-            result = result.fillna("")
-        if not pd.Series(required_columns).isin(result.columns).all():
-            config.parser.error(
-                "A dataset{} does not return a dataset with the expected columns. Ensure that the dataset includes the following columns (case-sensitive): {}.".format(
-                    parameter_hint, ", ".join(required_columns)
-                )
-            )
-        friendly_dataset_name = os.path.basename(file_to_load)
-        return (result, friendly_dataset_name)
-
     def get_config_value(path, default=None):
         candidate = QueryDict(config.yaml).get(path)
         return candidate if candidate is not None else default
@@ -376,7 +326,7 @@ class ConfigManager:
         return ConfigManager.get_config_value(path) is not None
 
     def update_autosuggest_key_terms_collection(annotated_text):
-        if config.is_autosuggest_key_terms_by_source:
+        if config.is_autosuggest_key_terms_by_dataset:
             # get terms to add/update
             terms_to_add = {}
             parented_terms_to_update = []
@@ -471,9 +421,9 @@ class ConfigManager:
         )
         del config.autosuggest_key_terms_dataset["sort"]
         # save the dataset
-        ConfigManager.save_dataset(
+        DatasetManager.save_dataset_to_location_string(
             config.autosuggest_key_terms_dataset,
-            ConfigManager.get_config_value("key_terms/auto_suggest/source/spec"),
+            ConfigManager.get_config_value("key_terms/auto_suggest/datasets/location"),
         )
 
     def mark_key_term_for_removal_from_autosuggest_collection(term):
@@ -483,17 +433,10 @@ class ConfigManager:
     def reset_key_terms_marked_for_removal_from_autosuggest_collection():
         config.key_terms_marked_for_removal_from_autosuggest_collection = []
 
-    def save_dataset(dataframe, spec):
-        supported_datasource_types = ["csv"]
-        datasource_type = spec.split(":")[0]
-        if datasource_type not in supported_datasource_types:
-            config.parser.error(
-                "Spec '{}' uses a datasource type '{}' which is not supported for saving. Ensure that a valid datasource type is specified. Valid datasource types are: {}.".format(
-                    spec, datasource_type, ", ".join(supported_datasource_types)
-                )
-            )
-        getattr(ConfigManager, "save_dataset_" + datasource_type)(dataframe, spec)
-
-    def save_dataset_csv(dataframe, spec):
-        file_path = spec.replace("csv:", "", 1)
-        save_dataframe_to_csv(dataframe, file_path)
+    def get_named_entity_definition_by_key_sequence(key_sequence):
+        for named_entity_definition in config.named_entity_definitions:
+            if named_entity_definition.key_sequence == re.sub(
+                "(Shift\+|\+Shift)", "", key_sequence
+            ):
+                return named_entity_definition
+                break

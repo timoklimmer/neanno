@@ -48,10 +48,10 @@ key_terms:
         auto_suggest:
             type: dict
             schema:
-                source:
+                dataset:
                     type: dict
                     schema:
-                        spec:
+                        location:
                             type: string
                             regex: "^.+?:.+"
                             required: True
@@ -106,7 +106,7 @@ named_entities:
         auto_suggest:
             type: dict
             schema:
-                sources:
+                datasets:
                     type: list
                     schema:
                         type: string
