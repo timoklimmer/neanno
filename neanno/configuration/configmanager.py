@@ -11,7 +11,7 @@ from flashtext import KeywordProcessor
 from neanno.autosuggest.definitions import KeyTermRegex, NamedEntityRegex
 from neanno.configuration.colors import DEFAULT_ENTITY_COLORS_PALETTE
 from neanno.configuration.definitions import CategoryDefinition, NamedEntityDefinition
-from neanno.utils.dataset import DatasetManager
+from neanno.utils.dataset import DatasetLocation, DatasetManager
 from neanno.utils.dict import QueryDict, merge_dict
 from neanno.utils.text import extract_annotations_as_generator
 
@@ -91,31 +91,17 @@ class ConfigManager:
             {config.text_column: str},
             "dataset/source",
         )
-        config.dataset_to_edit[config.text_column] = config.dataset_to_edit[
-            config.text_column
-        ].astype(str)
 
     def dataset_target():
         config.dataset_target_friendly = None
         if ConfigManager.has_config_value("dataset/target"):
-            datasource_location = ConfigManager.get_config_value("dataset/target")
-            datasource_type = datasource_location.split(":")[0]
-            supported_datasource_types = ["csv"]
-            if datasource_type not in supported_datasource_types:
-                config.parser.error(
-                    "Parameter 'dataset/target' uses a datasource type '{}' which is not supported.  Ensure that a valid datasource type is specified. Valid datasource types are: {}.".format(
-                        datasource_type, ", ".join(supported_datasource_types)
-                    )
-                )
-            getattr(ConfigManager, "dataset_target_{}".format(datasource_type))()
+            dataset_location = DatasetLocation(ConfigManager.get_config_value("dataset/target"))
+            getattr(ConfigManager, "dataset_target_{}".format(dataset_location.type))(dataset_location)
 
-    def dataset_target_csv():
-        dataset_target_csv = ConfigManager.get_config_value("dataset/target").replace(
-            "csv:", "", 1
-        )
-        config.dataset_target_friendly = os.path.basename(dataset_target_csv)
+    def dataset_target_csv(dataset_location):
+        config.dataset_target_friendly = os.path.basename(dataset_location.path)
         config.save_callback = lambda df: DatasetManager.save_dataset_to_csv(
-            df, dataset_target_csv
+            df, dataset_location.path
         )
 
     def key_terms():
@@ -423,7 +409,7 @@ class ConfigManager:
         # save the dataset
         DatasetManager.save_dataset_to_location_string(
             config.autosuggest_key_terms_dataset,
-            ConfigManager.get_config_value("key_terms/auto_suggest/datasets/location"),
+            ConfigManager.get_config_value("key_terms/auto_suggest/dataset/location"),
         )
 
     def mark_key_term_for_removal_from_autosuggest_collection(term):

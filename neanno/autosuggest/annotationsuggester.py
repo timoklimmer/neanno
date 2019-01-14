@@ -12,16 +12,6 @@ class AnnotationSuggester:
     def __init__(self):
         pass
 
-    # general functions
-
-    @staticmethod
-    def load():
-        pass
-
-    @staticmethod
-    def save():
-        pass
-
     # key terms
 
     # key terms - dataset
