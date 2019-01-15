@@ -594,7 +594,7 @@ class AnnotationDialog(QMainWindow):
             )
             # mark key term for removal from autosuggest collection (if it is a key term and not a named entity)
             if annotation["type"] in ["standalone_key_term", "parented_key_term"]:
-                ConfigManager.mark_key_term_for_removal_from_autosuggest_collection(
+                config.autosuggester.mark_key_term_for_removal(
                     annotation["term"]
                 )
 
@@ -604,7 +604,7 @@ class AnnotationDialog(QMainWindow):
             self.textedit.toPlainText(),
             types_to_extract=["standalone_key_term", "parented_key_term"],
         ):
-            ConfigManager.mark_key_term_for_removal_from_autosuggest_collection(
+            config.autosuggester.mark_key_term_for_removal(
                 annotation["term"]
             )
         # update text

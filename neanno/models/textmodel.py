@@ -274,7 +274,12 @@ class TextModel(QAbstractTableModel):
                 # update text
                 config.dataset_to_edit.iat[row, self.text_column_index] = value
                 # update autosuggest key terms collection
-                ConfigManager.update_autosuggest_key_terms_dataset(value)
+                config.autosuggester.update_key_terms_dataset(
+                    value,
+                    ConfigManager.get_config_value(
+                        "key_terms/auto_suggest/dataset/location"
+                    ),
+                )
                 # re-compute distributions
                 # TODO: might be made more efficient with deltas instead of complete recomputation all the time
                 self.compute_entities_distribution()

@@ -11,7 +11,8 @@ from flashtext import KeywordProcessor
 from neanno.autosuggest.autosuggester import AutoSuggester
 from neanno.autosuggest.definitions import KeyTermRegex, NamedEntityRegex
 from neanno.configuration.colors import DEFAULT_ENTITY_COLORS_PALETTE
-from neanno.configuration.definitions import CategoryDefinition, NamedEntityDefinition
+from neanno.configuration.definitions import (CategoryDefinition,
+                                              NamedEntityDefinition)
 from neanno.utils.dataset import DatasetLocation, DatasetManager
 from neanno.utils.dict import QueryDict, merge_dict
 from neanno.utils.text import extract_annotations_as_generator
@@ -20,7 +21,7 @@ from neanno.utils.text import extract_annotations_as_generator
 class ConfigManager:
     """Collects all configuration settings and provides configuration-related objects to neanno (through config.*)."""
 
-    key_terms_marked_for_removal_from_autosuggest_collection = []
+    key_terms_marked_for_removal = []
 
     def __init__(self):
         # specify neanno's args and load/validate the required config file
@@ -112,7 +113,7 @@ class ConfigManager:
         )
 
     def key_terms():
-        config.key_terms_marked_for_removal_from_autosuggest_collection = []
+        config.key_terms_marked_for_removal = []
         config.is_key_terms_enabled = "key_terms" in config.yaml
         if config.is_key_terms_enabled:
             config.key_terms_shortcut_mark_standalone = ConfigManager.get_config_value(
@@ -310,114 +311,6 @@ class ConfigManager:
 
     def has_config_value(path):
         return ConfigManager.get_config_value(path) is not None
-
-    def update_autosuggest_key_terms_dataset(annotated_text):
-        if config.is_autosuggest_key_terms_by_dataset:
-            # get terms to add/update
-            terms_to_add = {}
-            parented_terms_to_update = []
-            existing_terms_list = list(config.autosuggest_key_terms_dataset["term"])
-            for annotation in extract_annotations_as_generator(
-                annotated_text,
-                types_to_extract=["standalone_key_term", "parented_key_term"],
-            ):
-                if annotation["term"] not in existing_terms_list:
-                    # term does not exist yet
-                    terms_to_add = merge_dict(
-                        terms_to_add,
-                        {
-                            annotation["term"]: annotation["parent_terms"]
-                            if "parent_terms" in annotation
-                            else ""
-                        },
-                    )
-                else:
-                    # term exists but may need update due to different parent terms
-                    if "parent_terms" in annotation:
-                        currently_stored_parent_terms = list(
-                            config.autosuggest_key_terms_dataset[
-                                config.autosuggest_key_terms_dataset["term"]
-                                == annotation["term"]
-                            ]["parent_terms"]
-                        )[0]
-                        if currently_stored_parent_terms != annotation["parent_terms"]:
-                            # needs update
-                            terms_to_add = merge_dict(
-                                terms_to_add,
-                                {
-                                    annotation["term"]: annotation["parent_terms"]
-                                    if "parent_terms" in annotation
-                                    else ""
-                                },
-                            )
-                            parented_terms_to_update.append(annotation["term"])
-
-            # get total terms to remove
-            terms_to_remove = [
-                term
-                for term in config.key_terms_marked_for_removal_from_autosuggest_collection
-                if term not in terms_to_add
-            ]
-            terms_to_update = [term for term in parented_terms_to_update]
-            terms_to_remove.extend(terms_to_update)
-
-            # update autosuggest dataset
-            # remove
-            if terms_to_remove:
-                for term in terms_to_remove:
-                    config.autosuggest_key_terms_dataset = config.autosuggest_key_terms_dataset[
-                        config.autosuggest_key_terms_dataset.term != term
-                    ]
-            # add
-            if terms_to_add:
-                for term in terms_to_add:
-                    new_row = pd.DataFrame(
-                        {"term": [term], "parent_terms": [terms_to_add[term]]}
-                    )
-                    config.autosuggest_key_terms_dataset = config.autosuggest_key_terms_dataset.append(
-                        new_row
-                    )
-            # save
-            ConfigManager.writeback_autosuggest_key_terms_collection()
-
-            # update flashtext
-            # remove obsolete terms
-            if terms_to_remove:
-                for term in terms_to_remove:
-                    config.key_terms_autosuggest_flashtext.remove_keyword(term)
-            # add new terms
-            if terms_to_add:
-                for term in terms_to_add:
-                    if terms_to_add[term] != "":
-                        config.key_terms_autosuggest_flashtext.add_keywords_from_dict(
-                            {"`{}``PK``{}`´".format(term, terms_to_add[term]): [term]}
-                        )
-                    else:
-                        config.key_terms_autosuggest_flashtext.add_keywords_from_dict(
-                            {"`{}``SK`´".format(term): [term]}
-                        )
-
-    def writeback_autosuggest_key_terms_collection():
-        # sort the key terms dataset for convenience
-        config.autosuggest_key_terms_dataset[
-            "sort"
-        ] = config.autosuggest_key_terms_dataset["term"].str.lower()
-        config.autosuggest_key_terms_dataset = config.autosuggest_key_terms_dataset.sort_values(
-            by=["sort"]
-        )
-        del config.autosuggest_key_terms_dataset["sort"]
-        # save the dataset
-        DatasetManager.save_dataset_to_location_string(
-            config.autosuggest_key_terms_dataset,
-            ConfigManager.get_config_value("key_terms/auto_suggest/dataset/location"),
-        )
-
-    def mark_key_term_for_removal_from_autosuggest_collection(term):
-        if term not in config.key_terms_marked_for_removal_from_autosuggest_collection:
-            config.key_terms_marked_for_removal_from_autosuggest_collection.append(term)
-
-    def reset_key_terms_marked_for_removal_from_autosuggest_collection():
-        config.key_terms_marked_for_removal_from_autosuggest_collection = []
 
     def get_named_entity_definition_by_key_sequence(key_sequence):
         for named_entity_definition in config.named_entity_definitions:

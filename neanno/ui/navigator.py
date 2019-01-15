@@ -1,3 +1,4 @@
+import config
 from PyQt5.QtWidgets import QDataWidgetMapper
 
 from neanno.configuration.configmanager import ConfigManager
@@ -21,7 +22,7 @@ class TextNavigator(QDataWidgetMapper):
             if not self.is_forward_or_backward:
                 self.forward_stack = []
                 self.backward_stack.append(self.currentIndex())
-            ConfigManager.reset_key_terms_marked_for_removal_from_autosuggest_collection()
+            config.autosuggester.reset_key_terms_marked_for_removal()
             super().setCurrentIndex(index)
 
     def backward(self):

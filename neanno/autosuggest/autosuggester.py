@@ -1,7 +1,17 @@
 import re
 
+# TODO: remove all config dependencies
+import config
+import pandas as pd
+
 from neanno.autosuggest.definitions import *
-from neanno.utils.text import mask_annotations, unmask_annotations
+from neanno.utils.dataset import DatasetManager
+from neanno.utils.dict import merge_dict
+from neanno.utils.text import (
+    extract_annotations_as_generator,
+    mask_annotations,
+    unmask_annotations,
+)
 
 
 class AutoSuggester:
@@ -35,8 +45,112 @@ class AutoSuggester:
         # TODO: complete
         return text
 
-    def save_key_terms_dataset(text):
-        pass
+    def update_key_terms_dataset(self, annotated_text, location_string):
+        if config.is_autosuggest_key_terms_by_dataset:
+            # get terms to add/update
+            terms_to_add = {}
+            parented_terms_to_update = []
+            existing_terms_list = list(config.autosuggest_key_terms_dataset["term"])
+            for annotation in extract_annotations_as_generator(
+                annotated_text,
+                types_to_extract=["standalone_key_term", "parented_key_term"],
+            ):
+                if annotation["term"] not in existing_terms_list:
+                    # term does not exist yet
+                    terms_to_add = merge_dict(
+                        terms_to_add,
+                        {
+                            annotation["term"]: annotation["parent_terms"]
+                            if "parent_terms" in annotation
+                            else ""
+                        },
+                    )
+                else:
+                    # term exists but may need update due to different parent terms
+                    if "parent_terms" in annotation:
+                        currently_stored_parent_terms = list(
+                            config.autosuggest_key_terms_dataset[
+                                config.autosuggest_key_terms_dataset["term"]
+                                == annotation["term"]
+                            ]["parent_terms"]
+                        )[0]
+                        if currently_stored_parent_terms != annotation["parent_terms"]:
+                            # needs update
+                            terms_to_add = merge_dict(
+                                terms_to_add,
+                                {
+                                    annotation["term"]: annotation["parent_terms"]
+                                    if "parent_terms" in annotation
+                                    else ""
+                                },
+                            )
+                            parented_terms_to_update.append(annotation["term"])
+
+            # get total terms to remove
+            terms_to_remove = [
+                term
+                for term in config.key_terms_marked_for_removal
+                if term not in terms_to_add
+            ]
+            terms_to_update = [term for term in parented_terms_to_update]
+            terms_to_remove.extend(terms_to_update)
+
+            # update autosuggest dataset
+            # remove
+            if terms_to_remove:
+                for term in terms_to_remove:
+                    config.autosuggest_key_terms_dataset = config.autosuggest_key_terms_dataset[
+                        config.autosuggest_key_terms_dataset.term != term
+                    ]
+            # add
+            if terms_to_add:
+                for term in terms_to_add:
+                    new_row = pd.DataFrame(
+                        {"term": [term], "parent_terms": [terms_to_add[term]]}
+                    )
+                    config.autosuggest_key_terms_dataset = config.autosuggest_key_terms_dataset.append(
+                        new_row
+                    )
+            # save
+            self.save_key_terms_dataset(location_string)
+
+            # update flashtext
+            # remove obsolete terms
+            if terms_to_remove:
+                for term in terms_to_remove:
+                    config.key_terms_autosuggest_flashtext.remove_keyword(term)
+            # add new terms
+            if terms_to_add:
+                for term in terms_to_add:
+                    if terms_to_add[term] != "":
+                        config.key_terms_autosuggest_flashtext.add_keywords_from_dict(
+                            {"`{}``PK``{}`´".format(term, terms_to_add[term]): [term]}
+                        )
+                    else:
+                        config.key_terms_autosuggest_flashtext.add_keywords_from_dict(
+                            {"`{}``SK`´".format(term): [term]}
+                        )
+
+    def save_key_terms_dataset(self, location_string):
+        # sort the key terms dataset for convenience
+        config.autosuggest_key_terms_dataset[
+            "sort"
+        ] = config.autosuggest_key_terms_dataset["term"].str.lower()
+        config.autosuggest_key_terms_dataset = config.autosuggest_key_terms_dataset.sort_values(
+            by=["sort"]
+        )
+        del config.autosuggest_key_terms_dataset["sort"]
+        # save the dataset
+        DatasetManager.save_dataset_to_location_string(
+            config.autosuggest_key_terms_dataset, location_string
+        )
+
+    def mark_key_term_for_removal(self, term):
+        if term not in config.key_terms_marked_for_removal:
+            config.key_terms_marked_for_removal.append(term)
+
+    def reset_key_terms_marked_for_removal(self):
+        config.key_terms_marked_for_removal = []
 
     # key terms - regex
 
