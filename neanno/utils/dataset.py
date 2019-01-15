@@ -24,9 +24,7 @@ class DatasetLocation:
 
 
 class DatasetManager:
-    def load_dataset_from_location_string(
-        location_as_string, schema, fillna=True
-    ):
+    def load_dataset_from_location_string(location_as_string, schema, fillna=True):
         location = DatasetLocation(location_as_string)
         required_columns = list(schema.keys())
         result = getattr(
@@ -49,8 +47,8 @@ class DatasetManager:
             result = result.fillna("")
         if not pd.Series(required_columns).isin(result.columns).all():
             config.parser.error(
-                "The specified dataset does not have the expected columns. Ensure that the dataset includes the following columns (case-sensitive): {}.".format(
-                    ", ".join(required_columns)
+                "The specified dataset at '{}' does not have the expected columns. Ensure that the dataset includes the following columns (case-sensitive): {}.".format(
+                    file_to_load, ", ".join(required_columns)
                 )
             )
         friendly_dataset_name = os.path.basename(file_to_load)

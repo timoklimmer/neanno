@@ -1,28 +1,28 @@
-term,entity_code
-Aeroflot,AIRLINE
-AA,AIRLINE
-Air Berlin,AIRLINE
-Air Canada,AIRLINE
-Alitalia,AIRLINE
-BA,AIRLINE
-Cabana,AIRLINE
-Cubana,AIRLINE
-Condor,AIRLINE
-Delta,AIRLINE
-Emirates,AIRLINE
-Iberia,AIRLINE
-Qantas,AIRLINE
-Ryanair,AIRLINE
-Sunwing,AIRLINE
-Swiss,AIRLINE
-Thomas Cook,AIRLINE
-Thomson,AIRLINE
-Thomsons,AIRLINE
-Thomsonfly,AIRLINE
-Transat,AIRLINE
-KLM,AIRLINE
-Lufthansa,AIRLINE
-UA,AIRLINE
-US Airways,AIRLINE
-United Airlines,AIRLINE
-Virgin,AIRLINE
+term,entity_code,parent_terms
+Aeroflot,AIRLINE,
+AA,AIRLINE,
+Air Berlin,AIRLINE,
+Air Canada,AIRLINE,
+Alitalia,AIRLINE,
+BA,AIRLINE,
+Cabana,AIRLINE,
+Cubana,AIRLINE,
+Condor,AIRLINE,
+Delta,AIRLINE,
+Emirates,AIRLINE,
+Iberia,AIRLINE,
+Qantas,AIRLINE,
+Ryanair,AIRLINE,
+Sunwing,AIRLINE,
+Swiss,AIRLINE,
+Thomas Cook,AIRLINE,
+Thomson,AIRLINE,
+Thomsons,AIRLINE,
+Thomsonfly,AIRLINE,
+Transat,AIRLINE,
+KLM,AIRLINE,
+Lufthansa,AIRLINE,
+UA,AIRLINE,
+US Airways,AIRLINE,
+United Airlines,AIRLINE,
+Virgin,AIRLINE,
