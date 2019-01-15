@@ -25,7 +25,7 @@ class DatasetLocation:
 
 class DatasetManager:
     def load_dataset_from_location_string(
-        location_as_string, schema, fillna=True, parameter=None
+        location_as_string, schema, fillna=True
     ):
         location = DatasetLocation(location_as_string)
         required_columns = list(schema.keys())

@@ -11,8 +11,7 @@ from flashtext import KeywordProcessor
 from neanno.autosuggest.autosuggester import AutoSuggester
 from neanno.autosuggest.definitions import KeyTermRegex, NamedEntityRegex
 from neanno.configuration.colors import DEFAULT_ENTITY_COLORS_PALETTE
-from neanno.configuration.definitions import (CategoryDefinition,
-                                              NamedEntityDefinition)
+from neanno.configuration.definitions import CategoryDefinition, NamedEntityDefinition
 from neanno.utils.dataset import DatasetLocation, DatasetManager
 from neanno.utils.dict import QueryDict, merge_dict
 from neanno.utils.text import extract_annotations_as_generator
@@ -113,7 +112,6 @@ class ConfigManager:
         )
 
     def key_terms():
-        config.key_terms_marked_for_removal = []
         config.is_key_terms_enabled = "key_terms" in config.yaml
         if config.is_key_terms_enabled:
             config.key_terms_shortcut_mark_standalone = ConfigManager.get_config_value(
@@ -131,56 +129,20 @@ class ConfigManager:
             ConfigManager.key_terms_autosuggest()
 
     def key_terms_autosuggest():
-        # source
-        config.is_autosuggest_key_terms_by_dataset = ConfigManager.has_config_value(
-            "key_terms/auto_suggest/dataset/location"
-        )
-        if config.is_autosuggest_key_terms_by_dataset:
+        # dataset
+        key_terms_dataset_location_path = "key_terms/auto_suggest/dataset/location"
+        if ConfigManager.has_config_value(key_terms_dataset_location_path):
             print("Loading autosuggest key terms dataset...")
-            # load data
-            config.autosuggest_key_terms_dataset, friendly_dataset_name_never_used = DatasetManager.load_dataset_from_location_string(
-                ConfigManager.get_config_value(
-                    "key_terms/auto_suggest/dataset/location"
-                ),
-                {"term": str, "parent_terms": str},
-                "key_terms/auto_suggest/dataset/location",
-            )
-            # setup flashtext for later string replacements
-            autosuggest_key_terms_dataset = config.autosuggest_key_terms_dataset.copy()
-            autosuggest_key_terms_dataset["replace"] = autosuggest_key_terms_dataset[
-                "term"
-            ]
-            autosuggest_key_terms_dataset["against"] = autosuggest_key_terms_dataset[
-                "replace"
-            ]
-            autosuggest_key_terms_dataset.loc[
-                autosuggest_key_terms_dataset["parent_terms"] != "", "against"
-            ] = (
-                "`"
-                + autosuggest_key_terms_dataset["term"]
-                + "``PK``"
-                + autosuggest_key_terms_dataset["parent_terms"]
-                + "`´"
-            )
-            autosuggest_key_terms_dataset.loc[
-                autosuggest_key_terms_dataset["parent_terms"] == "", "against"
-            ] = ("`" + autosuggest_key_terms_dataset["term"] + "``SK`´")
-            autosuggest_key_terms_dataset = autosuggest_key_terms_dataset[
-                ["replace", "against"]
-            ]
-            autosuggest_key_terms_dataset_as_dict = {
-                row["against"]: [row["replace"]]
-                for index, row in autosuggest_key_terms_dataset.iterrows()
-            }
-            config.key_terms_autosuggest_flashtext = KeywordProcessor()
-            config.key_terms_autosuggest_flashtext.add_keywords_from_dict(
-                autosuggest_key_terms_dataset_as_dict
+            config.autosuggester.load_key_terms_dataset(
+                ConfigManager.get_config_value(key_terms_dataset_location_path)
             )
 
         # regexes
-        if ConfigManager.has_config_value("key_terms/auto_suggest/regexes"):
+        key_terms_regexes_path = "key_terms/auto_suggest/regexes"
+        if ConfigManager.has_config_value(key_terms_regexes_path):
+            print("Loading autosuggest key terms regex patterns...")
             for key_term_regex in ConfigManager.get_config_value(
-                "key_terms/auto_suggest/regexes"
+                key_terms_regexes_path
             ):
                 config.autosuggester.add_key_term_regex(
                     key_term_regex["name"],
@@ -231,47 +193,19 @@ class ConfigManager:
             index += 1
 
     def named_entities_autosuggest():
-        # sources
-        config.is_autosuggest_entities_by_datasets = ConfigManager.has_config_value(
-            "named_entities/auto_suggest/datasets"
-        )
-        if config.is_autosuggest_entities_by_datasets:
-            print("Loading autosuggest entities dataset(s)...")
-            # combine data from multiple datasets
-            autosuggest_entities_dataset = pd.DataFrame(columns=["term", "entity_code"])
-            for location in ConfigManager.get_config_value(
-                "named_entities/auto_suggest/datasets"
-            ):
-                new_data, friendly_dataset_name_never_used = DatasetManager.load_dataset_from_location_string(
-                    location,
-                    {"term": str, "entity_code": str},
-                    "named_entities/auto_suggest/datasets",
-                )
-                autosuggest_entities_dataset = autosuggest_entities_dataset.append(
-                    new_data
-                )
-            # setup flashtext for later string replacements
-            config.named_entities_autosuggest_flashtext = KeywordProcessor()
-            data_for_flashtext = pd.DataFrame(
-                "`"
-                + autosuggest_entities_dataset["term"]
-                + "``SN``"
-                + autosuggest_entities_dataset["entity_code"]
-                + "`´"
-            )
-            data_for_flashtext["replace"] = autosuggest_entities_dataset["term"]
-            data_for_flashtext.columns = ["against", "replace"]
-            dict_for_flashtext = data_for_flashtext.set_index("against").T.to_dict(
-                "list"
-            )
-            config.named_entities_autosuggest_flashtext.add_keywords_from_dict(
-                dict_for_flashtext
+        # dataset
+        named_entities_datasets_path = "named_entities/auto_suggest/datasets"
+        if ConfigManager.has_config_value(named_entities_datasets_path):
+            print("Loading autosuggest named entities dataset(s)...")
+            config.autosuggester.load_named_entity_datasets(
+                ConfigManager.get_config_value(named_entities_datasets_path)
             )
 
         # regexes
-        if ConfigManager.has_config_value("named_entities/auto_suggest/regexes"):
+        named_entities_regexes_path = "named_entities/auto_suggest/regexes"
+        if ConfigManager.has_config_value(named_entities_regexes_path):
             for named_entity_regex in ConfigManager.get_config_value(
-                "named_entities/auto_suggest/regexes"
+                named_entities_regexes_path
             ):
                 config.autosuggester.add_named_entity_regex(
                     named_entity_regex["entity"],

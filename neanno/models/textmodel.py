@@ -207,7 +207,10 @@ class TextModel(QAbstractTableModel):
             result = mask_annotations(result)
             # add predicted and/or suggested entities if needed
             if not is_annotated and config.is_named_entities_enabled:
+                # note: all transformation below have to ensure that their annotations are masked
+                #       to ensure that there are no double annotations
                 # entity predictions from spacy
+                # TODO: might change in future
                 if config.is_spacy_enabled:
                     doc = self.spacy_model(result)
                     shift = 0
@@ -225,29 +228,9 @@ class TextModel(QAbstractTableModel):
                 result = config.autosuggester.suggest(result)
                 result = mask_annotations(result)
 
-                # remaining (to be moved to autosuggester too)
+            # return unmask masked annotations
+            return unmask_annotations(result)
 
-                # autosuggest key terms by dataset
-                # source
-                if config.is_autosuggest_key_terms_by_dataset:
-                    result = config.key_terms_autosuggest_flashtext.replace_keywords(
-                        result
-                    )
-                    result = mask_annotations(result)
-
-                # autosuggest entities by dataset
-                # sources
-                if config.is_autosuggest_entities_by_datasets:
-                    result = mask_annotations(result)
-                    result = config.named_entities_autosuggest_flashtext.replace_keywords(
-                        result
-                    )
-                    result = mask_annotations(result)
-
-            # unmask masked annotations
-            result = unmask_annotations(result)
-            # return result
-            return result
         # column 1: is_annotated
         if index.column() == 1:
             return str(is_annotated if is_annotated is not None else False)
@@ -274,12 +257,7 @@ class TextModel(QAbstractTableModel):
                 # update text
                 config.dataset_to_edit.iat[row, self.text_column_index] = value
                 # update autosuggest key terms collection
-                config.autosuggester.update_key_terms_dataset(
-                    value,
-                    ConfigManager.get_config_value(
-                        "key_terms/auto_suggest/dataset/location"
-                    ),
-                )
+                config.autosuggester.update_key_terms_dataset(value)
                 # re-compute distributions
                 # TODO: might be made more efficient with deltas instead of complete recomputation all the time
                 self.compute_entities_distribution()

@@ -62,7 +62,7 @@ named_entities:
     regexes:
       - entity: FROM
         pattern: (?<=\bfrom\s)[A-Z][A-Za-z]+\b
-        #parent_terms: Just an example to show that we can add parent terms here as well
+        #parent_terms: just an example to show that we can add parent terms here as well
       - entity: TO
         pattern: (?<=\bto\s)[A-Z][A-Za-z]+\b
       - entity: VIA
