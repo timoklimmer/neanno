@@ -220,17 +220,22 @@ class TextModel(QAbstractTableModel):
                         )
                         shift += len(result) - old_result_length
                     result = mask_annotations(result)
-                # autosuggest key terms
+
+                # autosuggester annotations
+                result = config.autosuggester.suggest(result)
+                result = mask_annotations(result)
+
+                # remaining (to be moved to autosuggester too)
+
+                # autosuggest key terms by dataset
                 # source
                 if config.is_autosuggest_key_terms_by_dataset:
                     result = config.key_terms_autosuggest_flashtext.replace_keywords(
                         result
                     )
                     result = mask_annotations(result)
-                # regexes
-                result = config.autosuggester.suggest(result)
 
-                # autosuggest entities
+                # autosuggest entities by dataset
                 # sources
                 if config.is_autosuggest_entities_by_datasets:
                     result = mask_annotations(result)
@@ -238,18 +243,7 @@ class TextModel(QAbstractTableModel):
                         result
                     )
                     result = mask_annotations(result)
-                # regexes
-                if config.is_autosuggest_entities_by_regexes:
-                    result = mask_annotations(result)
-                    for autosuggest_regex in config.named_entities_autosuggest_regexes:
-                        result = re.sub(
-                            r"(?P<term>{})".format(autosuggest_regex.pattern),
-                            "`{}``SN``{}`´".format(
-                                "\g<term>", autosuggest_regex.entity
-                            ),
-                            result,
-                        )
-                        result = mask_annotations(result)
+
             # unmask masked annotations
             result = unmask_annotations(result)
             # return result
@@ -280,7 +274,7 @@ class TextModel(QAbstractTableModel):
                 # update text
                 config.dataset_to_edit.iat[row, self.text_column_index] = value
                 # update autosuggest key terms collection
-                ConfigManager.update_autosuggest_key_terms_collection(value)
+                ConfigManager.update_autosuggest_key_terms_dataset(value)
                 # re-compute distributions
                 # TODO: might be made more efficient with deltas instead of complete recomputation all the time
                 self.compute_entities_distribution()

@@ -122,6 +122,9 @@ named_entities:
                             pattern:
                                 type: string
                                 required: True
+                            parent_terms:
+                                type: string
+                                required: False
                         required: False
             required: False
     required: False

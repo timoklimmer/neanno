@@ -88,15 +88,37 @@ class AutoSuggester:
 
     # named entities - regex
 
-    def add_named_entity_regex(self, entity_code, regex):
-        pass
+    named_entity_regexes = {}
+
+    def add_named_entity_regex(self, entity_code, pattern, parent_terms):
+        self.named_entity_regexes[entity_code] = NamedEntityRegex(
+            entity_code, pattern, parent_terms
+        )
 
     def remove_named_entity_regex(self, entity_code):
-        pass
+        del self.named_entity_regexes[entity_code]
 
     def suggest_named_entities_by_regex(self, text):
-        # TODO: complete
-        return text
+        result = mask_annotations(text)
+        for named_entity_code in self.named_entity_regexes:
+            named_entity_regex = self.named_entity_regexes[named_entity_code]
+            if named_entity_regex.parent_terms:
+                result = re.sub(
+                    r"(?P<term>{})".format(named_entity_regex.pattern),
+                    "`{}``PN``{}``{}`´".format(
+                        "\g<term>",
+                        named_entity_regex.entity,
+                        named_entity_regex.parent_terms,
+                    ),
+                    result,
+                )
+            else:
+                result = re.sub(
+                    r"(?P<term>{})".format(named_entity_regex.pattern),
+                    "`{}``SN``{}`´".format("\g<term>", named_entity_regex.entity),
+                    result,
+                )
+        return unmask_annotations(result)
 
     # general
 

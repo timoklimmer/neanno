@@ -268,18 +268,16 @@ class ConfigManager:
             )
 
         # regexes
-        config.named_entities_autosuggest_regexes = []
-        config.is_autosuggest_entities_by_regexes = ConfigManager.has_config_value(
-            "named_entities/auto_suggest/regexes"
-        )
-        if config.is_autosuggest_entities_by_regexes:
-            for autosuggest_regex in ConfigManager.get_config_value(
+        if ConfigManager.has_config_value("named_entities/auto_suggest/regexes"):
+            for named_entity_regex in ConfigManager.get_config_value(
                 "named_entities/auto_suggest/regexes"
             ):
-                config.named_entities_autosuggest_regexes.append(
-                    NamedEntityRegex(
-                        autosuggest_regex["entity"], autosuggest_regex["pattern"]
-                    )
+                config.autosuggester.add_named_entity_regex(
+                    named_entity_regex["entity"],
+                    named_entity_regex["pattern"],
+                    named_entity_regex["parent_terms"]
+                    if "parent_terms" in named_entity_regex
+                    else None,
                 )
 
     def categories():
@@ -313,7 +311,7 @@ class ConfigManager:
     def has_config_value(path):
         return ConfigManager.get_config_value(path) is not None
 
-    def update_autosuggest_key_terms_collection(annotated_text):
+    def update_autosuggest_key_terms_dataset(annotated_text):
         if config.is_autosuggest_key_terms_by_dataset:
             # get terms to add/update
             terms_to_add = {}
