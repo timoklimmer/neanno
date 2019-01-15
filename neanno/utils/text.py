@@ -1,6 +1,11 @@
 import base64
 import re
+from collections import Counter
+from functools import reduce
 
+import pandas as pd
+
+from neanno.utils.dict import mergesum_dict
 from neanno.utils.list import ensure_items_within_set, get_set_of_list_keep_sequence
 
 ANNOTATION_TYPES = [
@@ -294,7 +299,7 @@ def unmask_annotations(text_with_masked_annotations):
     )
 
 
-def extract_named_entities_distribution(annotated_text):
+def compute_named_entities_distribution_from_text(annotated_text):
     """ Computes the types and frequencies of named entities in the specified text."""
 
     result = {}
@@ -307,3 +312,31 @@ def extract_named_entities_distribution(annotated_text):
             result[entity_code] = 0
         result[entity_code] += 1
     return result
+
+
+def compute_named_entities_distribution_from_text_column(pandas_series):
+    distribution_candidate = pandas_series.map(
+        lambda text: compute_named_entities_distribution_from_text(text)
+    ).agg(
+        lambda series: reduce(lambda dist1, dist2: mergesum_dict(dist1, dist2), series)
+    )
+    return (
+        distribution_candidate
+        if not isinstance(distribution_candidate, pd.Series)
+        else {}
+    )
+
+
+def compute_categories_distribution_from_text_column(pandas_series):
+    distribution_candidate = pandas_series.map(
+        lambda categories_text: Counter(categories_text.split("|"))
+    ).agg(
+        lambda series: reduce(lambda dist1, dist2: mergesum_dict(dist1, dist2), series)
+    )
+    return (
+        dict(distribution_candidate)
+        if not isinstance(distribution_candidate, pd.Series)
+        else {}
+    )
+
+

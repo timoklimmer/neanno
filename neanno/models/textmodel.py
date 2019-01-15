@@ -16,7 +16,8 @@ from neanno.configuration.configmanager import ConfigManager
 from neanno.utils.dict import mergesum_dict
 from neanno.utils.text import (
     extract_annotations_for_spacy_ner,
-    extract_named_entities_distribution,
+    compute_categories_distribution_from_text_column,
+    compute_named_entities_distribution_from_text_column,
     mask_annotations,
     unmask_annotations,
 )
@@ -26,7 +27,7 @@ class TextModel(QAbstractTableModel):
     """Provides data to the annotation dialog / data widget mapper and triggers the saving of new annotated data."""
 
     random_categories_column_name = None
-    entity_distribution = {}
+    named_entity_distribution = {}
     category_distribution = {}
     saveStarted = pyqtSignal()
     saveCompleted = pyqtSignal()
@@ -66,7 +67,7 @@ class TextModel(QAbstractTableModel):
 
         # compute required distributions
         self.compute_categories_distribution()
-        self.compute_entities_distribution()
+        self.compute_named_entities_distribution()
 
         # load and prepare spacy model
         if config.is_spacy_enabled:
@@ -74,40 +75,16 @@ class TextModel(QAbstractTableModel):
                 config.spacy_model_source
             )
 
-    def compute_entities_distribution(self):
+    def compute_named_entities_distribution(self):
         if config.is_named_entities_enabled:
-            annotated_data = self.get_annotated_data()
-            distribution_candidate = (
-                annotated_data[config.text_column]
-                .map(lambda text: extract_named_entities_distribution(text))
-                .agg(
-                    lambda series: reduce(
-                        lambda dist1, dist2: mergesum_dict(dist1, dist2), series
-                    )
-                )
-            )
-            self.entity_distribution = (
-                distribution_candidate
-                if not isinstance(distribution_candidate, pd.Series)
-                else {}
+            self.named_entity_distribution = compute_named_entities_distribution_from_text_column(
+                self.get_annotated_data()[config.text_column]
             )
 
     def compute_categories_distribution(self):
         if config.is_categories_enabled:
-            annotated_data = self.get_annotated_data()
-            distribution_candidate = (
-                annotated_data[config.categories_column]
-                .map(lambda categories_text: Counter(categories_text.split("|")))
-                .agg(
-                    lambda series: reduce(
-                        lambda dist1, dist2: mergesum_dict(dist1, dist2), series
-                    )
-                )
-            )
-            self.category_distribution = (
-                dict(distribution_candidate)
-                if not isinstance(distribution_candidate, pd.Series)
-                else {}
+            self.category_distribution = compute_categories_distribution_from_text_column(
+                self.get_annotated_data()[config.categories_column]
             )
 
     def get_annotated_data(self):
@@ -260,7 +237,7 @@ class TextModel(QAbstractTableModel):
                 config.autosuggester.update_key_terms_dataset(value)
                 # re-compute distributions
                 # TODO: might be made more efficient with deltas instead of complete recomputation all the time
-                self.compute_entities_distribution()
+                self.compute_named_entities_distribution()
             if index.column() == 2:
                 # categories
                 config.dataset_to_edit.iat[row, self.categories_column_index] = value

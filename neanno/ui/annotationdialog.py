@@ -399,10 +399,10 @@ class AnnotationDialog(QMainWindow):
                 )
                 entity_infos_markup += "<td style='width: 100%; text-align: right'>{}</td>".format(
                     str(
-                        self.textmodel.entity_distribution[named_entity_definition.code]
+                        self.textmodel.named_entity_distribution[named_entity_definition.code]
                     )
                     if named_entity_definition.code
-                    in self.textmodel.entity_distribution
+                    in self.textmodel.named_entity_distribution
                     else "0"
                 )
                 entity_infos_markup += "</tr>"

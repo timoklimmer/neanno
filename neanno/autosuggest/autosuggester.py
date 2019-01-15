@@ -74,7 +74,7 @@ class AutoSuggester:
         )
 
     def add_key_term_to_dataset(self, key_term, parent_terms):
-        new_row = pd.DataFrame({"term": [term], "parent_terms": [terms_to_add[term]]})
+        new_row = pd.DataFrame({"term": [key_term], "parent_terms": [parent_terms]})
         self.key_terms_dataset = self.key_terms_dataset.append(new_row)
         if parent_terms != "":
             self.key_terms_flashtext.add_keywords_from_dict(
