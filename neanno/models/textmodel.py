@@ -16,8 +16,8 @@ from neanno.configuration.configmanager import ConfigManager
 from neanno.utils.dict import mergesum_dict
 from neanno.utils.text import (
     extract_annotations_for_spacy_ner,
-    compute_categories_distribution_from_text_column,
-    compute_named_entities_distribution_from_text_column,
+    compute_categories_distribution_from_column,
+    compute_named_entities_distribution_from_column,
     mask_annotations,
     unmask_annotations,
 )
@@ -77,13 +77,13 @@ class TextModel(QAbstractTableModel):
 
     def compute_named_entities_distribution(self):
         if config.is_named_entities_enabled:
-            self.named_entity_distribution = compute_named_entities_distribution_from_text_column(
+            self.named_entity_distribution = compute_named_entities_distribution_from_column(
                 self.get_annotated_data()[config.text_column]
             )
 
     def compute_categories_distribution(self):
         if config.is_categories_enabled:
-            self.category_distribution = compute_categories_distribution_from_text_column(
+            self.category_distribution = compute_categories_distribution_from_column(
                 self.get_annotated_data()[config.categories_column]
             )
 

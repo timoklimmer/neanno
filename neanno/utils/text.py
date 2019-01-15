@@ -314,7 +314,9 @@ def compute_named_entities_distribution_from_text(annotated_text):
     return result
 
 
-def compute_named_entities_distribution_from_text_column(pandas_series):
+def compute_named_entities_distribution_from_column(pandas_series):
+    """ Computes the distribution over all named entities in the specified text column."""
+
     distribution_candidate = pandas_series.map(
         lambda text: compute_named_entities_distribution_from_text(text)
     ).agg(
@@ -327,7 +329,9 @@ def compute_named_entities_distribution_from_text_column(pandas_series):
     )
 
 
-def compute_categories_distribution_from_text_column(pandas_series):
+def compute_categories_distribution_from_column(pandas_series):
+    """ Computes the distribution over all categories in the specified categories column."""
+
     distribution_candidate = pandas_series.map(
         lambda categories_text: Counter(categories_text.split("|"))
     ).agg(
@@ -340,3 +344,70 @@ def compute_categories_distribution_from_text_column(pandas_series):
     )
 
 
+def compute_term_distribution_from_text(annotated_text, blacklist_terms=[]):
+    """ Computes all terms and their frequencies from the specified text."""
+
+    def relevant_terms_from_match(match):
+        if match.group("type_tiny") == "SK":
+            return re.sub(" ", chr(127), match.group("term"))
+        if match.group("type_tiny") == "SN":
+            return re.sub(
+                " ",
+                chr(127),
+                "{}:{}".format(match.group("entity_code_sn"), match.group("term")),
+            )
+        if match.group("type_tiny") == "PK":
+            return " ".join(
+                [
+                    re.sub(" ", chr(127), parent_term.strip())
+                    for parent_term in match.group("parent_terms_pk").split(",")
+                ]
+            )
+        if match.group("type_tiny") == "PN":
+            return " ".join(
+                [
+                    re.sub(
+                        " ",
+                        chr(127),
+                        "{}:{}".format(
+                            match.group("entity_code_pn"), parent_term.strip()
+                        ),
+                    )
+                    for parent_term in match.group("parent_terms_pn").split(",")
+                ]
+            )
+
+    cleaned_text = annotated_text.strip()
+    cleaned_text = re.sub(r"(?m)\s+", " ", cleaned_text)
+    cleaned_text = mask_annotations(cleaned_text)
+    cleaned_text = re.sub(r"([.,?!<>\[\]\|\"\(\)\+\-])", "", cleaned_text)
+    cleaned_text = unmask_annotations(cleaned_text)
+    cleaned_text = re.sub(
+        ANNOTATION_REGEX, lambda match: relevant_terms_from_match(match), cleaned_text
+    )
+    result = {}
+    for term in cleaned_text.split(" "):
+        term = re.sub(chr(127), " ", term)
+        if re.match(r"^\d+$", term):
+            continue
+        if term in blacklist_terms:
+            continue
+        if term not in result:
+            result[term] = 0
+        result[term] += 1
+    return result
+
+
+def compute_term_distribution_from_column(pandas_series, blacklist_terms=[]):
+    """ Computes the distribution over all terms in the specified text column."""
+
+    distribution_candidate = pandas_series.map(
+        lambda text: compute_term_distribution_from_text(text, blacklist_terms)
+    ).agg(
+        lambda series: reduce(lambda dist1, dist2: mergesum_dict(dist1, dist2), series)
+    )
+    return (
+        distribution_candidate
+        if not isinstance(distribution_candidate, pd.Series)
+        else {}
+    )
