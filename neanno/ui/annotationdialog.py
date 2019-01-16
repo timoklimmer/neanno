@@ -33,9 +33,8 @@ from neanno.ui.shortcuts import *
 from neanno.ui.syntaxhighlighters import TextEditHighlighter
 from neanno.utils.text import *
 
-DEFAULT_PARENT_KEY_TERM = (
-    "<add your consolidating terms here, separated by commas>"
-)
+DEFAULT_PARENT_KEY_TERM = "<add your consolidating terms here, separated by commas>"
+
 
 class AnnotationDialog(QMainWindow):
     """ The dialog shown to the user to do the annotation/labeling."""
@@ -399,7 +398,9 @@ class AnnotationDialog(QMainWindow):
                 )
                 entity_infos_markup += "<td style='width: 100%; text-align: right'>{}</td>".format(
                     str(
-                        self.textmodel.named_entity_distribution[named_entity_definition.code]
+                        self.textmodel.named_entity_distribution[
+                            named_entity_definition.code
+                        ]
                     )
                     if named_entity_definition.code
                     in self.textmodel.named_entity_distribution
@@ -529,15 +530,24 @@ class AnnotationDialog(QMainWindow):
         text_cursor = self.textedit.textCursor()
         if text_cursor.hasSelection():
             selected_text = text_cursor.selectedText()
+            term = remove_all_annotations_from_text(selected_text)
             named_entity_definition = ConfigManager.get_named_entity_definition_by_key_sequence(
                 self.sender().key().toString()
             )
-            text_cursor.insertText(
-                "`{}``SN``{}`´".format(
-                    remove_all_annotations_from_text(selected_text),
-                    named_entity_definition.code,
-                )
+            entity_code = named_entity_definition.code
+            parent_terms_candidate = config.autosuggester.get_parent_terms_for_named_entity(
+                entity_code, term
             )
+            if parent_terms_candidate:
+                text_cursor.insertText(
+                    "`{}``PN``{}``{}`´".format(
+                        term, named_entity_definition.code, parent_terms_candidate
+                    )
+                )
+            else:
+                text_cursor.insertText(
+                    "`{}``SN``{}`´".format(term, named_entity_definition.code)
+                )
 
     def annotate_parented_named_entity(self):
         text_cursor = self.textedit.textCursor()
@@ -545,28 +555,36 @@ class AnnotationDialog(QMainWindow):
             named_entity_definition = ConfigManager.get_named_entity_definition_by_key_sequence(
                 self.sender().key().toString()
             )
+            entity_code = named_entity_definition.code
             text_to_replace = text_cursor.selectedText()
             text_to_replace_pattern = r"(?<!`){}(?!``PN``{}``.*?`´)".format(
-                re.escape(text_to_replace), re.escape(named_entity_definition.code)
+                re.escape(text_to_replace), re.escape(entity_code)
             )
             orig_selection_start = text_cursor.selectionStart()
+            term = remove_all_annotations_from_text(text_to_replace)
             new_selection_start = orig_selection_start + len(
-                "`{}``PN``{}``".format(
-                    remove_all_annotations_from_text(text_to_replace),
-                    named_entity_definition.code,
-                )
+                "`{}``PN``{}``".format(term, entity_code)
             )
-            new_selection_end = new_selection_start + len(DEFAULT_PARENT_KEY_TERM)
+            parent_terms_candidate = config.autosuggester.get_parent_terms_for_named_entity(
+                entity_code, term
+            )
+            parent_terms = (
+                parent_terms_candidate
+                if parent_terms_candidate is not None
+                else DEFAULT_PARENT_KEY_TERM
+            )
+            new_selection_end = new_selection_start + len(parent_terms)
             replace_against_text = "`{}``PN``{}``{}`´".format(
                 remove_all_annotations_from_text(text_to_replace),
                 named_entity_definition.code,
-                DEFAULT_PARENT_KEY_TERM,
+                parent_terms,
             )
             self.replace_pattern_in_textedit(
                 text_to_replace_pattern, replace_against_text
             )
-            text_cursor.setPosition(new_selection_start)
-            text_cursor.setPosition(new_selection_end, QTextCursor.KeepAnchor)
+            if not parent_terms_candidate:
+                text_cursor.setPosition(new_selection_start)
+                text_cursor.setPosition(new_selection_end, QTextCursor.KeepAnchor)
             self.textedit.setTextCursor(text_cursor)
 
     def remove_annotation(self):
@@ -594,9 +612,7 @@ class AnnotationDialog(QMainWindow):
             )
             # mark key term for removal from autosuggest collection (if it is a key term and not a named entity)
             if annotation["type"] in ["standalone_key_term", "parented_key_term"]:
-                config.autosuggester.mark_key_term_for_removal(
-                    annotation["term"]
-                )
+                config.autosuggester.mark_key_term_for_removal(annotation["term"])
 
     def remove_all_annotations(self):
         # mark all key terms for removal
@@ -604,9 +620,7 @@ class AnnotationDialog(QMainWindow):
             self.textedit.toPlainText(),
             types_to_extract=["standalone_key_term", "parented_key_term"],
         ):
-            config.autosuggester.mark_key_term_for_removal(
-                annotation["term"]
-            )
+            config.autosuggester.mark_key_term_for_removal(annotation["term"])
         # update text
         self.textedit.setPlainText(
             remove_all_annotations_from_text(self.textedit.toPlainText())

@@ -280,6 +280,26 @@ class AutoSuggester:
                 )
         return result if skip_annotations_unmask else unmask_annotations(result)
 
+    # named entities - general
+    def get_parent_terms_for_named_entity(self, entity_code, term):
+        # TODO: add parent_terms from autosuggest by regex
+        dataset_query_result = list(
+            self.named_entities_dataset[
+                (self.named_entities_dataset["entity_code"] == entity_code)
+                & (self.named_entities_dataset["term"] == term)
+            ]["parent_terms"]
+        )
+        if len(dataset_query_result) > 0:
+            dataset_query_result = dataset_query_result[0]
+            dataset_query_result = (
+                None
+                if dataset_query_result is None or pd.isnull(dataset_query_result)
+                else dataset_query_result
+            )
+        else:
+            dataset_query_result = None
+        return dataset_query_result
+
     # general
 
     def suggest(self, text):

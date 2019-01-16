@@ -62,6 +62,8 @@ class ConfigManager:
 
         # load and validate config file
         args = config.parser.parse_args()
+        print("Using config file '{}'...".format(args.config_file))
+        print("")
         with open(args.config_file, "r") as config_file:
             with open(
                 os.path.join(
