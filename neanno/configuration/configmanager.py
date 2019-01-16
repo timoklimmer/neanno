@@ -204,6 +204,7 @@ class ConfigManager:
         # regexes
         named_entities_regexes_path = "named_entities/auto_suggest/regexes"
         if ConfigManager.has_config_value(named_entities_regexes_path):
+            print("Loading autosuggest named entities regex patterns...")
             for named_entity_regex in ConfigManager.get_config_value(
                 named_entities_regexes_path
             ):
