@@ -282,7 +282,7 @@ class AutoSuggester:
 
     # named entities - general
     def get_parent_terms_for_named_entity(self, entity_code, term):
-        # TODO: add parent_terms from autosuggest by regex
+        # check if we have corresponding parent terms in the named entities dataset
         dataset_query_result = list(
             self.named_entities_dataset[
                 (self.named_entities_dataset["entity_code"] == entity_code)
@@ -290,15 +290,35 @@ class AutoSuggester:
             ]["parent_terms"]
         )
         if len(dataset_query_result) > 0:
+            # we got a row back
+            # return either the parent terms or None depending on parent_terms value in dataset
             dataset_query_result = dataset_query_result[0]
-            dataset_query_result = (
+            return (
                 None
                 if dataset_query_result is None or pd.isnull(dataset_query_result)
                 else dataset_query_result
             )
         else:
-            dataset_query_result = None
-        return dataset_query_result
+            # no, no parent terms found in dataset
+            # continue search in regexes
+            if entity_code in self.named_entity_regexes:
+                named_entity_regex_definition = self.named_entity_regexes[entity_code]
+                # check if term matches regex from the definition
+                if re.match(named_entity_regex_definition.pattern, term):
+                    # yes, matches
+                    return named_entity_regex_definition.parent_terms
+                else:
+                    # does not match
+                    # note: depending on the regex pattern we might end up here even if
+                    #       the pattern would usually match. however, since we only have
+                    #       the term but not its surroundings to match against, we cannot
+                    #       consider lookbehinds/lookaheads from the regex. to avoid efforts,
+                    #       we accept this behavior as long as it seems that this is
+                    #       acceptable.
+                    return None
+            else:
+                # no, no regex for the entity code
+                return None
 
     # general
 
