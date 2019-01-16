@@ -344,7 +344,9 @@ def compute_categories_distribution_from_column(pandas_series):
     )
 
 
-def compute_term_distribution_from_text(annotated_text, blacklist_terms=[]):
+def compute_term_distribution_from_text(
+    annotated_text, blacklist_terms=[], include_entity_codes=True
+):
     """ Computes all terms and their frequencies from the specified text."""
 
     def relevant_terms_from_match(match):
@@ -354,7 +356,9 @@ def compute_term_distribution_from_text(annotated_text, blacklist_terms=[]):
             return re.sub(
                 " ",
                 chr(127),
-                "{}:{}".format(match.group("entity_code_sn"), match.group("term")),
+                "{}:{}".format(match.group("entity_code_sn"), match.group("term"))
+                if include_entity_codes
+                else "{}".format(match.group("term")),
             )
         if match.group("type_tiny") == "PK":
             return " ".join(
@@ -371,7 +375,9 @@ def compute_term_distribution_from_text(annotated_text, blacklist_terms=[]):
                         chr(127),
                         "{}:{}".format(
                             match.group("entity_code_pn"), parent_term.strip()
-                        ),
+                        )
+                        if include_entity_codes
+                        else "{}".format(parent_term.strip()),
                     )
                     for parent_term in match.group("parent_terms_pn").split(",")
                 ]
@@ -398,11 +404,15 @@ def compute_term_distribution_from_text(annotated_text, blacklist_terms=[]):
     return result
 
 
-def compute_term_distribution_from_column(pandas_series, blacklist_terms=[]):
+def compute_term_distribution_from_column(
+    pandas_series, blacklist_terms=[], include_entity_codes=True
+):
     """ Computes the distribution over all terms in the specified text column."""
 
     distribution_candidate = pandas_series.map(
-        lambda text: compute_term_distribution_from_text(text, blacklist_terms)
+        lambda text: compute_term_distribution_from_text(
+            text, blacklist_terms, include_entity_codes
+        )
     ).agg(
         lambda series: reduce(lambda dist1, dist2: mergesum_dict(dist1, dist2), series)
     )
