@@ -5,15 +5,15 @@ ABOUT_TEXT = """neanno is yet another text annotation tool.
 There are already several other annotation tools out there but none
 of them really matched my requirements. Hence, I created my own.
 
-Use the functions in module textutils to parse the inline annotations
-in your own Python code.
+Use the functions in module neanno.utils.text to parse the inline
+annotations in your own Python code (and even more).
 
 This is NOT an official Microsoft product, hence does not come with
 any support or obligations for Microsoft.
 
 Feel free to use but don't blame me if things go wrong.
 
-Written in 2018 by Timo Klimmer, timo.klimmer@microsoft.com.
+Written in 2018, 2019 by Timo Klimmer, timo.klimmer@microsoft.com.
 """
 
 
