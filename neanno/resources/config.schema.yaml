@@ -55,9 +55,6 @@ key_terms:
                             type: string
                             regex: "^.+?:.+"
                             required: True
-                        writeback:
-                            type: boolean
-                            required: True
                 regexes:
                     type: list
                     schema:
@@ -109,8 +106,15 @@ named_entities:
                 datasets:
                     type: list
                     schema:
-                        type: string
-                        regex: "^.+?:.+"
+                        type: dict
+                        schema:
+                            code:
+                                type: string
+                                required: True
+                            location:
+                                type: string
+                                regex: "^.+?:.+"
+                                required: True
                 regexes:
                     type: list
                     schema:

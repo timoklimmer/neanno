@@ -200,7 +200,9 @@ class ConfigManager:
         if ConfigManager.has_config_value(named_entities_datasets_path):
             print("Loading autosuggest named entities dataset(s)...")
             config.autosuggester.load_named_entity_datasets(
-                ConfigManager.get_config_value(named_entities_datasets_path)
+                ConfigManager.get_config_value(
+                    "{}/{}".format(named_entities_datasets_path, "location")
+                )
             )
 
         # regexes

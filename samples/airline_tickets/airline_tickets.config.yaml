@@ -29,7 +29,6 @@ key_terms:
   auto_suggest:
     dataset:
       location: csv:samples/airline_tickets/key_terms.autosuggest.csv
-      writeback: True
     regexes:
       - name: terminals
         pattern: (?i)(\bterminal\s*\d+\b)|(\bT[1-9]\b)|(\bterminal\b)
@@ -58,7 +57,9 @@ named_entities:
         shortcut: Alt+C
   auto_suggest:
     datasets:
-      - csv:samples/airline_tickets/airlines.autosuggest.csv
+      - code: AIRLINE
+        location: csv:samples/airline_tickets/airlines.autosuggest.csv
+      # - code: ...
     regexes:
       - entity: FROM
         pattern: (?<=\bfrom\s)[A-Z][A-Za-z]+\b
