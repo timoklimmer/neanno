@@ -421,3 +421,56 @@ def compute_term_distribution_from_column(
         if not isinstance(distribution_candidate, pd.Series)
         else {}
     )
+
+
+def replace_from_to(text, from_position, to_position, new_text):
+    """ Replaces the substring within the given range against another text."""
+    return "{}{}{}".format(text[:from_position], new_text, text[to_position:])
+
+
+def add_standalone_key_term_at_position(text, from_position, to_position):
+    """ Annotates the given range as a standalone key term."""
+    return replace_from_to(
+        text,
+        from_position,
+        to_position,
+        "`{}``SK`´".format(text[from_position:to_position]),
+    )
+
+
+def add_parented_key_term_at_position(text, from_position, to_position, parent_terms):
+    """ Annotates the given range as a parent key term."""
+    return replace_from_to(
+        text,
+        from_position,
+        to_position,
+        "`{}``PK``{}`´".format(text[from_position:to_position], parent_terms),
+    )
+
+
+def add_standalone_named_entity_at_position(
+    text, from_position, to_position, entity_code
+):
+    """ Annotates the given range as a standalone named entity."""
+    return replace_from_to(
+        text,
+        from_position,
+        to_position,
+        "`{}``SN``{}`´".format(text[from_position:to_position], entity_code),
+    )
+
+
+def add_parented_named_entity_at_position(
+    text, from_position, to_position, entity_code, parent_terms
+):
+    """ Annotates the given range as a parented named entity."""
+
+    return replace_from_to(
+        text,
+        from_position,
+        to_position,
+        "`{}``PN``{}``{}`´".format(
+            text[from_position:to_position], entity_code, parent_terms
+        ),
+    )
+
