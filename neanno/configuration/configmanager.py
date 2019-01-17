@@ -8,7 +8,7 @@ import yaml
 from cerberus import Validator
 from flashtext import KeywordProcessor
 
-from neanno.autosuggest.autosuggester import AutoSuggester
+from neanno.autosuggest.autosuggester import AnnotationSuggester
 from neanno.autosuggest.definitions import KeyTermRegex, NamedEntityRegex
 from neanno.configuration.colors import DEFAULT_ENTITY_COLORS_PALETTE
 from neanno.configuration.definitions import CategoryDefinition, NamedEntityDefinition
@@ -26,7 +26,7 @@ class ConfigManager:
         # specify neanno's args and load/validate the required config file
         ConfigManager.define_args_and_load_config_yaml()
         # instantiate annotation suggester (setup/population will be done below)
-        config.autosuggester = AutoSuggester()
+        config.annotationsuggester = AnnotationSuggester()
         # derive further configuration objects from specified arguments
         # dataset source-related
         ConfigManager.dataset_source()
@@ -135,7 +135,7 @@ class ConfigManager:
         key_terms_dataset_location_path = "key_terms/auto_suggest/dataset/location"
         if ConfigManager.has_config_value(key_terms_dataset_location_path):
             print("Loading autosuggest key terms dataset...")
-            config.autosuggester.load_key_terms_dataset(
+            config.annotationsuggester.load_key_terms_dataset(
                 ConfigManager.get_config_value(key_terms_dataset_location_path)
             )
 
@@ -146,7 +146,7 @@ class ConfigManager:
             for key_term_regex in ConfigManager.get_config_value(
                 key_terms_regexes_path
             ):
-                config.autosuggester.add_key_term_regex(
+                config.annotationsuggester.add_key_term_regex(
                     key_term_regex["name"],
                     key_term_regex["pattern"],
                     key_term_regex["parent_terms"]
@@ -199,10 +199,8 @@ class ConfigManager:
         named_entities_datasets_path = "named_entities/auto_suggest/datasets"
         if ConfigManager.has_config_value(named_entities_datasets_path):
             print("Loading autosuggest named entities dataset(s)...")
-            config.autosuggester.load_named_entity_datasets(
-                ConfigManager.get_config_value(
-                    "{}/{}".format(named_entities_datasets_path, "location")
-                )
+            config.annotationsuggester.load_named_entity_datasets(
+                ConfigManager.get_config_value(named_entities_datasets_path)
             )
 
         # regexes
@@ -212,7 +210,7 @@ class ConfigManager:
             for named_entity_regex in ConfigManager.get_config_value(
                 named_entities_regexes_path
             ):
-                config.autosuggester.add_named_entity_regex(
+                config.annotationsuggester.add_named_entity_regex(
                     named_entity_regex["entity"],
                     named_entity_regex["pattern"],
                     named_entity_regex["parent_terms"]

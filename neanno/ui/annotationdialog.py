@@ -536,8 +536,8 @@ class AnnotationDialog(QMainWindow):
                 self.sender().key().toString()
             )
             entity_code = named_entity_definition.code
-            parent_terms_candidate = config.autosuggester.get_parent_terms_for_named_entity(
-                entity_code, term
+            parent_terms_candidate = config.annotationsuggester.get_parent_terms_for_named_entity(
+                term, entity_code
             )
             if parent_terms_candidate:
                 text_cursor.insertText(
@@ -566,8 +566,8 @@ class AnnotationDialog(QMainWindow):
             new_selection_start = orig_selection_start + len(
                 "`{}``PN``{}``".format(term, entity_code)
             )
-            parent_terms_candidate = config.autosuggester.get_parent_terms_for_named_entity(
-                entity_code, term
+            parent_terms_candidate = config.annotationsuggester.get_parent_terms_for_named_entity(
+                term, entity_code
             )
             parent_terms = (
                 parent_terms_candidate
@@ -587,6 +587,14 @@ class AnnotationDialog(QMainWindow):
                 text_cursor.setPosition(new_selection_start)
                 text_cursor.setPosition(new_selection_end, QTextCursor.KeepAnchor)
             self.textedit.setTextCursor(text_cursor)
+
+    def mark_annotation_for_removal(self, annotation):
+        if annotation["type"] in ["standalone_key_term", "parented_key_term"]:
+            config.annotationsuggester.mark_key_term_for_removal(annotation["term"])
+        if annotation["type"] in ["standalone_named_entity", "parented_named_entity"]:
+            config.annotationsuggester.mark_named_entity_term_for_removal(
+                annotation["term"], annotation["entity_code"]
+            )
 
     def remove_annotation(self):
         annotation = get_annotation_at_position(
@@ -611,17 +619,14 @@ class AnnotationDialog(QMainWindow):
             self.replace_pattern_in_textedit(
                 text_to_replace_pattern, replace_against_text
             )
-            # mark key term for removal from autosuggest collection (if it is a key term and not a named entity)
-            if annotation["type"] in ["standalone_key_term", "parented_key_term"]:
-                config.autosuggester.mark_key_term_for_removal(annotation["term"])
+            # mark annotation for removal from autosuggest
+            self.mark_annotation_for_removal(annotation)
 
     def remove_all_annotations(self):
-        # mark all key terms for removal
-        for annotation in extract_annotations_as_generator(
-            self.textedit.toPlainText(),
-            types_to_extract=["standalone_key_term", "parented_key_term"],
-        ):
-            config.autosuggester.mark_key_term_for_removal(annotation["term"])
+        # mark all key terms and named entities for removal
+        for annotation in extract_annotations_as_generator(self.textedit.toPlainText()):
+            self.mark_annotation_for_removal(annotation)
+
         # update text
         self.textedit.setPlainText(
             remove_all_annotations_from_text(self.textedit.toPlainText())

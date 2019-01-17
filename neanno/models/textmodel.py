@@ -202,7 +202,7 @@ class TextModel(QAbstractTableModel):
                     result = mask_annotations(result)
 
                 # autosuggester annotations
-                result = config.autosuggester.suggest(result)
+                result = config.annotationsuggester.suggest(result)
                 result = mask_annotations(result)
 
             # return unmask masked annotations
@@ -233,8 +233,10 @@ class TextModel(QAbstractTableModel):
                 # text
                 # update text
                 config.dataset_to_edit.iat[row, self.text_column_index] = value
-                # update autosuggest key terms collection
-                config.autosuggester.update_key_terms_dataset(value)
+                # update autosuggest key terms dataset
+                config.annotationsuggester.update_key_terms_dataset(value)
+                # update named entities dataset
+                config.annotationsuggester.update_named_entities_datasets(value)
                 # re-compute distributions
                 # TODO: might be made more efficient with deltas instead of complete recomputation all the time
                 self.compute_named_entities_distribution()
