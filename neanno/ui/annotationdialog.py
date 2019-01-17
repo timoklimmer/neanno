@@ -318,7 +318,7 @@ class AnnotationDialog(QMainWindow):
         register_shortcut(self, SHORTCUT_LAST, self.navigator.toLast)
         register_shortcut(self, SHORTCUT_GOTO, self.go_to_index)
         register_shortcut(self, SHORTCUT_SEARCH, self.search)
-        # remove/reset shortcuts
+        # remove/reset/revert/... shortcuts
         register_shortcut(
             self, SHORTCUT_REMOVE_ANNOTATION_AT_CURSOR, self.remove_annotation
         )
@@ -333,6 +333,7 @@ class AnnotationDialog(QMainWindow):
             SHORTCUT_RESET_ALL_IS_ANNOTATED_FLAGS,
             self.reset_all_is_annotated_flags,
         )
+        register_shortcut(self, SHORTCUT_REVERT_CHANGES, self.revert_changes)
 
     def setup_and_wire_navigator_incl_buttons(self):
         self.navigator = TextNavigator(self)
@@ -651,6 +652,9 @@ class AnnotationDialog(QMainWindow):
             self.is_annotated_label.setText("False")
             self.textmodel.save()
             self.navigator.toFirst()
+
+    def revert_changes(self):
+        self.navigator.revert()
 
     def submit(self):
         # submit changes of model-bound controls

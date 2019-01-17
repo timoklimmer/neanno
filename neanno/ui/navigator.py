@@ -25,6 +25,10 @@ class TextNavigator(QDataWidgetMapper):
             config.autosuggester.reset_key_terms_marked_for_removal()
             super().setCurrentIndex(index)
 
+    def revert(self):
+        config.autosuggester.reset_key_terms_marked_for_removal()
+        super().setCurrentIndex(self.currentIndex())
+
     def backward(self):
         if len(self.backward_stack) > 0:
             self.forward_stack.append(self.currentIndex())

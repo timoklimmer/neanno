@@ -16,6 +16,7 @@ SHORTCUT_GOTO = "Ctrl+G"
 SHORTCUT_SEARCH = "Ctrl+F"
 SHORTCUT_UNDO = "Ctrl+Z"
 SHORTCUT_REDO = "Ctrl+Y"
+SHORTCUT_REVERT_CHANGES = "Ctrl+E"
 SHORTCUT_REMOVE_ANNOTATION_AT_CURSOR = "Ctrl+R"
 SHORTCUT_REMOVE_ALL_FOR_CURRENT_TEXT = "Ctrl+D"
 SHORTCUT_RESET_IS_ANNOTATED_FLAG = "Ctrl+K"
@@ -62,6 +63,9 @@ def show_shortcuts_dialog(parent):
     )
     message += shortcut_fragment(
         "Reset all Is Annotated flags", SHORTCUT_RESET_ALL_IS_ANNOTATED_FLAGS
+    )
+    message += shortcut_fragment(
+        "Revert annotation changes", SHORTCUT_REVERT_CHANGES
     )
     message += "</table>"
 
