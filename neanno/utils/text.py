@@ -439,7 +439,7 @@ def add_standalone_key_term_at_position(text, from_position, to_position):
 
 
 def add_parented_key_term_at_position(text, from_position, to_position, parent_terms):
-    """ Annotates the given range as a parent key term."""
+    """ Annotates the given range as a parented key term."""
     return replace_from_to(
         text,
         from_position,
