@@ -9,9 +9,10 @@ from cerberus import Validator
 from flashtext import KeywordProcessor
 
 from neanno.autosuggest.autosuggester import AnnotationSuggester
-from neanno.autosuggest.definitions import KeyTermRegex, NamedEntityRegex
+from neanno.autosuggest.named_entities_by_config import NamedEntityRegex
 from neanno.configuration.colors import DEFAULT_ENTITY_COLORS_PALETTE
-from neanno.configuration.definitions import CategoryDefinition, NamedEntityDefinition
+from neanno.configuration.definitions import (CategoryDefinition,
+                                              NamedEntityDefinition)
 from neanno.utils.dataset import DatasetLocation, DatasetManager
 from neanno.utils.dict import QueryDict, merge_dict
 from neanno.utils.text import extract_annotations_as_generator
