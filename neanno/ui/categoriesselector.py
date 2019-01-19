@@ -13,9 +13,7 @@ from PyQt5.QtWidgets import (
 
 
 class CategoriesSelectorWidget(QTableWidget):
-    """
-    A custom QTableWidget used for showing/selecting the categories of a text.
-    """
+    """ A custom QTableWidget used for showing/selecting the categories of a text."""
 
     config = None
     textmodel = None

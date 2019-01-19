@@ -6,7 +6,7 @@ from functools import reduce
 import pandas as pd
 
 from neanno.utils.dict import mergesum_dict
-from neanno.utils.list import ensure_items_within_set, get_set_of_list_keep_sequence
+from neanno.utils.list import ensure_items_within_set, get_set_of_list_and_keep_sequence
 
 ANNOTATION_TYPES = [
     "standalone_key_term",
@@ -141,7 +141,7 @@ def extract_annotations_as_text(
         # parented key term
         if annotation["type"] == "parented_key_term":
             parent_terms = []
-            for parent_term in get_set_of_list_keep_sequence(
+            for parent_term in get_set_of_list_and_keep_sequence(
                 annotation["parent_terms"].split(", ")
             ):
                 annotation_to_add = parent_term
@@ -167,7 +167,7 @@ def extract_annotations_as_text(
                 result_list.append(annotation_to_add)
         # parented named entity
         if annotation["type"] == "parented_named_entity":
-            for parent_term in get_set_of_list_keep_sequence(
+            for parent_term in get_set_of_list_and_keep_sequence(
                 annotation["parent_terms"].split(", ")
             ):
                 annotation_to_add = (

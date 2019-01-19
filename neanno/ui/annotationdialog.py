@@ -1,9 +1,8 @@
 import os
-import re
 
 import config
-from PyQt5.QtCore import QByteArray, Qt
-from PyQt5.QtGui import QIcon, QKeySequence, QTextCursor, QTextOption
+from PyQt5.QtCore import QByteArray
+from PyQt5.QtGui import QIcon, QTextCursor
 from PyQt5.QtWidgets import (
     QApplication,
     QDataWidgetMapper,
@@ -15,11 +14,9 @@ from PyQt5.QtWidgets import (
     QLabel,
     QLayout,
     QMainWindow,
-    QMessageBox,
     QPlainTextEdit,
     QProgressBar,
     QPushButton,
-    QShortcut,
     QSplitter,
     QVBoxLayout,
     QWidget,
@@ -536,7 +533,7 @@ class AnnotationDialog(QMainWindow):
                 self.sender().key().toString()
             )
             entity_code = named_entity_definition.code
-            parent_terms_candidate = config.annotationsuggester.get_parent_terms_for_named_entity(
+            parent_terms_candidate = config.annotation_predictor.get_parent_terms_for_named_entity(
                 term, entity_code
             )
             if parent_terms_candidate:
@@ -566,7 +563,7 @@ class AnnotationDialog(QMainWindow):
             new_selection_start = orig_selection_start + len(
                 "`{}``PN``{}``".format(term, entity_code)
             )
-            parent_terms_candidate = config.annotationsuggester.get_parent_terms_for_named_entity(
+            parent_terms_candidate = config.annotation_predictor.get_parent_terms_for_named_entity(
                 term, entity_code
             )
             parent_terms = (
@@ -590,9 +587,9 @@ class AnnotationDialog(QMainWindow):
 
     def mark_annotation_for_removal(self, annotation):
         if annotation["type"] in ["standalone_key_term", "parented_key_term"]:
-            config.annotationsuggester.mark_key_term_for_removal(annotation["term"])
+            config.annotation_predictor.mark_key_term_for_removal(annotation["term"])
         if annotation["type"] in ["standalone_named_entity", "parented_named_entity"]:
-            config.annotationsuggester.mark_named_entity_term_for_removal(
+            config.annotation_predictor.mark_named_entity_term_for_removal(
                 annotation["term"], annotation["entity_code"]
             )
 

@@ -3,31 +3,30 @@ import os
 import re
 
 import config
-import pandas as pd
 import yaml
 from cerberus import Validator
-from flashtext import KeywordProcessor
 
-from neanno.autosuggest.autosuggester import AnnotationSuggester
-from neanno.autosuggest.named_entities_by_config import NamedEntityRegex
 from neanno.configuration.colors import DEFAULT_ENTITY_COLORS_PALETTE
-from neanno.configuration.definitions import (CategoryDefinition,
-                                              NamedEntityDefinition)
+from neanno.configuration.definitions import CategoryDefinition, NamedEntityDefinition
+from neanno.prediction.core import AnnotationPredictor
+from neanno.prediction.key_terms.from_dataset import KeyTermsFromDatasetPredictor
+from neanno.prediction.key_terms.from_regex import KeyTermsFromRegexPredictor
+from neanno.prediction.named_entities.from_dataset import (
+    NamedEntitiesFromDatasetPredictor,
+)
+from neanno.prediction.named_entities.from_regex import NamedEntitiesFromRegexPredictor
 from neanno.utils.dataset import DatasetLocation, DatasetManager
-from neanno.utils.dict import QueryDict, merge_dict
-from neanno.utils.text import extract_annotations_as_generator
+from neanno.utils.dict import QueryDict
 
 
 class ConfigManager:
     """Collects all configuration settings and provides configuration-related objects to neanno (through config.*)."""
 
-    key_terms_marked_for_removal = []
-
     def __init__(self):
         # specify neanno's args and load/validate the required config file
         ConfigManager.define_args_and_load_config_yaml()
-        # instantiate annotation suggester (setup/population will be done below)
-        config.annotationsuggester = AnnotationSuggester()
+        # instantiate annotation predictor (setup/population will be done below)
+        config.annotation_predictor = AnnotationPredictor()
         # derive further configuration objects from specified arguments
         # dataset source-related
         ConfigManager.dataset_source()
@@ -44,6 +43,7 @@ class ConfigManager:
         # instructions
         ConfigManager.instructions()
 
+    @staticmethod
     def define_args_and_load_config_yaml():
         # define arguments
         config.parser = argparse.ArgumentParser(
@@ -53,7 +53,7 @@ class ConfigManager:
         required = config.parser.add_argument_group("required arguments")
         required.add_argument(
             "--config-file",
-            help="Points to a config file for neanno. See the airline_tickets.config.yaml file in samples/airline_tickets to learn how to write neanno config files.",
+            help="""Points to a config file for neanno. See the airline_tickets.config.yaml file in samples/airline_tickets to learn how to write neanno config files.""",
             required=True,
         )
         help = config.parser.add_argument_group("help arguments")
@@ -86,6 +86,7 @@ class ConfigManager:
                         + "The given config file does not follow the required schema (from file config.schema.yaml). See error message(s) above for more details."
                     )
 
+    @staticmethod
     def dataset_source():
         print("Loading dataframe with texts to annotate...")
         config.text_column = ConfigManager.get_config_value("dataset/text_column")
@@ -98,6 +99,7 @@ class ConfigManager:
             "dataset/source",
         )
 
+    @staticmethod
     def dataset_target():
         config.dataset_target_friendly = None
         if ConfigManager.has_config_value("dataset/target"):
@@ -108,12 +110,14 @@ class ConfigManager:
                 dataset_location
             )
 
+    @staticmethod
     def dataset_target_csv(dataset_location):
         config.dataset_target_friendly = os.path.basename(dataset_location.path)
         config.save_callback = lambda df: DatasetManager.save_dataset_to_csv(
             df, dataset_location.path
         )
 
+    @staticmethod
     def key_terms():
         config.is_key_terms_enabled = "key_terms" in config.yaml
         if config.is_key_terms_enabled:
@@ -131,30 +135,36 @@ class ConfigManager:
             )
             ConfigManager.key_terms_autosuggest()
 
+    @staticmethod
     def key_terms_autosuggest():
         # dataset
         key_terms_dataset_location_path = "key_terms/auto_suggest/dataset/location"
         if ConfigManager.has_config_value(key_terms_dataset_location_path):
             print("Loading autosuggest key terms dataset...")
-            config.annotationsuggester.load_key_terms_dataset(
+            predictor = KeyTermsFromDatasetPredictor()
+            predictor.load_dataset(
                 ConfigManager.get_config_value(key_terms_dataset_location_path)
             )
+            config.annotation_predictor.add_predictor("key_terms_by_dataset", predictor)
 
         # regexes
         key_terms_regexes_path = "key_terms/auto_suggest/regexes"
         if ConfigManager.has_config_value(key_terms_regexes_path):
             print("Loading autosuggest key terms regex patterns...")
+            predictor = KeyTermsFromRegexPredictor()
             for key_term_regex in ConfigManager.get_config_value(
                 key_terms_regexes_path
             ):
-                config.annotationsuggester.add_key_term_regex(
+                predictor.add_key_term_regex(
                     key_term_regex["name"],
                     key_term_regex["pattern"],
                     key_term_regex["parent_terms"]
                     if "parent_terms" in key_term_regex
                     else None,
                 )
+            config.annotation_predictor.add_predictor("key_terms_by_regex", predictor)
 
+    @staticmethod
     def named_entities():
         config.named_entity_definitions = []
         config.is_named_entities_enabled = "named_entities" in config.yaml
@@ -162,6 +172,7 @@ class ConfigManager:
             ConfigManager.named_entities_definitions()
             ConfigManager.named_entities_autosuggest()
 
+    @staticmethod
     def named_entities_definitions():
         index = 0
         config.named_entity_codes = []
@@ -195,30 +206,40 @@ class ConfigManager:
             config.named_entity_codes.append(code)
             index += 1
 
+    @staticmethod
     def named_entities_autosuggest():
         # dataset
         named_entities_datasets_path = "named_entities/auto_suggest/datasets"
         if ConfigManager.has_config_value(named_entities_datasets_path):
             print("Loading autosuggest named entities dataset(s)...")
-            config.annotationsuggester.load_named_entity_datasets(
+            predictor = NamedEntitiesFromDatasetPredictor()
+            predictor.load_datasets(
                 ConfigManager.get_config_value(named_entities_datasets_path)
+            )
+            config.annotation_predictor.add_predictor(
+                "named_entities_by_dataset", predictor
             )
 
         # regexes
         named_entities_regexes_path = "named_entities/auto_suggest/regexes"
         if ConfigManager.has_config_value(named_entities_regexes_path):
             print("Loading autosuggest named entities regex patterns...")
+            predictor = NamedEntitiesFromRegexPredictor()
             for named_entity_regex in ConfigManager.get_config_value(
                 named_entities_regexes_path
             ):
-                config.annotationsuggester.add_named_entity_regex(
+                predictor.add_named_entity_regex(
                     named_entity_regex["entity"],
                     named_entity_regex["pattern"],
                     named_entity_regex["parent_terms"]
                     if "parent_terms" in named_entity_regex
                     else None,
                 )
+            config.annotation_predictor.add_predictor(
+                "named_entities_by_regex", predictor
+            )
 
+    @staticmethod
     def categories():
         config.category_definitions = []
         config.is_categories_enabled = "categories" in config.yaml
@@ -234,22 +255,33 @@ class ConfigManager:
             ]
             config.categories_count = len(config.category_definitions)
 
+    @staticmethod
+    def categories_autosuggest():
+        # TODO: complete
+        pass
+
+    @staticmethod
     def spacy():
+        # TODO: refactor
         config.is_spacy_enabled = "spacy" in config.yaml
         config.spacy_model_source = ConfigManager.get_config_value("spacy/source")
         config.spacy_model_target = ConfigManager.get_config_value("spacy/target")
 
+    @staticmethod
     def instructions():
         config.has_instructions = "instructions" in config.yaml
         config.instructions = ConfigManager.get_config_value("instructions")
 
+    @staticmethod
     def get_config_value(path, default=None):
         candidate = QueryDict(config.yaml).get(path)
         return candidate if candidate is not None else default
 
+    @staticmethod
     def has_config_value(path):
         return ConfigManager.get_config_value(path) is not None
 
+    @staticmethod
     def get_named_entity_definition_by_key_sequence(key_sequence):
         for named_entity_definition in config.named_entity_definitions:
             if named_entity_definition.key_sequence == re.sub(

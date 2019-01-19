@@ -1,5 +1,4 @@
 import config
-from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QFont, QSyntaxHighlighter, QTextCharFormat
 from neanno.utils.text import extract_annotations_as_generator
 

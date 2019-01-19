@@ -4,6 +4,7 @@ class CategoryDefinition:
     def __init__(self, name):
         self.name = name
 
+
 class NamedEntityDefinition:
     """ Defines a named entity for annotating texts."""
 

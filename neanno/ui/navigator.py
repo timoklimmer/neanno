@@ -1,8 +1,6 @@
 import config
 from PyQt5.QtWidgets import QDataWidgetMapper
 
-from neanno.configuration.configmanager import ConfigManager
-
 
 class TextNavigator(QDataWidgetMapper):
     """ A QDataWidgetMapper which additionally lets users navigate backwards and forwards."""
@@ -22,13 +20,13 @@ class TextNavigator(QDataWidgetMapper):
             if not self.is_forward_or_backward:
                 self.forward_stack = []
                 self.backward_stack.append(self.currentIndex())
-            config.annotationsuggester.reset_key_terms_marked_for_removal()
-            config.annotationsuggester.reset_named_entity_terms_marked_for_removal()
+            config.annotation_predictor.reset_key_terms_marked_for_removal()
+            config.annotation_predictor.reset_named_entity_terms_marked_for_removal()
             super().setCurrentIndex(index)
 
     def revert(self):
-        config.annotationsuggester.reset_key_terms_marked_for_removal()
-        config.annotationsuggester.reset_named_entity_terms_marked_for_removal()
+        config.annotation_predictor.reset_key_terms_marked_for_removal()
+        config.annotation_predictor.reset_named_entity_terms_marked_for_removal()
         super().setCurrentIndex(self.currentIndex())
 
     def backward(self):
