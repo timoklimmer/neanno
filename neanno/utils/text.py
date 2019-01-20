@@ -112,7 +112,9 @@ def extract_annotations_as_list(
     return [
         annotation
         for annotation in extract_annotations_as_generator(
-            annotated_text, types_to_extract=None, entity_codes_to_extract=None
+            annotated_text,
+            types_to_extract=types_to_extract,
+            entity_codes_to_extract=entity_codes_to_extract,
         )
     ]
 
