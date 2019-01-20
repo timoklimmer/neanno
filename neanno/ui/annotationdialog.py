@@ -185,22 +185,23 @@ class AnnotationDialog(QMainWindow):
             named_entities_groupbox = QGroupBox("Named Entities")
             named_entities_groupbox.setLayout(named_entity_infos_layout)
 
-        # spacy model
+        # model
         if config.is_spacy_enabled:
-            spacy_grid = QGridLayout()
-            spacy_grid.addWidget(QLabel("Source"), 0, 0)
-            self.spacy_model_source_label = QLabel(config.spacy_ner_model_source)
-            spacy_grid.addWidget(self.spacy_model_source_label, 0, 1)
-            retrain_model_button = QPushButton("Retrain")
-            retrain_model_button.clicked.connect(self.retrain_model)
-            spacy_grid.addWidget(retrain_model_button, 2, 0)
+            # TODO: complete
 
-            if config.spacy_ner_model_target is not None:
-                spacy_grid.addWidget(QLabel("Target"), 1, 0)
-                self.spacy_model_target_label = QLabel(config.spacy_ner_model_target)
-                spacy_grid.addWidget(self.spacy_model_target_label, 1, 1)
-            spacy_groupbox = QGroupBox("Spacy")
-            spacy_groupbox.setLayout(spacy_grid)
+            model_grid = QGridLayout()
+            #model_grid.addWidget(QLabel("Source"), 0, 0)
+            #self.spacy_model_source_label = QLabel(config.spacy_ner_model_source)
+            #model_grid.addWidget(self.spacy_model_source_label, 0, 1)
+            retrain_model_button = QPushButton("Retrain NER model")
+            retrain_model_button.clicked.connect(self.retrain_model)
+            model_grid.addWidget(retrain_model_button, 2, 0)
+            #if config.spacy_ner_model_target is not None:
+            #    model_grid.addWidget(QLabel("Target"), 1, 0)
+            #    self.spacy_model_target_label = QLabel(config.spacy_ner_model_target)
+            #    model_grid.addWidget(self.spacy_model_target_label, 1, 1)
+            model_groupbox = QGroupBox("Models")
+            model_groupbox.setLayout(model_grid)
 
         # dataset
         dataset_grid = QGridLayout()
@@ -252,7 +253,7 @@ class AnnotationDialog(QMainWindow):
             right_panel_layout.addWidget(named_entities_groupbox)
         right_panel_layout.addWidget(dataset_groupbox)
         if config.is_spacy_enabled:
-            right_panel_layout.addWidget(spacy_groupbox)
+            right_panel_layout.addWidget(model_groupbox)
         right_panel_layout.addStretch()
         right_buttons_layout = QHBoxLayout()
         right_buttons_layout.addStretch()

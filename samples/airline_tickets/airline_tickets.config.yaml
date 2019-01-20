@@ -77,10 +77,10 @@ named_entities:
       #            | Sep \\b | October \\b | Oct \\b | November \\b | Nov \\b | December \\b | Dec \\b
       #            | \\b(([01]?[0-9])|(2[0-3]))[:\\.]?[0-5][0-9]\\s*([Aa]\\.?[Mm]\\.?|[Pp]\\.?[Mm]\\.?|hrs)\\b
       #           "
-    spacy:
-      source: blank:en
-      target: samples/airline_tickets/model
-      target_model_name: airline_tickets
+    #spacy:
+    #  source: blank:en
+    #  target: samples/airline_tickets/model
+    #  target_model_name: airline_tickets
 
 instructions: "
 Put your instructions for the annotators here.

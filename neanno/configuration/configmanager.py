@@ -241,7 +241,7 @@ class ConfigManager:
         # spacy
         spacy_path = "named_entities/auto_suggest/spacy"
         config.is_spacy_enabled = ConfigManager.has_config_value(
-            named_entities_regexes_path
+            spacy_path
         )
         if config.is_spacy_enabled:
             print("Loading autosuggest spacy model...")
