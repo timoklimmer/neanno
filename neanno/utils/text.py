@@ -254,7 +254,7 @@ def extract_annotations_for_spacy_ner(annotated_text, entity_codes_to_extract=No
         )
 
     # return result
-    return (plain_text, annotations)
+    return (plain_text, {"entities": annotations})
 
 
 def get_annotation_at_position(annotated_text, position):

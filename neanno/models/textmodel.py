@@ -59,13 +59,6 @@ class TextModel(QAbstractTableModel):
         self.compute_categories_distribution()
         self.compute_named_entities_distribution()
 
-        # load and prepare spacy model
-        if config.is_spacy_enabled:
-            # TODO: update
-            self.spacy_model = self.load_and_prepare_spacy_model(
-                config.spacy_model_source
-            )
-
     def compute_named_entities_distribution(self):
         if config.is_named_entities_enabled:
             self.named_entity_distribution = compute_named_entities_distribution_from_column(
@@ -96,35 +89,13 @@ class TextModel(QAbstractTableModel):
         # return data for respective columns
         # column 0: text
         if index.column() == 0:
+            # get text from dataset
             result = str(config.dataset_to_edit.ix[index.row(), self.text_column_index])
-            # mask annotations to avoid that we get nested annotations
-            # note: the masking has to be repeated at several places below to avoid double nested annotations
-            result = mask_annotations(result)
             # add predicted/suggested annotations if not annotated yet
             if not is_annotated:
-                # note: all transformation below have to ensure that their annotations are masked
-                #       to ensure that there are no double annotations
-                # entity predictions from spacy
-                # TODO: might change in future
-                if config.is_spacy_enabled:
-                    doc = self.spacy_model(result)
-                    shift = 0
-                    for ent in doc.ents:
-                        old_result_length = len(result)
-                        result = "{}{}{}".format(
-                            result[: ent.start_char + shift],
-                            "`{}``SN``{}`´".format(ent.text, ent.label_),
-                            result[ent.end_char + shift :],
-                        )
-                        shift += len(result) - old_result_length
-                    result = mask_annotations(result)
-
-                # predict annotations
                 result = config.annotation_predictor.predict_inline_annotations(result)
-
-            # return unmask masked annotations
-            return unmask_annotations(result)
-
+            # return result
+            return result
         # column 1: is_annotated
         if index.column() == 1:
             return str(is_annotated if is_annotated is not None else False)

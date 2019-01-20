@@ -189,15 +189,15 @@ class AnnotationDialog(QMainWindow):
         if config.is_spacy_enabled:
             spacy_grid = QGridLayout()
             spacy_grid.addWidget(QLabel("Source"), 0, 0)
-            self.spacy_model_source_label = QLabel(config.spacy_model_source)
+            self.spacy_model_source_label = QLabel(config.spacy_ner_model_source)
             spacy_grid.addWidget(self.spacy_model_source_label, 0, 1)
             retrain_model_button = QPushButton("Retrain")
             retrain_model_button.clicked.connect(self.retrain_model)
             spacy_grid.addWidget(retrain_model_button, 2, 0)
 
-            if config.spacy_model_target is not None:
+            if config.spacy_ner_model_target is not None:
                 spacy_grid.addWidget(QLabel("Target"), 1, 0)
-                self.spacy_model_target_label = QLabel(config.spacy_model_target)
+                self.spacy_model_target_label = QLabel(config.spacy_ner_model_target)
                 spacy_grid.addWidget(self.spacy_model_target_label, 1, 1)
             spacy_groupbox = QGroupBox("Spacy")
             spacy_groupbox.setLayout(spacy_grid)
@@ -692,7 +692,7 @@ class AnnotationDialog(QMainWindow):
         )
 
     def retrain_model(self):
-        self.textmodel.retrain_spacy_model()
+        config.annotation_predictor.learn_from_annotated_dataset(config.dataset_to_edit)
 
     def replace_pattern_in_textedit(self, replace_pattern, replace_against_text):
         text_cursor = self.textedit.textCursor()

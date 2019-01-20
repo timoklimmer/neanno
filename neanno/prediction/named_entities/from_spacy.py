@@ -5,10 +5,11 @@ from spacy.util import compounding, minibatch
 from neanno.utils.text import (
     extract_annotations_for_spacy_ner,
     mask_annotations,
+    replace_from_to,
 )
 
 
-class SpacyNamedEntitiesPredictor:
+class NamedEntitiesFromSpacyPredictor:
     """ Trains and uses a spacy model to predict named entities. """
 
     configured_named_entities = None
@@ -17,7 +18,9 @@ class SpacyNamedEntitiesPredictor:
     text_column = None
     is_annotated_column = None
     model_target = None
+    model_target_name = None
     spacy_model = None
+    is_model_trained = False
 
     def __init__(
         self,
@@ -26,20 +29,19 @@ class SpacyNamedEntitiesPredictor:
         text_column,
         is_annotated_column,
         model_target,
+        model_target_name,
     ):
         self.configured_named_entities = configured_named_entities
         self.model_source = model_source
         self.text_column = text_column
         self.is_annotated_column = is_annotated_column
         self.model_target = model_target
-        print("Loading spacy model...")
+        self.model_target_name = model_target_name
         self.spacy_model = (
             spacy.blank(model_source.replace("blank:", "", 1))
             if model_source.startswith("blank:")
             else spacy.load(model_source)
         )
-
-    # abstract method implementations
 
     def learn_from_annotated_dataset(self, dataset):
         print("Training spacy model...")
@@ -64,7 +66,6 @@ class SpacyNamedEntitiesPredictor:
             )
             .tolist()
         )
-
         # do the training
         # note: there is certainly room for improvement, maybe switching to spacy's CLI
         #       which seems the recommendation by the spacy authors
@@ -94,33 +95,30 @@ class SpacyNamedEntitiesPredictor:
         # save model to output directory
         if self.model_target is not None:
             output_dir = pathlib.Path(self.model_target)
-            print("Saving model to folder '{}'...").format(output_dir)
+            print("Saving model to folder '{}'...".format(output_dir))
             if not output_dir.exists():
                 output_dir.mkdir()
-            self.spacy_model.meta["name"] = self.model_target
+            self.spacy_model.meta["name"] = self.model_target_name
             self.spacy_model.to_disk(output_dir)
 
         # print completed message
         print("Training completed.")
 
-    def learn_from_annotated_text(self, annotated_text):
-        # not needed in this class
-        pass
-
     def predict_inline_annotations(self, text, mask_annotations_before_return=False):
-        # TODO: add parent terms
-        result = text
-        doc = self.spacy_model(result)
-        shift = 0
-        for ent in doc.ents:
-            old_result_length = len(result)
-            # TODO: use function in utils.text for replacement
-            result = "{}{}{}".format(
-                result[: ent.start_char + shift],
-                "`{}``SN``{}`´".format(ent.text, ent.label_),
-                result[ent.end_char + shift :],
-            )
-            shift += len(result) - old_result_length
-        if mask_annotations_before_return:
-            result = mask_annotations(result)
-        return result
+        if self.is_model_trained:
+            # TODO: add parent terms
+            result = text
+            doc = self.spacy_model(result)
+            shift = 0
+            for ent in doc.ents:
+                old_result_length = len(result)
+                result = replace_from_to(
+                    result,
+                    ent.start_char + shift,
+                    ent.end_char + shift,
+                    "`{}``SN``{}`´".format(ent.text, ent.label_),
+                )
+                shift += len(result) - old_result_length
+            if mask_annotations_before_return:
+                result = mask_annotations(result)
+            return result

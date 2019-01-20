@@ -1,5 +1,5 @@
 from neanno.utils.list import get_set_of_list_and_keep_sequence, not_none
-from neanno.utils.text import unmask_annotations
+from neanno.utils.text import mask_annotations, unmask_annotations
 
 
 class AnnotationPredictor:
@@ -48,14 +48,18 @@ class AnnotationPredictor:
         self.invoke_predictors("learn_from_annotated_dataset", dataset)
 
     def predict_inline_annotations(self, text):
-        result = text
+        if not text:
+            return ""
+        result = mask_annotations(text)
         for predictor in self.predictors.values():
             if hasattr(predictor, "predict_inline_annotations"):
-                result = predictor.predict_inline_annotations(result, True)
+                result = predictor.predict_inline_annotations(result, True) or result
         result = unmask_annotations(result)
         return result
 
     def predict_categories(self, text):
+        if not text:
+            return ""
         result = []
         for predictor in self.predictors.values():
             if hasattr(predictor, "predict_categories"):

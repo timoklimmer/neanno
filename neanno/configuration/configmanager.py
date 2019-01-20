@@ -11,6 +11,7 @@ from neanno.configuration.definitions import CategoryDefinition, NamedEntityDefi
 from neanno.prediction.core import AnnotationPredictor
 from neanno.prediction.key_terms.from_dataset import KeyTermsFromDatasetPredictor
 from neanno.prediction.key_terms.from_regex import KeyTermsFromRegexPredictor
+from neanno.prediction.named_entities.from_spacy import NamedEntitiesFromSpacyPredictor
 from neanno.prediction.named_entities.from_dataset import (
     NamedEntitiesFromDatasetPredictor,
 )
@@ -38,8 +39,6 @@ class ConfigManager:
         ConfigManager.key_terms()
         # named entities-related
         ConfigManager.named_entities()
-        # spacy-related
-        ConfigManager.spacy()
         # instructions
         ConfigManager.instructions()
 
@@ -239,6 +238,34 @@ class ConfigManager:
                 "named_entities_by_regex", predictor
             )
 
+        # spacy
+        spacy_path = "named_entities/auto_suggest/spacy"
+        config.is_spacy_enabled = ConfigManager.has_config_value(
+            named_entities_regexes_path
+        )
+        if config.is_spacy_enabled:
+            print("Loading autosuggest spacy model...")
+            config.spacy_ner_model_source = ConfigManager.get_config_value(
+                spacy_path + "/source"
+            )
+            config.spacy_ner_model_target = ConfigManager.get_config_value(
+                spacy_path + "/target"
+            )
+            config.spacy_ner_model_target_name = ConfigManager.get_config_value(
+                spacy_path + "/target_model_name"
+            )
+            predictor = NamedEntitiesFromSpacyPredictor(
+                config.named_entity_definitions,
+                config.spacy_ner_model_source,
+                config.text_column,
+                config.is_annotated_column,
+                config.spacy_ner_model_target,
+                config.spacy_ner_model_target_name,
+            )
+            config.annotation_predictor.add_predictor(
+                "named_entities_by_dataset", predictor
+            )
+
     @staticmethod
     def categories():
         config.category_definitions = []
@@ -259,13 +286,6 @@ class ConfigManager:
     def categories_autosuggest():
         # TODO: complete
         pass
-
-    @staticmethod
-    def spacy():
-        # TODO: refactor
-        config.is_spacy_enabled = "spacy" in config.yaml
-        config.spacy_model_source = ConfigManager.get_config_value("spacy/source")
-        config.spacy_model_target = ConfigManager.get_config_value("spacy/target")
 
     @staticmethod
     def instructions():

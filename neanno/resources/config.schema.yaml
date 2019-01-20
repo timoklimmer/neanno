@@ -129,18 +129,20 @@ named_entities:
                             parent_terms:
                                 type: string
                                 required: False
-                        required: False
-            required: False
-    required: False
-
-spacy:
-    type: dict
-    schema:
-        source:
-            type: string
-            required: True
-        target:
-            type: string
+                        required: False                
+                spacy:
+                    type: dict
+                    schema:
+                        source:
+                            type: string
+                            required: True
+                        target:
+                            type: string
+                            required: False
+                        target_model_name:
+                            type: string
+                            required: False
+                    required: False
             required: False
     required: False
 
