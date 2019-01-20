@@ -22,7 +22,6 @@ class NamedEntitiesFromSpacyPredictor:
     model_target = None
     model_target_name = None
     spacy_model = None
-    is_model_trained = False
     threadpool = QThreadPool()
 
     def __init__(
@@ -83,7 +82,7 @@ class NamedEntitiesFromSpacyPredictor:
         message_callback.emit("Training NER model...")
         n_iter = 10
         # note: this removes the unnamed vectors warning, TBD if needs changes
-        self.spacy_model.vocab.vectors.name = 'spacy_pretrained_vectors'
+        self.spacy_model.vocab.vectors.name = "spacy_pretrained_vectors"
         optimizer = self.spacy_model.begin_training()
         other_pipes = [pipe for pipe in self.spacy_model.pipe_names if pipe != "ner"]
         with self.spacy_model.disable_pipes(*other_pipes):
@@ -106,12 +105,14 @@ class NamedEntitiesFromSpacyPredictor:
         # save model to output directory
         if self.model_target is not None:
             output_dir = pathlib.Path(self.model_target)
-            print("Saving model to folder '{}'...".format(output_dir))
+            print()
             if not output_dir.exists():
                 output_dir.mkdir()
             self.spacy_model.meta["name"] = self.model_target_name
             self.spacy_model.to_disk(output_dir)
-            print("Saving completed.".format(output_dir))
+            print(
+                "Saved model to folder '{}'. Enjoy your new model!".format(output_dir)
+            )
 
         # test the trained model
         # TODO: complete, precision/recall statistics
@@ -128,12 +129,13 @@ class NamedEntitiesFromSpacyPredictor:
         print(exception_info[2])
 
     def predict_inline_annotations(self, text, mask_annotations_before_return=False):
-        if self.is_model_trained:
+        if self.spacy_model:
             # TODO: add parent terms
             result = text
             doc = self.spacy_model(result)
             shift = 0
             for ent in doc.ents:
+                print("NER model predicted: {} {}".format(ent.label_, ent.text))
                 old_result_length = len(result)
                 result = replace_from_to(
                     result,
