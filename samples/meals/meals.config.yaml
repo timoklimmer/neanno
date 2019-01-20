@@ -18,3 +18,7 @@ named_entities:
         shortcut: Alt+D
       - code: BEVERAGE
         shortcut: Alt+B
+  spacy:
+    source: blank:en
+    target: samples/meals/model
+    target_model_name: meals

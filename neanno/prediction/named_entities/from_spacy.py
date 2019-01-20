@@ -7,6 +7,8 @@ from neanno.utils.text import (
     mask_annotations,
     replace_from_to,
 )
+from neanno.utils.threading import ParallelWorker
+from PyQt5.QtCore import QThreadPool
 
 
 class NamedEntitiesFromSpacyPredictor:
@@ -21,6 +23,7 @@ class NamedEntitiesFromSpacyPredictor:
     model_target_name = None
     spacy_model = None
     is_model_trained = False
+    threadpool = QThreadPool()
 
     def __init__(
         self,
@@ -44,7 +47,6 @@ class NamedEntitiesFromSpacyPredictor:
         )
 
     def learn_from_annotated_dataset(self, dataset):
-        print("Training spacy model...")
         # ensure and get the ner pipe
         if "ner" not in self.spacy_model.pipe_names:
             self.spacy_model.add_pipe(self.spacy_model.create_pipe("ner"), last=True)
@@ -66,10 +68,22 @@ class NamedEntitiesFromSpacyPredictor:
             )
             .tolist()
         )
-        # do the training
+        # do the training (in a parallel thread to avoid blocking the GUI)
+        model_trainer = ParallelWorker(self.train_model, trainset)
+        model_trainer.signals.message.connect(self.train_model_message)
+        model_trainer.signals.success.connect(self.train_model_succeeded)
+        model_trainer.signals.failure.connect(self.train_model_failed)
+        # model_trainer.signals.finished.connect(self.thread_complete)
+        # model_trainer.signals.progress.connect(self.progress_fn)
+        self.threadpool.start(model_trainer)
+
+    def train_model(self, trainset, progress_callback, message_callback):
         # note: there is certainly room for improvement, maybe switching to spacy's CLI
         #       which seems the recommendation by the spacy authors
+        message_callback.emit("Training NER model...")
         n_iter = 10
+        # note: this removes the unnamed vectors warning, TBD if needs changes
+        self.spacy_model.vocab.vectors.name = 'spacy_pretrained_vectors'
         optimizer = self.spacy_model.begin_training()
         other_pipes = [pipe for pipe in self.spacy_model.pipe_names if pipe != "ner"]
         with self.spacy_model.disable_pipes(*other_pipes):
@@ -82,7 +96,22 @@ class NamedEntitiesFromSpacyPredictor:
                     self.spacy_model.update(
                         texts, annotations, sgd=optimizer, drop=0.35, losses=losses
                     )
-                print("Iteration: {}, losses: {}".format(itn, losses))
+                message_callback.emit("Iteration: {}, losses: {}".format(itn, losses))
+
+    def train_model_message(self, message):
+        print(message)
+
+    def train_model_succeeded(self, result):
+        print("NER model training succeeded!")
+        # save model to output directory
+        if self.model_target is not None:
+            output_dir = pathlib.Path(self.model_target)
+            print("Saving model to folder '{}'...".format(output_dir))
+            if not output_dir.exists():
+                output_dir.mkdir()
+            self.spacy_model.meta["name"] = self.model_target_name
+            self.spacy_model.to_disk(output_dir)
+            print("Saving completed.".format(output_dir))
 
         # test the trained model
         # TODO: complete, precision/recall statistics
@@ -92,17 +121,11 @@ class NamedEntitiesFromSpacyPredictor:
         # for ent in doc.ents:
         #    print(ent.label_, ent.text)
 
-        # save model to output directory
-        if self.model_target is not None:
-            output_dir = pathlib.Path(self.model_target)
-            print("Saving model to folder '{}'...".format(output_dir))
-            if not output_dir.exists():
-                output_dir.mkdir()
-            self.spacy_model.meta["name"] = self.model_target_name
-            self.spacy_model.to_disk(output_dir)
-
-        # print completed message
-        print("Training completed.")
+    def train_model_failed(self, exception_info):
+        print("NER model training failed.")
+        print(exception_info[0])
+        print(exception_info[1])
+        print(exception_info[2])
 
     def predict_inline_annotations(self, text, mask_annotations_before_return=False):
         if self.is_model_trained:
