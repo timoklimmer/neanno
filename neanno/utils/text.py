@@ -5,7 +5,7 @@ from functools import reduce
 
 import pandas as pd
 
-from neanno.utils.dict import mergesum_dict
+from neanno.utils.dict import merge_dict_sum_numbers
 from neanno.utils.list import ensure_items_within_set, get_set_of_list_and_keep_sequence
 
 ANNOTATION_TYPES = [
@@ -322,7 +322,7 @@ def compute_named_entities_distribution_from_column(pandas_series):
     distribution_candidate = pandas_series.map(
         lambda text: compute_named_entities_distribution_from_text(text)
     ).agg(
-        lambda series: reduce(lambda dist1, dist2: mergesum_dict(dist1, dist2), series)
+        lambda series: reduce(lambda dist1, dist2: merge_dict_sum_numbers(dist1, dist2), series)
     )
     return (
         distribution_candidate
@@ -337,7 +337,7 @@ def compute_categories_distribution_from_column(pandas_series):
     distribution_candidate = pandas_series.map(
         lambda categories_text: Counter(categories_text.split("|"))
     ).agg(
-        lambda series: reduce(lambda dist1, dist2: mergesum_dict(dist1, dist2), series)
+        lambda series: reduce(lambda dist1, dist2: merge_dict_sum_numbers(dist1, dist2), series)
     )
     return (
         dict(distribution_candidate)
@@ -416,7 +416,7 @@ def compute_term_distribution_from_column(
             text, blacklist_terms, include_entity_codes
         )
     ).agg(
-        lambda series: reduce(lambda dist1, dist2: mergesum_dict(dist1, dist2), series)
+        lambda series: reduce(lambda dist1, dist2: merge_dict_sum_numbers(dist1, dist2), series)
     )
     return (
         distribution_candidate

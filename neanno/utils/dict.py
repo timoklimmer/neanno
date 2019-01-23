@@ -20,19 +20,39 @@ class QueryDict(dict):
         return value
 
 
-def mergesum_dict(dict1, dict2):
-    """ Assumes two dictionaries with schema key:numeric value and merges them into a single dictionary while summing the numeric values per key."""
+def merge_dict_sum_numbers(dict1, dict2):
+    """ Assumes two dictionaries with schema key:numeric value and merges them into a single dictionary whereby the numeric values are summed per key."""
     result = {}
+    if dict1 is None:
+        dict1 = {}
+    if dict2 is None:
+        dict2 = {}
     for key in dict1:
         if key not in result:
             result[key] = 0
-        value = dict1[key]
-        result[key] += value
+        result[key] += dict1[key]
     for key in dict2:
         if key not in result:
             result[key] = 0
-        value = dict2[key]
-        result[key] += value
+        result[key] += dict2[key]
+    return result
+
+
+def merge_dict_sum_child_dicts(dict1, dict2):
+    """ Assumes two dictionaries with schema key:{child keys: numeric value} and merges the two into a single dictionary whereby the numeric values in the child dictionaries are summed."""
+    result = {}
+    if dict1 is None:
+        dict1 = {}
+    if dict2 is None:
+        dict2 = {}
+    for key in dict1:
+        if key not in result:
+            result[key] = {}
+        result[key] = merge_dict_sum_numbers(result[key], dict1[key])
+    for key in dict2:
+        if key not in result:
+            result[key] = {}
+        result[key] = merge_dict_sum_numbers(result[key], dict2[key])
     return result
 
 

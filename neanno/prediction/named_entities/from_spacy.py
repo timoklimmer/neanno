@@ -114,13 +114,11 @@ class NamedEntitiesFromSpacyPredictor:
                 "Saved model to folder '{}'. Enjoy your new model!".format(output_dir)
             )
 
-        # test the trained model
-        # TODO: complete, precision/recall statistics
-        # test_text = "Guten Morgen, bei uns gibt es heute Bifteki mit Schafkäsesoße, dazu Reis und Salat. Schönen Freitag,"
-        # doc = self.spacy_model(test_text)
-        # print("Entities in '%s'" % test_text)
-        # for ent in doc.ents:
-        #    print(ent.label_, ent.text)
+        # compute precision/recall for each entity code
+        # TODO: dataset might have changed meanwhile, need to use a frozen dataset for evaluation
+        # TODO: consider using a common eval, not only in this class
+        # TODO: think about if this is the right place (esp. for on-the-fly training)
+        # use compute_ner_metrics_from_actual_predicted_columns() function from neanno.utils.metrics
 
     def train_model_failed(self, exception_info):
         print("NER model training failed.")
