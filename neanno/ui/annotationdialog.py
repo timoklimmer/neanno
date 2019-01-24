@@ -20,6 +20,7 @@ from PyQt5.QtWidgets import (
     QSplitter,
     QVBoxLayout,
     QWidget,
+    QRadioButton
 )
 
 from neanno.ui.about import show_about_dialog
@@ -185,23 +186,28 @@ class AnnotationDialog(QMainWindow):
             named_entities_groupbox = QGroupBox("Named Entities")
             named_entities_groupbox.setLayout(named_entity_infos_layout)
 
-        # model
+        # Auto suggest / modelling
         if config.is_spacy_enabled:
             # TODO: complete
 
-            model_grid = QGridLayout()
-            #model_grid.addWidget(QLabel("Source"), 0, 0)
-            #self.spacy_model_source_label = QLabel(config.spacy_ner_model_source)
-            #model_grid.addWidget(self.spacy_model_source_label, 0, 1)
-            retrain_model_button = QPushButton("Retrain NER model")
+            autosuggest_from_vertical_layout = QVBoxLayout()
+            vbox = QHBoxLayout()
+            radio0 = QRadioButton("Config")
+            radio1 = QRadioButton("Models")
+            radio2 = QRadioButton("Both")
+            radio3 = QRadioButton("Off")    
+            vbox.addWidget(radio0)
+            vbox.addWidget(radio1)
+            vbox.addWidget(radio2)
+            vbox.addWidget(radio3)
+            autosuggest_from_vertical_layout.addLayout(vbox)
+
+            retrain_model_button = QPushButton("Retrain model(s)")
             retrain_model_button.clicked.connect(self.retrain_model)
-            model_grid.addWidget(retrain_model_button, 2, 0)
-            #if config.spacy_ner_model_target is not None:
-            #    model_grid.addWidget(QLabel("Target"), 1, 0)
-            #    self.spacy_model_target_label = QLabel(config.spacy_ner_model_target)
-            #    model_grid.addWidget(self.spacy_model_target_label, 1, 1)
-            model_groupbox = QGroupBox("Models")
-            model_groupbox.setLayout(model_grid)
+            autosuggest_from_vertical_layout.addWidget(retrain_model_button)          
+
+            autosuggest_from_groupbox = QGroupBox("Auto suggest from")
+            autosuggest_from_groupbox.setLayout(autosuggest_from_vertical_layout)
 
         # dataset
         dataset_grid = QGridLayout()
@@ -251,9 +257,9 @@ class AnnotationDialog(QMainWindow):
             right_panel_layout.addWidget(key_terms_groupbox)
         if config.is_named_entities_enabled:
             right_panel_layout.addWidget(named_entities_groupbox)
-        right_panel_layout.addWidget(dataset_groupbox)
         if config.is_spacy_enabled:
-            right_panel_layout.addWidget(model_groupbox)
+            right_panel_layout.addWidget(autosuggest_from_groupbox)
+        right_panel_layout.addWidget(dataset_groupbox)
         right_panel_layout.addStretch()
         right_buttons_layout = QHBoxLayout()
         right_buttons_layout.addStretch()
