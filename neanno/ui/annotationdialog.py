@@ -17,16 +17,17 @@ from PyQt5.QtWidgets import (
     QPlainTextEdit,
     QProgressBar,
     QPushButton,
+    QRadioButton,
     QSplitter,
     QVBoxLayout,
     QWidget,
-    QRadioButton,
 )
 
-from neanno.ui.about import show_about_dialog
 from neanno.configuration.configmanager import ConfigManager
+from neanno.ui.about import show_about_dialog
 from neanno.ui.categoriesselector import CategoriesSelectorWidget
 from neanno.ui.navigator import TextNavigator
+from neanno.ui.predictorselection import PredictorSelectionDialog
 from neanno.ui.shortcuts import *
 from neanno.ui.syntaxhighlighters import TextEditHighlighter
 from neanno.utils.text import *
@@ -703,12 +704,7 @@ class AnnotationDialog(QMainWindow):
         )
 
     def enable_disable_predictors(self):
-        QMessageBox.information(
-            self,
-            "Unfortunately...",
-            "...this feature has not been implemented yet. Check back soon.",
-            QMessageBox.Ok,
-        )
+        PredictorSelectionDialog.show(self)
 
     def trigger_time_consuming_trainings(self):
         config.prediction_pipeline.learn_from_annotated_dataset(config.dataset_to_edit)

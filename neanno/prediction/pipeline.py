@@ -62,7 +62,7 @@ class PredictionPipeline:
         if not text:
             return ""
         result = mask_annotations(text)
-        for predictor in self._predictors.values():
+        for predictor in self.get_all_enabled_predictors():
             if hasattr(predictor, "predict_inline_annotations"):
                 result = predictor.predict_inline_annotations(result, True) or result
         result = unmask_annotations(result)
@@ -72,7 +72,7 @@ class PredictionPipeline:
         if not text:
             return ""
         result = []
-        for predictor in self._predictors.values():
+        for predictor in self.get_all_enabled_predictors():
             if hasattr(predictor, "predict_categories"):
                 result = result.extend(predictor.predict_categories(text))
         return result
