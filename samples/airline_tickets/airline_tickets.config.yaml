@@ -26,9 +26,9 @@ categories:
   column: categories
 
 key_terms:
-  auto_suggest:
+  predictors:
     dataset:
-      location: csv:samples/airline_tickets/key_terms.autosuggest.csv
+      location: csv:samples/airline_tickets/default.key_terms.csv
     regexes:
       - name: terminals
         pattern: (?i)(\bterminal\s*\d+\b)|(\bT[1-9]\b)|(\bterminal\b)
@@ -55,10 +55,10 @@ named_entities:
         shortcut: Alt+L
       - code: AIRCRAFT
         shortcut: Alt+C
-  auto_suggest:
+  predictors:
     datasets:
       - code: AIRLINE
-        location: csv:samples/airline_tickets/airlines.autosuggest.csv
+        location: csv:samples/airline_tickets/airlines.named_entities.csv
       # - code: ...
     regexes:
       - entity: FROM

@@ -20,13 +20,13 @@ class TextNavigator(QDataWidgetMapper):
             if not self.is_forward_or_backward:
                 self.forward_stack = []
                 self.backward_stack.append(self.currentIndex())
-            config.annotation_predictor.reset_key_terms_marked_for_removal()
-            config.annotation_predictor.reset_named_entity_terms_marked_for_removal()
+            config.prediction_pipeline.reset_key_terms_marked_for_removal()
+            config.prediction_pipeline.reset_named_entity_terms_marked_for_removal()
             super().setCurrentIndex(index)
 
     def revert(self):
-        config.annotation_predictor.reset_key_terms_marked_for_removal()
-        config.annotation_predictor.reset_named_entity_terms_marked_for_removal()
+        config.prediction_pipeline.reset_key_terms_marked_for_removal()
+        config.prediction_pipeline.reset_named_entity_terms_marked_for_removal()
         super().setCurrentIndex(self.currentIndex())
 
     def backward(self):

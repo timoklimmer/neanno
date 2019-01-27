@@ -8,7 +8,7 @@ from cerberus import Validator
 
 from neanno.configuration.colors import DEFAULT_ENTITY_COLORS_PALETTE
 from neanno.configuration.definitions import CategoryDefinition, NamedEntityDefinition
-from neanno.prediction.core import AnnotationPredictor
+from neanno.prediction.core import PredictionPipeline
 from neanno.prediction.key_terms.from_dataset import KeyTermsFromDatasetPredictor
 from neanno.prediction.key_terms.from_regex import KeyTermsFromRegexPredictor
 from neanno.prediction.named_entities.from_spacy import NamedEntitiesFromSpacyPredictor
@@ -26,8 +26,8 @@ class ConfigManager:
     def __init__(self):
         # specify neanno's args and load/validate the required config file
         ConfigManager.define_args_and_load_config_yaml()
-        # instantiate annotation predictor (setup/population will be done below)
-        config.annotation_predictor = AnnotationPredictor()
+        # instantiate prediction pipeline (setup/population will be done below)
+        config.prediction_pipeline = PredictionPipeline()
         # derive further configuration objects from specified arguments
         # dataset source-related
         ConfigManager.dataset_source()
@@ -132,24 +132,24 @@ class ConfigManager:
         )
         config.is_key_terms_enabled = "key_terms" in config.yaml
         if config.is_key_terms_enabled:
-            ConfigManager.key_terms_autosuggest()
+            ConfigManager.key_terms_predictors()
 
     @staticmethod
-    def key_terms_autosuggest():
+    def key_terms_predictors():
         # dataset
-        key_terms_dataset_location_path = "key_terms/auto_suggest/dataset/location"
+        key_terms_dataset_location_path = "key_terms/predictors/dataset/location"
         if ConfigManager.has_config_value(key_terms_dataset_location_path):
-            print("Loading autosuggest key terms dataset...")
+            print("Initializing key terms from dataset predictor...")
             predictor = KeyTermsFromDatasetPredictor()
             predictor.load_dataset(
                 ConfigManager.get_config_value(key_terms_dataset_location_path)
             )
-            config.annotation_predictor.add_predictor("key_terms_by_dataset", predictor)
+            config.prediction_pipeline.add_predictor("key_terms_by_dataset", predictor)
 
         # regexes
-        key_terms_regexes_path = "key_terms/auto_suggest/regexes"
+        key_terms_regexes_path = "key_terms/predictors/regexes"
         if ConfigManager.has_config_value(key_terms_regexes_path):
-            print("Loading autosuggest key terms regex patterns...")
+            print("Initializing key terms from regex patterns predictor...")
             predictor = KeyTermsFromRegexPredictor()
             for key_term_regex in ConfigManager.get_config_value(
                 key_terms_regexes_path
@@ -161,7 +161,7 @@ class ConfigManager:
                     if "parent_terms" in key_term_regex
                     else None,
                 )
-            config.annotation_predictor.add_predictor("key_terms_by_regex", predictor)
+            config.prediction_pipeline.add_predictor("key_terms_by_regex", predictor)
 
     @staticmethod
     def named_entities():
@@ -169,7 +169,7 @@ class ConfigManager:
         config.is_named_entities_enabled = "named_entities" in config.yaml
         if config.is_named_entities_enabled:
             ConfigManager.named_entities_definitions()
-            ConfigManager.named_entities_autosuggest()
+            ConfigManager.named_entities_predictors()
 
     @staticmethod
     def named_entities_definitions():
@@ -206,23 +206,23 @@ class ConfigManager:
             index += 1
 
     @staticmethod
-    def named_entities_autosuggest():
+    def named_entities_predictors():
         # dataset
-        named_entities_datasets_path = "named_entities/auto_suggest/datasets"
+        named_entities_datasets_path = "named_entities/predictors/datasets"
         if ConfigManager.has_config_value(named_entities_datasets_path):
-            print("Loading autosuggest named entities dataset(s)...")
+            print("Initializing named entities from dataset(s) predictor...")
             predictor = NamedEntitiesFromDatasetPredictor()
             predictor.load_datasets(
                 ConfigManager.get_config_value(named_entities_datasets_path)
             )
-            config.annotation_predictor.add_predictor(
+            config.prediction_pipeline.add_predictor(
                 "named_entities_by_dataset", predictor
             )
 
         # regexes
-        named_entities_regexes_path = "named_entities/auto_suggest/regexes"
+        named_entities_regexes_path = "named_entities/predictors/regexes"
         if ConfigManager.has_config_value(named_entities_regexes_path):
-            print("Loading autosuggest named entities regex patterns...")
+            print("Initializing named entities from regex patterns predictor...")
             predictor = NamedEntitiesFromRegexPredictor()
             for named_entity_regex in ConfigManager.get_config_value(
                 named_entities_regexes_path
@@ -234,17 +234,14 @@ class ConfigManager:
                     if "parent_terms" in named_entity_regex
                     else None,
                 )
-            config.annotation_predictor.add_predictor(
+            config.prediction_pipeline.add_predictor(
                 "named_entities_by_regex", predictor
             )
 
         # spacy
-        spacy_path = "named_entities/auto_suggest/spacy"
-        config.is_spacy_enabled = ConfigManager.has_config_value(
-            spacy_path
-        )
-        if config.is_spacy_enabled:
-            print("Loading autosuggest spacy model...")
+        spacy_path = "named_entities/predictors/spacy"
+        if ConfigManager.has_config_value(spacy_path):
+            print("Initializing named entities from spacy predictor...")
             config.spacy_ner_model_source = ConfigManager.get_config_value(
                 spacy_path + "/source"
             )
@@ -262,7 +259,7 @@ class ConfigManager:
                 config.spacy_ner_model_target,
                 config.spacy_ner_model_target_name,
             )
-            config.annotation_predictor.add_predictor(
+            config.prediction_pipeline.add_predictor(
                 "named_entities_by_dataset", predictor
             )
 
@@ -283,7 +280,7 @@ class ConfigManager:
             config.categories_count = len(config.category_definitions)
 
     @staticmethod
-    def categories_autosuggest():
+    def categories_predictors():
         # TODO: complete
         pass
 

@@ -2,7 +2,7 @@ from neanno.utils.list import get_set_of_list_and_keep_sequence, not_none
 from neanno.utils.text import mask_annotations, unmask_annotations
 
 
-class AnnotationPredictor:
+class PredictionPipeline:
     """ Predicts different annotations for a text."""
 
     # TODO: finalize category predictor
@@ -17,6 +17,9 @@ class AnnotationPredictor:
 
     def has_predictor(self, name):
         return name in self.predictors
+
+    def has_predictors(self):
+        return len(self.predictors) > 0
 
     def get_predictor(self, name):
         return self.predictors[name]

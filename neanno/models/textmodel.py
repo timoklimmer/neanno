@@ -93,7 +93,7 @@ class TextModel(QAbstractTableModel):
             result = str(config.dataset_to_edit.ix[index.row(), self.text_column_index])
             # add predicted/suggested annotations if not annotated yet
             if not is_annotated:
-                result = config.annotation_predictor.predict_inline_annotations(result)
+                result = config.prediction_pipeline.predict_inline_annotations(result)
             # return result
             return result
         # column 1: is_annotated
@@ -122,7 +122,7 @@ class TextModel(QAbstractTableModel):
                 # update text
                 config.dataset_to_edit.iat[row, self.text_column_index] = value
                 # teach annotation suggester from the annotated text
-                config.annotation_predictor.learn_from_annotated_text(value)
+                config.prediction_pipeline.learn_from_annotated_text(value)
                 # re-compute distributions
                 # TODO: might be made more efficient with deltas instead of complete recomputation all the time
                 self.compute_named_entities_distribution()

@@ -45,7 +45,7 @@ key_terms:
                 parented:
                     type: string
                     required: False
-        auto_suggest:
+        predictors:
             type: dict
             schema:
                 dataset:
@@ -100,7 +100,7 @@ named_entities:
                         type: string
                         regex: "(?i)^#[A-F0-9]{6}$|^[A-Z]+$"
                         required: False
-        auto_suggest:
+        predictors:
             type: dict
             schema:
                 datasets:

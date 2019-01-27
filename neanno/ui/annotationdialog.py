@@ -186,11 +186,11 @@ class AnnotationDialog(QMainWindow):
             named_entities_groupbox = QGroupBox("Named Entities")
             named_entities_groupbox.setLayout(named_entity_infos_layout)
 
-        # Auto suggest / modelling
-        if config.is_spacy_enabled:
+        # Predictors / modelling
+        if config.prediction_pipeline.has_predictors():
             # TODO: complete
 
-            autosuggest_from_vertical_layout = QVBoxLayout()
+            predictors_from_vertical_layout = QVBoxLayout()
             vbox = QHBoxLayout()
             radio0 = QRadioButton("Config")
             radio1 = QRadioButton("Models")
@@ -200,14 +200,14 @@ class AnnotationDialog(QMainWindow):
             vbox.addWidget(radio1)
             vbox.addWidget(radio2)
             vbox.addWidget(radio3)
-            autosuggest_from_vertical_layout.addLayout(vbox)
+            predictors_from_vertical_layout.addLayout(vbox)
 
             retrain_model_button = QPushButton("Retrain model(s)")
             retrain_model_button.clicked.connect(self.retrain_model)
-            autosuggest_from_vertical_layout.addWidget(retrain_model_button)          
+            predictors_from_vertical_layout.addWidget(retrain_model_button)          
 
-            autosuggest_from_groupbox = QGroupBox("Auto suggest from")
-            autosuggest_from_groupbox.setLayout(autosuggest_from_vertical_layout)
+            predictors_from_groupbox = QGroupBox("Predictors")
+            predictors_from_groupbox.setLayout(predictors_from_vertical_layout)
 
         # dataset
         dataset_grid = QGridLayout()
@@ -257,8 +257,8 @@ class AnnotationDialog(QMainWindow):
             right_panel_layout.addWidget(key_terms_groupbox)
         if config.is_named_entities_enabled:
             right_panel_layout.addWidget(named_entities_groupbox)
-        if config.is_spacy_enabled:
-            right_panel_layout.addWidget(autosuggest_from_groupbox)
+        if config.prediction_pipeline.has_predictors():
+            right_panel_layout.addWidget(predictors_from_groupbox)
         right_panel_layout.addWidget(dataset_groupbox)
         right_panel_layout.addStretch()
         right_buttons_layout = QHBoxLayout()
@@ -540,7 +540,7 @@ class AnnotationDialog(QMainWindow):
                 self.sender().key().toString()
             )
             entity_code = named_entity_definition.code
-            parent_terms_candidate = config.annotation_predictor.get_parent_terms_for_named_entity(
+            parent_terms_candidate = config.prediction_pipeline.get_parent_terms_for_named_entity(
                 term, entity_code
             )
             if parent_terms_candidate:
@@ -570,7 +570,7 @@ class AnnotationDialog(QMainWindow):
             new_selection_start = orig_selection_start + len(
                 "`{}``PN``{}``".format(term, entity_code)
             )
-            parent_terms_candidate = config.annotation_predictor.get_parent_terms_for_named_entity(
+            parent_terms_candidate = config.prediction_pipeline.get_parent_terms_for_named_entity(
                 term, entity_code
             )
             parent_terms = (
@@ -594,9 +594,9 @@ class AnnotationDialog(QMainWindow):
 
     def mark_annotation_for_removal(self, annotation):
         if annotation["type"] in ["standalone_key_term", "parented_key_term"]:
-            config.annotation_predictor.mark_key_term_for_removal(annotation["term"])
+            config.prediction_pipeline.mark_key_term_for_removal(annotation["term"])
         if annotation["type"] in ["standalone_named_entity", "parented_named_entity"]:
-            config.annotation_predictor.mark_named_entity_term_for_removal(
+            config.prediction_pipeline.mark_named_entity_term_for_removal(
                 annotation["term"], annotation["entity_code"]
             )
 
@@ -623,7 +623,7 @@ class AnnotationDialog(QMainWindow):
             self.replace_pattern_in_textedit(
                 text_to_replace_pattern, replace_against_text
             )
-            # mark annotation for removal from autosuggest
+            # mark annotation for removal
             self.mark_annotation_for_removal(annotation)
 
     def remove_all_annotations(self):
@@ -699,7 +699,7 @@ class AnnotationDialog(QMainWindow):
         )
 
     def retrain_model(self):
-        config.annotation_predictor.learn_from_annotated_dataset(config.dataset_to_edit)
+        config.prediction_pipeline.learn_from_annotated_dataset(config.dataset_to_edit)
 
     def replace_pattern_in_textedit(self, replace_pattern, replace_against_text):
         text_cursor = self.textedit.textCursor()
