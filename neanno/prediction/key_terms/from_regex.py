@@ -1,15 +1,16 @@
 import re
 
-from neanno.utils.text import (
-    mask_annotations,
-    unmask_annotations,
-)
+from neanno.prediction.predictor import Predictor
+from neanno.utils.text import mask_annotations, unmask_annotations
 
 
-class KeyTermsFromRegexPredictor:
+class KeyTermsFromRegexPredictor(Predictor):
     """ Predicts key terms of a text by using regular expressions."""
 
     key_term_regexes = {}
+
+    def __init__(self, name, enabled):
+        super().__init__(name, enabled)
 
     def add_key_term_regex(self, entity_code, pattern, parent_terms):
         self.key_term_regexes[entity_code] = KeyTermRegex(
@@ -19,9 +20,7 @@ class KeyTermsFromRegexPredictor:
     def remove_key_term_regex(self, entity_code):
         del self.key_term_regexes[entity_code]
 
-    def predict_inline_annotations(
-        self, text, mask_annotations_before_return=False
-    ):
+    def predict_inline_annotations(self, text, mask_annotations_before_return=False):
         result = mask_annotations(text)
         for entity_code in self.key_term_regexes:
             key_term_regex = self.key_term_regexes[entity_code]

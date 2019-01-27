@@ -1,6 +1,7 @@
 import pandas as pd
 from flashtext import KeywordProcessor
 
+from neanno.prediction.predictor import Predictor
 from neanno.utils.dataset import DatasetManager
 from neanno.utils.dict import merge_dict
 from neanno.utils.text import (
@@ -10,13 +11,16 @@ from neanno.utils.text import (
 )
 
 
-class KeyTermsFromDatasetPredictor:
+class KeyTermsFromDatasetPredictor(Predictor):
     """ Predicts key terms of a text by looking up terms in a dataset."""
 
     location_string = None
     dataset = pd.DataFrame(columns=["term", "parent_terms"], dtype=str)
     flashtext = None
     key_terms_marked_for_removal = []
+
+    def __init__(self, name, enabled):
+        super().__init__(name, enabled)
 
     def load_dataset(self, location_string):
         # update location_string
@@ -154,4 +158,3 @@ class KeyTermsFromDatasetPredictor:
             if mask_annotations_before_return
             else unmask_annotations(result)
         )
-

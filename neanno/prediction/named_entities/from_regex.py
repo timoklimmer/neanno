@@ -1,15 +1,16 @@
 import re
 
-from neanno.utils.text import (
-    mask_annotations,
-    unmask_annotations,
-)
+from neanno.prediction.predictor import Predictor
+from neanno.utils.text import mask_annotations, unmask_annotations
 
 
-class NamedEntitiesFromRegexPredictor:
+class NamedEntitiesFromRegexPredictor(Predictor):
     """ Predicts named entities of a text by using regular expressions."""
 
     named_entity_regexes = {}
+
+    def __init__(self, name, enabled):
+        super().__init__(name, enabled)
 
     def add_named_entity_regex(self, entity_code, pattern, parent_terms):
         self.named_entity_regexes[entity_code] = NamedEntityRegex(

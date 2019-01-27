@@ -1,6 +1,7 @@
 import pandas as pd
 from flashtext import KeywordProcessor
 
+from neanno.prediction.predictor import Predictor
 from neanno.utils.dataset import DatasetManager
 from neanno.utils.dict import merge_dict
 from neanno.utils.text import (
@@ -10,15 +11,16 @@ from neanno.utils.text import (
 )
 
 
-class NamedEntitiesFromDatasetPredictor:
+class NamedEntitiesFromDatasetPredictor(Predictor):
     """ Predicts named entities of a text by looking up terms in a dataset."""
 
     location_strings = {}
-    dataset = pd.DataFrame(
-        columns=["term", "entity_code", "parent_terms"], dtype=str
-    )
+    dataset = pd.DataFrame(columns=["term", "entity_code", "parent_terms"], dtype=str)
     flashtext = None
     marked_for_removal = []
+
+    def __init__(self, name, enabled):
+        super().__init__(name, enabled)
 
     def load_datasets(self, entity_code_location_string_dict):
         for entity_code_location_string in entity_code_location_string_dict:
@@ -134,10 +136,7 @@ class NamedEntitiesFromDatasetPredictor:
                 len(
                     self.dataset[
                         (self.dataset["term"] == annotation["term"])
-                        & (
-                            self.dataset["entity_code"]
-                            == annotation["entity_code"]
-                        )
+                        & (self.dataset["entity_code"] == annotation["entity_code"])
                     ]
                 )
                 == 0
@@ -160,10 +159,7 @@ class NamedEntitiesFromDatasetPredictor:
                     currently_stored_parent_terms = list(
                         self.dataset[
                             (self.dataset["term"] == annotation["term"])
-                            & (
-                                self.dataset["entity_code"]
-                                == annotation["entity_code"]
-                            )
+                            & (self.dataset["entity_code"] == annotation["entity_code"])
                         ]["parent_terms"]
                     )[0]
                     if currently_stored_parent_terms != annotation["parent_terms"]:
@@ -208,8 +204,7 @@ class NamedEntitiesFromDatasetPredictor:
         for affected_entity_code in affected_entity_codes:
             if affected_entity_code in self.location_strings:
                 self.save_dataset(
-                    self.location_strings[affected_entity_code],
-                    affected_entity_code,
+                    self.location_strings[affected_entity_code], affected_entity_code
                 )
 
     def predict_inline_annotations(self, text, mask_annotations_before_return=False):
@@ -220,4 +215,3 @@ class NamedEntitiesFromDatasetPredictor:
             if mask_annotations_before_return
             else unmask_annotations(result)
         )
-

@@ -1,18 +1,24 @@
 import pathlib
 import random
+
 import spacy
+from PyQt5.QtCore import QThreadPool
 from spacy.util import compounding, minibatch
+
+from neanno.prediction.predictor import Predictor
 from neanno.utils.text import (
     extract_annotations_for_spacy_ner,
     mask_annotations,
     replace_from_to,
 )
 from neanno.utils.threading import ParallelWorker
-from PyQt5.QtCore import QThreadPool
 
 
-class NamedEntitiesFromSpacyPredictor:
+class NamedEntitiesFromSpacyPredictor(Predictor):
     """ Trains and uses a spacy model to predict named entities. """
+
+    def __init__(self, name, enabled):
+        super().__init__(name, enabled)
 
     configured_named_entities = None
     model_source = None
@@ -26,6 +32,8 @@ class NamedEntitiesFromSpacyPredictor:
 
     def __init__(
         self,
+        name,
+        enabled,
         configured_named_entities,
         model_source,
         text_column,
@@ -33,6 +41,8 @@ class NamedEntitiesFromSpacyPredictor:
         model_target,
         model_target_name,
     ):
+        super().__init__(name, enabled)
+
         self.configured_named_entities = configured_named_entities
         self.model_source = model_source
         self.text_column = text_column
