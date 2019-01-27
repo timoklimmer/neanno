@@ -20,7 +20,7 @@ from PyQt5.QtWidgets import (
     QSplitter,
     QVBoxLayout,
     QWidget,
-    QRadioButton
+    QRadioButton,
 )
 
 from neanno.ui.about import show_about_dialog
@@ -188,25 +188,29 @@ class AnnotationDialog(QMainWindow):
 
         # Predictors / modelling
         if config.prediction_pipeline.has_predictors():
-            # TODO: complete
-
             predictors_from_vertical_layout = QVBoxLayout()
-            vbox = QHBoxLayout()
-            radio0 = QRadioButton("Config")
-            radio1 = QRadioButton("Models")
-            radio2 = QRadioButton("Both")
-            radio3 = QRadioButton("Off")    
-            vbox.addWidget(radio0)
-            vbox.addWidget(radio1)
-            vbox.addWidget(radio2)
-            vbox.addWidget(radio3)
-            predictors_from_vertical_layout.addLayout(vbox)
 
-            retrain_model_button = QPushButton("Retrain model(s)")
-            retrain_model_button.clicked.connect(self.retrain_model)
-            predictors_from_vertical_layout.addWidget(retrain_model_button)          
+            enable_disable_predictors_button = QPushButton("Enable/disable predictors")
+            enable_disable_predictors_button.clicked.connect(
+                self.enable_disable_predictors
+            )
+            predictors_from_vertical_layout.addWidget(enable_disable_predictors_button)
 
+            trigger_time_consuming_trainings_button = QPushButton(
+                "Trigger time-consuming training(s)"
+            )
+            trigger_time_consuming_trainings_button.clicked.connect(
+                self.trigger_time_consuming_trainings
+            )
+            predictors_from_vertical_layout.addWidget(
+                trigger_time_consuming_trainings_button
+            )
+
+            export_pipeline_model_button = QPushButton("Export pipeline model")
+            export_pipeline_model_button.clicked.connect(self.export_pipeline_model)
+            predictors_from_vertical_layout.addWidget(export_pipeline_model_button)
             predictors_from_groupbox = QGroupBox("Predictors")
+
             predictors_from_groupbox.setLayout(predictors_from_vertical_layout)
 
         # dataset
@@ -698,8 +702,24 @@ class AnnotationDialog(QMainWindow):
             self.textmodel.get_next_best_row_index(self.navigator.currentIndex())
         )
 
-    def retrain_model(self):
+    def enable_disable_predictors(self):
+        QMessageBox.information(
+            self,
+            "Unfortunately...",
+            "...this feature has not been implemented yet. Check back soon.",
+            QMessageBox.Ok,
+        )
+
+    def trigger_time_consuming_trainings(self):
         config.prediction_pipeline.learn_from_annotated_dataset(config.dataset_to_edit)
+
+    def export_pipeline_model(self):
+        QMessageBox.information(
+            self,
+            "Unfortunately...",
+            "...this feature has not been implemented yet. Check back soon.",
+            QMessageBox.Ok,
+        )
 
     def replace_pattern_in_textedit(self, replace_pattern, replace_against_text):
         text_cursor = self.textedit.textCursor()
