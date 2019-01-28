@@ -191,11 +191,11 @@ class AnnotationDialog(QMainWindow):
         if config.prediction_pipeline.has_predictors():
             predictors_from_vertical_layout = QVBoxLayout()
 
-            enable_disable_predictors_button = QPushButton("Enable/disable predictors")
-            enable_disable_predictors_button.clicked.connect(
-                self.enable_disable_predictors
+            configure_predictors_button = QPushButton("Enable/disable predictors for prediction")
+            configure_predictors_button.clicked.connect(
+                self.configure_predictors
             )
-            predictors_from_vertical_layout.addWidget(enable_disable_predictors_button)
+            predictors_from_vertical_layout.addWidget(configure_predictors_button)
 
             trigger_time_consuming_trainings_button = QPushButton(
                 "Trigger time-consuming training(s)"
@@ -703,7 +703,7 @@ class AnnotationDialog(QMainWindow):
             self.textmodel.get_next_best_row_index(self.navigator.currentIndex())
         )
 
-    def enable_disable_predictors(self):
+    def configure_predictors(self):
         PredictorSelectionDialog.show(self)
 
     def trigger_time_consuming_trainings(self):
