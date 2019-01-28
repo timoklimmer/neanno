@@ -79,7 +79,7 @@ named_entities:
       #           "
     spacy:
       source: blank:en
-      target: samples/airline_tickets/model
+      target: samples/airline_tickets/spacy_model
       target_model_name: airline_tickets
 
 instructions: "
