@@ -1,19 +1,26 @@
 import pandas as pd
-from neanno.utils.text import merge_dict_sum_child_dicts
+
+from neanno.utils.dict import merge_dict_sum_child_dicts
+from neanno.utils.text import (
+    extract_all_entity_codes_from_annotated_texts_column,
+    extract_annotations_as_list,
+)
 
 
 def compute_ner_metrics_at_text_level(
-    actual_annotations, predicted_annotations, all_entity_codes
+    actual_annotations, predicted_annotations, considered_entity_codes
 ):
     actual_annotations = [
         annotation
         for annotation in actual_annotations
         if annotation["type"] in ["standalone_named_entity", "parented_named_entity"]
+        and annotation["entity_code"] in considered_entity_codes
     ]
     predicted_annotations = [
         annotation
         for annotation in predicted_annotations
         if annotation["type"] in ["standalone_named_entity", "parented_named_entity"]
+        and annotation["entity_code"] in considered_entity_codes
     ]
     counters = {
         entity_code: {
@@ -24,7 +31,7 @@ def compute_ner_metrics_at_text_level(
             "precision": 0,
             "recall": 0,
         }
-        for entity_code in all_entity_codes
+        for entity_code in considered_entity_codes
     }
     for predicted_annotation in predicted_annotations:
         entity_code = predicted_annotation["entity_code"]
@@ -36,7 +43,7 @@ def compute_ner_metrics_at_text_level(
     for actual_annotation in actual_annotations:
         entity_code = actual_annotation["entity_code"]
         counters[entity_code]["possible"] += 1
-    for entity_code in all_entity_codes:
+    for entity_code in considered_entity_codes:
         correct = counters[entity_code]["correct"]
         actual = counters[entity_code]["correct"]
         possible = counters[entity_code]["possible"]
@@ -56,18 +63,33 @@ def aggregate_ner_metrics(ner_metrics1, ner_metrics2):
     return result
 
 
-def compute_ner_metrics_from_actual_predicted_columns(
-    actual_annotations_as_pandas_series,
-    predicted_annotations_as_pandas_series,
-    all_entity_codes,
+def compute_ner_metrics_from_actual_predicted_annotated_text_columns(
+    actual_annotated_texts_pandas_series,
+    predicted_annotated_texts_pandas_series,
+    considered_entity_codes=None,
 ):
-    """ Computes some metrics incl. precision and recall on entity code level."""
+    """ Computes some metrics incl. precision and recall on entity code level, given a text column with the true annotations and a column with the predicted annotations."""
+
+    actual_annotations_series = actual_annotated_texts_pandas_series.map(
+        lambda text: extract_annotations_as_list(
+            text, types_to_extract=["standalone_named_entity", "parented_named_entity"]
+        )
+    )
+    predicted_annotations_series = predicted_annotated_texts_pandas_series.map(
+        lambda text: extract_annotations_as_list(
+            text, types_to_extract=["standalone_named_entity", "parented_named_entity"]
+        )
+    )
+    if considered_entity_codes is None:
+        considered_entity_codes = extract_all_entity_codes_from_annotated_texts_column(
+            actual_annotated_texts_pandas_series
+        )
 
     result = {}
-    for (index, actual_annotations) in actual_annotations_as_pandas_series.iteritems():
-        predicted_annotations = predicted_annotations_as_pandas_series[index]
+    for (index, actual_annotations) in actual_annotations_series.iteritems():
+        predicted_annotations = predicted_annotations_series[index]
         ner_metrics_on_text_level = compute_ner_metrics_at_text_level(
-            actual_annotations, predicted_annotations, all_entity_codes
+            actual_annotations, predicted_annotations, considered_entity_codes
         )
         result = aggregate_ner_metrics(result, ner_metrics_on_text_level)
     return result

@@ -238,6 +238,20 @@ def extract_annotations_by_type(
     return (plain_text, annotations)
 
 
+def extract_all_entity_codes_from_annotated_texts_column(annotated_texts_column):
+    """ Extracts the set of all entity codes that appear in the texts of the specified column (pandas series)."""
+    result = []
+    for (index, annotated_text) in annotated_texts_column.iteritems():
+        for annotation in extract_annotations_as_generator(
+            annotated_text,
+            types_to_extract=["standalone_named_entity", "parented_named_entity"],
+        ):
+            if annotation["entity_code"] not in result:
+                result.append(annotation["entity_code"])
+    result.sort()
+    return result
+
+
 def extract_annotations_for_spacy_ner(annotated_text, entity_codes_to_extract=None):
     """ Returns a tuple which for the specified text that can be used to train a named entity recognition (NER) with spacy."""
 
@@ -322,7 +336,9 @@ def compute_named_entities_distribution_from_column(pandas_series):
     distribution_candidate = pandas_series.map(
         lambda text: compute_named_entities_distribution_from_text(text)
     ).agg(
-        lambda series: reduce(lambda dist1, dist2: merge_dict_sum_numbers(dist1, dist2), series)
+        lambda series: reduce(
+            lambda dist1, dist2: merge_dict_sum_numbers(dist1, dist2), series
+        )
     )
     return (
         distribution_candidate
@@ -337,7 +353,9 @@ def compute_categories_distribution_from_column(pandas_series):
     distribution_candidate = pandas_series.map(
         lambda categories_text: Counter(categories_text.split("|"))
     ).agg(
-        lambda series: reduce(lambda dist1, dist2: merge_dict_sum_numbers(dist1, dist2), series)
+        lambda series: reduce(
+            lambda dist1, dist2: merge_dict_sum_numbers(dist1, dist2), series
+        )
     )
     return (
         dict(distribution_candidate)
@@ -416,7 +434,9 @@ def compute_term_distribution_from_column(
             text, blacklist_terms, include_entity_codes
         )
     ).agg(
-        lambda series: reduce(lambda dist1, dist2: merge_dict_sum_numbers(dist1, dist2), series)
+        lambda series: reduce(
+            lambda dist1, dist2: merge_dict_sum_numbers(dist1, dist2), series
+        )
     )
     return (
         distribution_candidate
@@ -475,4 +495,3 @@ def add_parented_named_entity_at_position(
             text[from_position:to_position], entity_code, parent_terms
         ),
     )
-
