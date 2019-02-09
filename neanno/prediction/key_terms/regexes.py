@@ -4,7 +4,7 @@ from neanno.prediction.predictor import Predictor
 from neanno.utils.text import mask_annotations, unmask_annotations
 
 
-class KeyTermsFromRegexPredictor(Predictor):
+class FromRegexesKeyTermsPredictor(Predictor):
     """ Predicts key terms of a text by using regular expressions."""
 
     key_term_regexes = {}

@@ -14,7 +14,7 @@ from neanno.utils.text import (
 from neanno.utils.threading import ParallelWorker
 
 
-class NamedEntitiesFromSpacyPredictor(Predictor):
+class FromSpacyNamedEntitiesPredictor(Predictor):
     """ Trains and uses a spacy model to predict named entities. """
 
     def __init__(self, name, enabled):

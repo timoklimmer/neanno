@@ -4,7 +4,7 @@ from neanno.prediction.predictor import Predictor
 from neanno.utils.text import mask_annotations, unmask_annotations
 
 
-class NamedEntitiesFromRegexPredictor(Predictor):
+class FromRegexesNamedEntitiesPredictor(Predictor):
     """ Predicts named entities of a text by using regular expressions."""
 
     named_entity_regexes = {}

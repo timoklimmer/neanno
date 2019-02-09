@@ -11,7 +11,7 @@ from neanno.utils.text import (
 )
 
 
-class NamedEntitiesFromDatasetPredictor(Predictor):
+class FromDatasetsNamedEntitiesPredictor(Predictor):
     """ Predicts named entities of a text by looking up terms in a dataset."""
 
     location_strings = {}

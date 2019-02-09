@@ -15,7 +15,7 @@ class PredictorSelectionDialog(QDialog):
 
     def __init__(self, parent=None):
         super(PredictorSelectionDialog, self).__init__(parent)
-        self.setWindowTitle("Enable/disable predictors")
+        self.setWindowTitle("Enable/Disable predictors")
         self.setWindowModality(Qt.ApplicationModal)
         layout = QVBoxLayout(self)
 

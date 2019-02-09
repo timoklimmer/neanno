@@ -8,13 +8,11 @@ from cerberus import Validator
 
 from neanno.configuration.colors import DEFAULT_ENTITY_COLORS_PALETTE
 from neanno.configuration.definitions import CategoryDefinition, NamedEntityDefinition
-from neanno.prediction.key_terms.from_dataset import KeyTermsFromDatasetPredictor
-from neanno.prediction.key_terms.from_regex import KeyTermsFromRegexPredictor
-from neanno.prediction.named_entities.from_dataset import (
-    NamedEntitiesFromDatasetPredictor,
-)
-from neanno.prediction.named_entities.from_regex import NamedEntitiesFromRegexPredictor
-from neanno.prediction.named_entities.from_spacy import NamedEntitiesFromSpacyPredictor
+from neanno.prediction.key_terms.dataset import FromDatasetKeyTermsPredictor
+from neanno.prediction.key_terms.regexes import FromRegexesKeyTermsPredictor
+from neanno.prediction.named_entities.datasets import FromDatasetsNamedEntitiesPredictor
+from neanno.prediction.named_entities.regexes import FromRegexesNamedEntitiesPredictor
+from neanno.prediction.named_entities.spacy import FromSpacyNamedEntitiesPredictor
 from neanno.prediction.pipeline import PredictionPipeline
 from neanno.utils.dataset import DatasetLocation, DatasetManager
 from neanno.utils.dict import QueryDict
@@ -140,7 +138,7 @@ class ConfigManager:
         key_terms_dataset_location_path = "key_terms/predictors/dataset/location"
         if ConfigManager.has_config_value(key_terms_dataset_location_path):
             print("Initializing key terms from dataset predictor...")
-            predictor = KeyTermsFromDatasetPredictor("Key terms from dataset", True)
+            predictor = FromDatasetKeyTermsPredictor("Key terms from dataset", True)
             predictor.load_dataset(
                 ConfigManager.get_config_value(key_terms_dataset_location_path)
             )
@@ -150,7 +148,9 @@ class ConfigManager:
         key_terms_regexes_path = "key_terms/predictors/regexes"
         if ConfigManager.has_config_value(key_terms_regexes_path):
             print("Initializing key terms from regex patterns predictor...")
-            predictor = KeyTermsFromRegexPredictor("Key terms from regex patterns", True)
+            predictor = FromRegexesKeyTermsPredictor(
+                "Key terms from regex patterns", True
+            )
             for key_term_regex in ConfigManager.get_config_value(
                 key_terms_regexes_path
             ):
@@ -211,7 +211,9 @@ class ConfigManager:
         named_entities_datasets_path = "named_entities/predictors/datasets"
         if ConfigManager.has_config_value(named_entities_datasets_path):
             print("Initializing named entities from dataset(s) predictor...")
-            predictor = NamedEntitiesFromDatasetPredictor("Named entities from dataset", True)
+            predictor = FromDatasetsNamedEntitiesPredictor(
+                "Named entities from dataset", True
+            )
             predictor.load_datasets(
                 ConfigManager.get_config_value(named_entities_datasets_path)
             )
@@ -221,7 +223,9 @@ class ConfigManager:
         named_entities_regexes_path = "named_entities/predictors/regexes"
         if ConfigManager.has_config_value(named_entities_regexes_path):
             print("Initializing named entities from regex patterns predictor...")
-            predictor = NamedEntitiesFromRegexPredictor("Named entities from regex patterns", True)
+            predictor = FromRegexesNamedEntitiesPredictor(
+                "Named entities from regex patterns", True
+            )
             for named_entity_regex in ConfigManager.get_config_value(
                 named_entities_regexes_path
             ):
@@ -247,7 +251,7 @@ class ConfigManager:
             config.spacy_ner_model_target_name = ConfigManager.get_config_value(
                 spacy_path + "/target_model_name"
             )
-            predictor = NamedEntitiesFromSpacyPredictor(
+            predictor = FromSpacyNamedEntitiesPredictor(
                 "Named entities from spacy",
                 True,
                 config.named_entity_definitions,

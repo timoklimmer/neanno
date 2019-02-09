@@ -191,7 +191,7 @@ class AnnotationDialog(QMainWindow):
         if config.prediction_pipeline.has_predictors():
             predictors_from_vertical_layout = QVBoxLayout()
 
-            configure_predictors_button = QPushButton("Enable/disable predictors for prediction")
+            configure_predictors_button = QPushButton("Enable/Disable predictors for prediction")
             configure_predictors_button.clicked.connect(
                 self.configure_predictors
             )

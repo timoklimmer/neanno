@@ -11,7 +11,7 @@ from neanno.utils.text import (
 )
 
 
-class KeyTermsFromDatasetPredictor(Predictor):
+class FromDatasetKeyTermsPredictor(Predictor):
     """ Predicts key terms of a text by looking up terms in a dataset."""
 
     location_string = None
