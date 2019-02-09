@@ -66,7 +66,8 @@ class PredictionPipeline:
         result = mask_annotations(text)
         for predictor in self.get_all_predictors_enabled_for_prediction():
             if hasattr(predictor, "predict_inline_annotations"):
-                result = predictor.predict_inline_annotations(result, True) or result
+                result_candidate = predictor.predict_inline_annotations(result, True)
+                result = result_candidate if not None else result
         result = unmask_annotations(result)
         return result
 

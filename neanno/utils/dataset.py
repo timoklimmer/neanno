@@ -1,5 +1,4 @@
 import os
-import config
 import pandas as pd
 import re
 
@@ -16,7 +15,7 @@ class DatasetLocation:
         self.type = location_as_string.split(":")[0]
         self.path = re.sub(r"^{}:".format(re.escape(self.type)), "", location_as_string)
         if self.type not in self.supported_datasource_types:
-            config.parser.error(
+            raise ValueError(
                 "Dataset location '{}' uses a datasource type '{}' which is not supported. Ensure that a valid datasource type is specified. Valid datasource types are: {}.".format(
                     location_as_string, type, ", ".join(self.supported_datasource_types)
                 )
@@ -37,7 +36,7 @@ class DatasetManager:
     def load_dataset_from_location_string_csv(location, required_columns, fill_na=True):
         file_to_load = location.path
         if not os.path.isfile(file_to_load):
-            config.parser.error(
+            raise ValueError(
                 "The file '{}' does not exist. Ensure that you specify a file which exists.".format(
                     file_to_load
                 )
@@ -46,7 +45,7 @@ class DatasetManager:
         if fill_na:
             result = result.fillna("")
         if not pd.Series(required_columns).isin(result.columns).all():
-            config.parser.error(
+            raise ValueError(
                 "The specified dataset at '{}' does not have the expected columns. Ensure that the dataset includes the following columns (case-sensitive): {}.".format(
                     file_to_load, ", ".join(required_columns)
                 )

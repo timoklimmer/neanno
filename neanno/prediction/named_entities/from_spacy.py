@@ -38,8 +38,8 @@ class NamedEntitiesFromSpacyPredictor(Predictor):
         model_source,
         text_column,
         is_annotated_column,
-        model_target,
-        model_target_name,
+        model_target = None,
+        model_target_name = None,
     ):
         super().__init__(name, enabled)
 
@@ -143,7 +143,6 @@ class NamedEntitiesFromSpacyPredictor(Predictor):
             doc = self.spacy_model(result)
             shift = 0
             for ent in doc.ents:
-                print("NER model predicted: {} {}".format(ent.label_, ent.text))
                 old_result_length = len(result)
                 result = replace_from_to(
                     result,
