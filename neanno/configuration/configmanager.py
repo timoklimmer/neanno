@@ -134,8 +134,8 @@ class ConfigManager:
 
     @staticmethod
     def key_terms_predictors():
-        # dataset
-        key_terms_dataset_location_path = "key_terms/predictors/dataset/location"
+        # from_dataset
+        key_terms_dataset_location_path = "key_terms/predictors/from_dataset/location"
         if ConfigManager.has_config_value(key_terms_dataset_location_path):
             print("Initializing key terms from dataset predictor...")
             predictor = FromDatasetKeyTermsPredictor("Key terms from dataset", True)
@@ -144,15 +144,15 @@ class ConfigManager:
             )
             config.prediction_pipeline.add_predictor(predictor)
 
-        # regexes
-        key_terms_regexes_path = "key_terms/predictors/regexes"
+        # from_regex_patterns
+        key_terms_regexes_path = "key_terms/predictors/from_regex_patterns"
         if ConfigManager.has_config_value(key_terms_regexes_path):
             print("Initializing key terms from regex patterns predictor...")
             predictor = FromRegexesKeyTermsPredictor(
                 "Key terms from regex patterns", True
-            )
+            )            
             for key_term_regex in ConfigManager.get_config_value(
-                key_terms_regexes_path
+                key_terms_regexes_path + "/patterns"
             ):
                 predictor.add_key_term_regex(
                     key_term_regex["name"],
@@ -207,27 +207,27 @@ class ConfigManager:
 
     @staticmethod
     def named_entities_predictors():
-        # dataset
-        named_entities_datasets_path = "named_entities/predictors/datasets"
+        # from_datasets
+        named_entities_datasets_path = "named_entities/predictors/from_datasets"
         if ConfigManager.has_config_value(named_entities_datasets_path):
             print("Initializing named entities from dataset(s) predictor...")
             predictor = FromDatasetsNamedEntitiesPredictor(
                 "Named entities from dataset", True
             )
             predictor.load_datasets(
-                ConfigManager.get_config_value(named_entities_datasets_path)
+                ConfigManager.get_config_value(named_entities_datasets_path + "/datasets")
             )
             config.prediction_pipeline.add_predictor(predictor)
 
-        # regexes
-        named_entities_regexes_path = "named_entities/predictors/regexes"
+        # from_regex_patterns
+        named_entities_regexes_path = "named_entities/predictors/from_regex_patterns"
         if ConfigManager.has_config_value(named_entities_regexes_path):
             print("Initializing named entities from regex patterns predictor...")
             predictor = FromRegexesNamedEntitiesPredictor(
                 "Named entities from regex patterns", True
             )
             for named_entity_regex in ConfigManager.get_config_value(
-                named_entities_regexes_path
+                named_entities_regexes_path + "/patterns"
             ):
                 predictor.add_named_entity_regex(
                     named_entity_regex["entity"],
@@ -238,8 +238,8 @@ class ConfigManager:
                 )
             config.prediction_pipeline.add_predictor(predictor)
 
-        # spacy
-        spacy_path = "named_entities/predictors/spacy"
+        # from_spacy
+        spacy_path = "named_entities/predictors/from_spacy"
         if ConfigManager.has_config_value(spacy_path):
             print("Initializing named entities from spacy predictor...")
             config.spacy_ner_model_source = ConfigManager.get_config_value(
