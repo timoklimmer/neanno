@@ -80,3 +80,17 @@ class Predictor(ABC):
     @is_prediction_enabled.setter
     def is_prediction_enabled(self, value):
         self._is_prediction_enabled = value
+
+    def learn_from_annotated_text(self, annotated_text):
+        pass
+
+    def learn_from_annotated_dataset(
+        self, dataset, text_column, is_annotated_column, entity_codes_to_train
+    ):
+        pass
+
+    def predict_inline_annotations(self, text):
+        return text
+
+    def predict_categories(self, text):
+        return []

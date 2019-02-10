@@ -73,9 +73,8 @@ class PredictionPipeline:
             return ""
         result = mask_annotations(text)
         for predictor in self.get_all_predictors_is_prediction_enabled():
-            if hasattr(predictor, "predict_inline_annotations"):
-                result_candidate = predictor.predict_inline_annotations(result, True)
-                result = result_candidate if not None else result
+            result_candidate = predictor.predict_inline_annotations(result, True)
+            result = result_candidate if not None else result
         result = unmask_annotations(result)
         return result
 
@@ -84,8 +83,7 @@ class PredictionPipeline:
             return ""
         result = []
         for predictor in self.get_all_predictors_is_prediction_enabled():
-            if hasattr(predictor, "predict_categories"):
-                result = result.extend(predictor.predict_categories(text))
+            result = result.extend(predictor.predict_categories(text))
         return result
 
     def get_parent_terms_for_named_entity(self, term, entity_code):
