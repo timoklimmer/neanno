@@ -9,16 +9,16 @@ from neanno.utils.text import mask_annotations, unmask_annotations
 class FromRegexesKeyTermsPredictor(Predictor):
     """ Predicts key terms of a text by using regular expressions."""
 
-    key_term_regexes = {}
+    pattern_definitions = {}
 
-    def __init__(self, config):
-        super().__init__(config)
-        for key_term_regex in config["patterns"]:
-            self.add_key_term_regex(
-                key_term_regex["name"],
-                key_term_regex["pattern"],
-                key_term_regex["parent_terms"]
-                if "parent_terms" in key_term_regex
+    def __init__(self, predictor_config):
+        super().__init__(predictor_config)
+        for pattern_definition in predictor_config["patterns"]:
+            self.add_pattern_definition(
+                pattern_definition["name"],
+                pattern_definition["pattern"],
+                pattern_definition["parent_terms"]
+                if "parent_terms" in pattern_definition
                 else None,
             )
 
@@ -43,27 +43,25 @@ class FromRegexesKeyTermsPredictor(Predictor):
             """
         )
 
-    def add_key_term_regex(self, entity_code, pattern, parent_terms):
-        self.key_term_regexes[entity_code] = KeyTermRegex(
-            entity_code, pattern, parent_terms
-        )
+    def add_pattern_definition(self, name, pattern, parent_terms):
+        self.pattern_definitions[name] = PatternDefinition(name, pattern, parent_terms)
 
-    def remove_key_term_regex(self, entity_code):
-        del self.key_term_regexes[entity_code]
+    def remove_pattern_definition(self, name):
+        del self.pattern_definitions[name]
 
     def predict_inline_annotations(self, text, mask_annotations_before_return=False):
         result = mask_annotations(text)
-        for entity_code in self.key_term_regexes:
-            key_term_regex = self.key_term_regexes[entity_code]
-            if key_term_regex.parent_terms:
+        for name in self.pattern_definitions:
+            pattern_definition = self.pattern_definitions[name]
+            if pattern_definition.parent_terms:
                 result = re.sub(
-                    r"(?P<term>{})".format(key_term_regex.pattern),
-                    "`{}``PK``{}`´".format("\g<term>", key_term_regex.parent_terms),
+                    r"(?P<term>{})".format(pattern_definition.pattern),
+                    "`{}``PK``{}`´".format("\g<term>", pattern_definition.parent_terms),
                     result,
                 )
             else:
                 result = re.sub(
-                    r"(?P<term>{})".format(key_term_regex.pattern),
+                    r"(?P<term>{})".format(pattern_definition.pattern),
                     "`{}``SK`´".format("\g<term>"),
                     result,
                 )
@@ -74,10 +72,10 @@ class FromRegexesKeyTermsPredictor(Predictor):
         )
 
 
-class KeyTermRegex:
-    """ Defines a regex for predicting key terms."""
+class PatternDefinition:
+    """ Defines a regex pattern for predicting key terms."""
 
-    def __init__(self, entity_code, pattern, parent_terms=[]):
-        self.entity_code = entity_code
+    def __init__(self, name, pattern, parent_terms=[]):
+        self.name = name
         self.pattern = pattern
         self.parent_terms = parent_terms

@@ -9,16 +9,16 @@ from neanno.utils.text import mask_annotations, unmask_annotations
 class FromRegexesNamedEntitiesPredictor(Predictor):
     """ Predicts named entities of a text by using regular expressions."""
 
-    named_entity_regexes = {}
+    pattern_definitions = {}
 
     def __init__(self, predictor_config):
         super().__init__(predictor_config)
-        for named_entity_regex in predictor_config["patterns"]:
-            self.add_named_entity_regex(
-                named_entity_regex["entity"],
-                named_entity_regex["pattern"],
-                named_entity_regex["parent_terms"]
-                if "parent_terms" in named_entity_regex
+        for pattern_definition in predictor_config["patterns"]:
+            self.add_pattern_definition(
+                pattern_definition["entity"],
+                pattern_definition["pattern"],
+                pattern_definition["parent_terms"]
+                if "parent_terms" in pattern_definition
                 else None,
             )
 
@@ -43,32 +43,32 @@ class FromRegexesNamedEntitiesPredictor(Predictor):
             """
         )
 
-    def add_named_entity_regex(self, entity_code, pattern, parent_terms):
-        self.named_entity_regexes[entity_code] = NamedEntityRegex(
+    def add_pattern_definition(self, entity_code, pattern, parent_terms):
+        self.pattern_definitions[entity_code] = PatternDefinition(
             entity_code, pattern, parent_terms
         )
 
-    def remove_named_entity_regex(self, entity_code):
-        del self.named_entity_regexes[entity_code]
+    def remove_pattern_definition(self, entity_code):
+        del self.pattern_definitions[entity_code]
 
     def predict_inline_annotations(self, text, mask_annotations_before_return=False):
         result = mask_annotations(text)
-        for named_entity_code in self.named_entity_regexes:
-            named_entity_regex = self.named_entity_regexes[named_entity_code]
-            if named_entity_regex.parent_terms:
+        for named_entity_code in self.pattern_definitions:
+            pattern_definition = self.pattern_definitions[named_entity_code]
+            if pattern_definition.parent_terms:
                 result = re.sub(
-                    r"(?P<term>{})".format(named_entity_regex.pattern),
+                    r"(?P<term>{})".format(pattern_definition.pattern),
                     "`{}``PN``{}``{}`´".format(
                         "\g<term>",
-                        named_entity_regex.entity,
-                        named_entity_regex.parent_terms,
+                        pattern_definition.entity,
+                        pattern_definition.parent_terms,
                     ),
                     result,
                 )
             else:
                 result = re.sub(
-                    r"(?P<term>{})".format(named_entity_regex.pattern),
-                    "`{}``SN``{}`´".format("\g<term>", named_entity_regex.entity),
+                    r"(?P<term>{})".format(pattern_definition.pattern),
+                    "`{}``SN``{}`´".format("\g<term>", pattern_definition.entity),
                     result,
                 )
         return (
@@ -78,8 +78,8 @@ class FromRegexesNamedEntitiesPredictor(Predictor):
         )
 
     def get_parent_terms_for_named_entity(self, term, entity_code):
-        if entity_code in self.named_entity_regexes:
-            named_entity_regex_definition = self.named_entity_regexes[entity_code]
+        if entity_code in self.pattern_definitions:
+            named_entity_regex_definition = self.pattern_definitions[entity_code]
             # check if term matches regex from the definition
             if re.match(named_entity_regex_definition.pattern, term):
                 # yes, matches
@@ -98,7 +98,7 @@ class FromRegexesNamedEntitiesPredictor(Predictor):
             return None
 
 
-class NamedEntityRegex:
+class PatternDefinition:
     """ Defines a regex for predicting named entities."""
 
     def __init__(self, entity, pattern, parent_terms=[]):
