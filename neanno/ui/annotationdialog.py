@@ -197,14 +197,14 @@ class AnnotationDialog(QMainWindow):
             configure_predictors_button.clicked.connect(self.configure_predictors)
             predictors_from_vertical_layout.addWidget(configure_predictors_button)
 
-            trigger_time_consuming_trainings_button = QPushButton(
-                "Trigger time-consuming training(s)"
+            trigger_batch_trainings_button = QPushButton(
+                "Trigger batch training(s)"
             )
-            trigger_time_consuming_trainings_button.clicked.connect(
-                self.trigger_time_consuming_trainings
+            trigger_batch_trainings_button.clicked.connect(
+                self.trigger_batch_trainings
             )
             predictors_from_vertical_layout.addWidget(
-                trigger_time_consuming_trainings_button
+                trigger_batch_trainings_button
             )
 
             export_pipeline_model_button = QPushButton("Export pipeline model")
@@ -706,7 +706,7 @@ class AnnotationDialog(QMainWindow):
     def configure_predictors(self):
         PredictorSelectionDialog.show(self)
 
-    def trigger_time_consuming_trainings(self):
+    def trigger_batch_trainings(self):
         config.prediction_pipeline.learn_from_annotated_dataset(
             config.dataset_to_edit,
             config.text_column,
