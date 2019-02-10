@@ -54,7 +54,13 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
         )
 
     def learn_from_annotated_dataset(
-        self, dataset, text_column, is_annotated_column, entity_codes_to_train
+        self,
+        dataset,
+        text_column,
+        is_annotated_column,
+        categories_column,
+        categories_to_train,
+        entity_codes_to_train,
     ):
         # ensure and get the ner pipe
         if "ner" not in self.spacy_model.pipe_names:

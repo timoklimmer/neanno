@@ -185,6 +185,7 @@ class ConfigManager:
     @staticmethod
     def categories():
         config.category_definitions = []
+        config.categories_names_list = []
         config.is_categories_enabled = "categories" in config.yaml
         if config.is_categories_enabled:
             config.categories_column = ConfigManager.get_config_value(

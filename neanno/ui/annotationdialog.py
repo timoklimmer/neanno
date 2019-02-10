@@ -711,6 +711,8 @@ class AnnotationDialog(QMainWindow):
             config.dataset_to_edit,
             config.text_column,
             config.is_annotated_column,
+            config.categories_column,
+            config.categories_names_list,
             config.named_entity_codes,
         )
 

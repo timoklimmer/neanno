@@ -58,13 +58,21 @@ class PredictionPipeline:
         self.invoke_predictors("learn_from_annotated_text", annotated_text)
 
     def learn_from_annotated_dataset(
-        self, dataset, text_column, is_annotated_column, entity_codes_to_train
+        self,
+        dataset,
+        text_column,
+        is_annotated_column,
+        categories_column,
+        categories_to_train,
+        entity_codes_to_train,
     ):
         self.invoke_predictors(
             "learn_from_annotated_dataset",
             dataset,
             text_column,
             is_annotated_column,
+            categories_column,
+            categories_to_train,
             entity_codes_to_train,
         )
 
