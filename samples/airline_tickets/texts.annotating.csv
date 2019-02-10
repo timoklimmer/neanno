@@ -1,4 +1,4 @@
-Request ID,Text,categories,is_text_annotated
+request_id,text,categories,is_text_annotated
 2047,"Hi all,
 
 I have booked to fly from `Sydney``PN``FROM``SYD`´ to `Los Angeles``PN``TO``LAX`´ return on a `747-400``SN``AIRCRAFT`´ and have a couple of questions.

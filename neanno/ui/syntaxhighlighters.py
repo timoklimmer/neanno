@@ -7,14 +7,22 @@ class TextEditHighlighter(QSyntaxHighlighter):
     """Used to highlight annotations in a text field."""
 
     text_char_formats = {}
+    named_entity_definitions = None
+    named_entity_codes = None
 
     ENTITY_CODE_BACKGROUND_COLOR = "white"
     ENTITY_CODE_FOREGROUND_COLOR = "black"
     PARENT_TERMS_BACKGROUND_COLOR = "lightgrey"
     PARENT_TERMS_FOREGROUND_COLOR = "black"
 
-    def __init__(self, parent, named_definitions):
+    def __init__(self, parent, named_entity_definitions):
         super(TextEditHighlighter, self).__init__(parent)
+
+        self.named_entity_definitions = named_entity_definitions
+        self.named_entity_codes = [
+            named_entity_definition.code
+            for named_entity_definition in self.named_entity_definitions
+        ]
 
         # populate formats
         self.text_char_formats = {
@@ -33,7 +41,7 @@ class TextEditHighlighter(QSyntaxHighlighter):
             },
             "named_entity": {},
         }
-        for named_definition in named_definitions:
+        for named_definition in self.named_entity_definitions:
             self.text_char_formats["named_entity"][named_definition.code] = {
                 "term": self.get_text_char_format(
                     named_definition.backcolor, named_definition.forecolor
@@ -58,7 +66,7 @@ class TextEditHighlighter(QSyntaxHighlighter):
 
     def highlightBlock(self, text):
         for annotation in extract_annotations_as_generator(
-            text, entity_codes_to_extract=config.named_entity_codes
+            text, entity_codes_to_extract=self.named_entity_codes
         ):
             # get common format infos
             format_to_apply = (
@@ -113,7 +121,9 @@ class TextEditHighlighter(QSyntaxHighlighter):
                 self.setFormat(start_pos, length, format)
                 # parent terms
                 start_pos += length
-                length = len(annotation["parent_terms_raw"])#annotation["end_gross"] - (start_pos + len("`´"))
+                length = len(
+                    annotation["parent_terms_raw"]
+                )  # annotation["end_gross"] - (start_pos + len("`´"))
                 format = format_to_apply["parent_terms"]
                 self.setFormat(start_pos, length, format)
                 # space after parent terms

@@ -26,7 +26,7 @@ class PredictorSelectionDialog(QDialog):
             item = QListWidgetItem(predictor.name, self.predictor_list, 0)
             item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
             item.setCheckState(
-                Qt.Checked if predictor.enabled_for_prediction else Qt.Unchecked
+                Qt.Checked if predictor.is_prediction_enabled else Qt.Unchecked
             )
             self.predictor_list.addItem(item)
         layout.addWidget(self.predictor_list)
@@ -49,6 +49,6 @@ class PredictorSelectionDialog(QDialog):
                 predictor_item_checkstate = predictor_item.checkState()
                 predictor_name = predictor_item.text()
                 predictor = config.prediction_pipeline.get_predictor(predictor_name)
-                predictor.enabled_for_prediction = (
+                predictor.is_prediction_enabled = (
                     predictor_item_checkstate == Qt.Checked
                 )

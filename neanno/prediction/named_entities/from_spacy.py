@@ -17,59 +17,38 @@ from neanno.utils.threading import ParallelWorker
 class FromSpacyNamedEntitiesPredictor(Predictor):
     """ Trains and uses a spacy model to predict named entities. """
 
-    def __init__(self, name, enabled):
-        super().__init__(name, enabled)
-
-    configured_named_entities = None
-    model_source = None
-    dataset = None
-    text_column = None
-    is_annotated_column = None
-    model_target = None
-    model_target_name = None
+    source_model = None
+    target_model_directory = None
+    target_model_name = None
     spacy_model = None
     threadpool = QThreadPool()
 
-    def __init__(
-        self,
-        name,
-        enabled,
-        configured_named_entities,
-        model_source,
-        text_column,
-        is_annotated_column,
-        model_target = None,
-        model_target_name = None,
-    ):
-        super().__init__(name, enabled)
-
-        self.configured_named_entities = configured_named_entities
-        self.model_source = model_source
-        self.text_column = text_column
-        self.is_annotated_column = is_annotated_column
-        self.model_target = model_target
-        self.model_target_name = model_target_name
+    def __init__(self, predictor_config):
+        super().__init__(predictor_config)
+        self.source_model = predictor_config["source_model"]
+        if "target_model_directory" in predictor_config:
+            self.target_model_directory = predictor_config["target_model_directory"]
+        if "target_model_name" in predictor_config:
+            self.target_model_name = predictor_config["target_model_name"]
         self.spacy_model = (
-            spacy.blank(model_source.replace("blank:", "", 1))
-            if model_source.startswith("blank:")
-            else spacy.load(model_source)
+            spacy.blank(self.source_model.replace("blank:", "", 1))
+            if self.source_model.startswith("blank:")
+            else spacy.load(self.source_model)
         )
 
-    def learn_from_annotated_dataset(self, dataset):
+    def learn_from_annotated_dataset(
+        self, dataset, text_column, is_annotated_column, entity_codes_to_train
+    ):
         # ensure and get the ner pipe
         if "ner" not in self.spacy_model.pipe_names:
             self.spacy_model.add_pipe(self.spacy_model.create_pipe("ner"), last=True)
         ner = self.spacy_model.get_pipe("ner")
-        # ensure we have all configured named entities also configured in the model
-        for configured_named_entity in self.configured_named_entities:
-            ner.add_label(configured_named_entity.code)
+        # ensure we have all relevant named entities in the model
+        for entity_code_to_train in entity_codes_to_train:
+            ner.add_label(entity_code_to_train)
         # prepare the training set
-        entity_codes_to_train = [
-            configured_named_entity.code
-            for configured_named_entity in self.configured_named_entities
-        ]
         trainset = (
-            dataset[dataset[self.is_annotated_column] == True][self.text_column]
+            dataset[dataset[is_annotated_column] == True][text_column]
             .map(
                 lambda annotated_text: extract_annotations_for_spacy_ner(
                     annotated_text, entity_codes_to_train
@@ -113,12 +92,12 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
     def train_model_succeeded(self, result):
         print("NER model training succeeded!")
         # save model to output directory
-        if self.model_target is not None:
-            output_dir = pathlib.Path(self.model_target)
+        if self.target_model_directory is not None:
+            output_dir = pathlib.Path(self.target_model_directory)
             print()
             if not output_dir.exists():
                 output_dir.mkdir()
-            self.spacy_model.meta["name"] = self.model_target_name
+            self.spacy_model.meta["name"] = self.target_model_name
             self.spacy_model.to_disk(output_dir)
             print(
                 "Saved model to folder '{}'. Enjoy your new model!".format(output_dir)

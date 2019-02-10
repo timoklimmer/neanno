@@ -19,8 +19,9 @@ class FromDatasetsNamedEntitiesPredictor(Predictor):
     flashtext = None
     marked_for_removal = []
 
-    def __init__(self, name, enabled):
-        super().__init__(name, enabled)
+    def __init__(self, predictor_config):
+        super().__init__(predictor_config)
+        self.load_datasets(predictor_config["datasets"])
 
     def load_datasets(self, entity_code_location_string_dict):
         for entity_code_location_string in entity_code_location_string_dict:

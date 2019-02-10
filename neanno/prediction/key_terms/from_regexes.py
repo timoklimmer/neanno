@@ -9,8 +9,16 @@ class FromRegexesKeyTermsPredictor(Predictor):
 
     key_term_regexes = {}
 
-    def __init__(self, name, enabled):
-        super().__init__(name, enabled)
+    def __init__(self, config):
+        super().__init__(config)
+        for key_term_regex in config["patterns"]:
+            self.add_key_term_regex(
+                key_term_regex["name"],
+                key_term_regex["pattern"],
+                key_term_regex["parent_terms"]
+                if "parent_terms" in key_term_regex
+                else None
+            )
 
     def add_key_term_regex(self, entity_code, pattern, parent_terms):
         self.key_term_regexes[entity_code] = KeyTermRegex(

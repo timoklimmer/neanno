@@ -1,6 +1,7 @@
 import argparse
 import os
 import re
+import importlib
 
 import config
 import yaml
@@ -8,11 +9,15 @@ from cerberus import Validator
 
 from neanno.configuration.colors import DEFAULT_ENTITY_COLORS_PALETTE
 from neanno.configuration.definitions import CategoryDefinition, NamedEntityDefinition
-from neanno.prediction.key_terms.dataset import FromDatasetKeyTermsPredictor
-from neanno.prediction.key_terms.regexes import FromRegexesKeyTermsPredictor
-from neanno.prediction.named_entities.datasets import FromDatasetsNamedEntitiesPredictor
-from neanno.prediction.named_entities.regexes import FromRegexesNamedEntitiesPredictor
-from neanno.prediction.named_entities.spacy import FromSpacyNamedEntitiesPredictor
+from neanno.prediction.key_terms.from_dataset import FromDatasetKeyTermsPredictor
+from neanno.prediction.key_terms.from_regexes import FromRegexesKeyTermsPredictor
+from neanno.prediction.named_entities.from_datasets import (
+    FromDatasetsNamedEntitiesPredictor,
+)
+from neanno.prediction.named_entities.from_regexes import (
+    FromRegexesNamedEntitiesPredictor,
+)
+from neanno.prediction.named_entities.from_spacy import FromSpacyNamedEntitiesPredictor
 from neanno.prediction.pipeline import PredictionPipeline
 from neanno.utils.dataset import DatasetLocation, DatasetManager
 from neanno.utils.dict import QueryDict
@@ -133,39 +138,37 @@ class ConfigManager:
             ConfigManager.key_terms_predictors()
 
     @staticmethod
-    def key_terms_predictors():
-        # from_dataset
-        key_terms_dataset_location_path = "key_terms/predictors/from_dataset/location"
-        if ConfigManager.has_config_value(key_terms_dataset_location_path):
-            print("Initializing key terms from dataset predictor...")
-            predictor = FromDatasetKeyTermsPredictor("Key terms from dataset", True)
-            predictor.load_dataset(
-                ConfigManager.get_config_value(key_terms_dataset_location_path)
-            )
-            config.prediction_pipeline.add_predictor(predictor)
+    def get_prefix_for_predictor_class_name(predictor_config_key):
+        result = predictor_config_key
+        result = result[:1].upper() + result[1:]
+        result = re.sub(
+            "_.", lambda match: match.group().replace("_", "").upper(), result
+        )
+        return result
 
-        # from_regex_patterns
-        key_terms_regexes_path = "key_terms/predictors/from_regex_patterns"
-        if ConfigManager.has_config_value(key_terms_regexes_path):
-            print("Initializing key terms from regex patterns predictor...")
-            predictor = FromRegexesKeyTermsPredictor(
-                "Key terms from regex patterns", True
-            )            
-            for key_term_regex in ConfigManager.get_config_value(
-                key_terms_regexes_path + "/patterns"
-            ):
-                predictor.add_key_term_regex(
-                    key_term_regex["name"],
-                    key_term_regex["pattern"],
-                    key_term_regex["parent_terms"]
-                    if "parent_terms" in key_term_regex
-                    else None,
-                )
+    @staticmethod
+    def key_terms_predictors():
+        # iterate through all predictor configs, dynamically instantiate a predictor instance for
+        # each config and add it to the prediction pipeline
+        predictor_configs_dict = ConfigManager.get_config_value("key_terms/predictors")
+        for predictor_config_key in predictor_configs_dict:
+            predictor_config = predictor_configs_dict[predictor_config_key]
+            predictor_module = importlib.import_module(
+                "neanno.prediction.key_terms.{}".format(predictor_config_key)
+            )
+            predictor_class_name = "{}KeyTermsPredictor".format(
+                ConfigManager.get_prefix_for_predictor_class_name(predictor_config_key)
+            )
+            print("Adding {} to prediction pipeline...".format(predictor_class_name))
+            predictor = getattr(predictor_module, predictor_class_name)(
+                predictor_config
+            )
             config.prediction_pipeline.add_predictor(predictor)
 
     @staticmethod
     def named_entities():
         config.named_entity_definitions = []
+        config.named_entity_codes = []
         config.is_named_entities_enabled = "named_entities" in config.yaml
         if config.is_named_entities_enabled:
             ConfigManager.named_entities_definitions()
@@ -174,7 +177,6 @@ class ConfigManager:
     @staticmethod
     def named_entities_definitions():
         index = 0
-        config.named_entity_codes = []
         for definition in ConfigManager.get_config_value("named_entities/definitions"):
             code = definition["code"]
             shortcut = definition["shortcut"]
@@ -207,59 +209,20 @@ class ConfigManager:
 
     @staticmethod
     def named_entities_predictors():
-        # from_datasets
-        named_entities_datasets_path = "named_entities/predictors/from_datasets"
-        if ConfigManager.has_config_value(named_entities_datasets_path):
-            print("Initializing named entities from dataset(s) predictor...")
-            predictor = FromDatasetsNamedEntitiesPredictor(
-                "Named entities from dataset", True
+        # iterate through all predictor configs, dynamically instantiate a predictor instance for
+        # each config and add it to the prediction pipeline
+        predictor_configs_dict = ConfigManager.get_config_value("named_entities/predictors")
+        for predictor_config_key in predictor_configs_dict:
+            predictor_config = predictor_configs_dict[predictor_config_key]
+            predictor_module = importlib.import_module(
+                "neanno.prediction.named_entities.{}".format(predictor_config_key)
             )
-            predictor.load_datasets(
-                ConfigManager.get_config_value(named_entities_datasets_path + "/datasets")
+            predictor_class_name = "{}NamedEntitiesPredictor".format(
+                ConfigManager.get_prefix_for_predictor_class_name(predictor_config_key)
             )
-            config.prediction_pipeline.add_predictor(predictor)
-
-        # from_regex_patterns
-        named_entities_regexes_path = "named_entities/predictors/from_regex_patterns"
-        if ConfigManager.has_config_value(named_entities_regexes_path):
-            print("Initializing named entities from regex patterns predictor...")
-            predictor = FromRegexesNamedEntitiesPredictor(
-                "Named entities from regex patterns", True
-            )
-            for named_entity_regex in ConfigManager.get_config_value(
-                named_entities_regexes_path + "/patterns"
-            ):
-                predictor.add_named_entity_regex(
-                    named_entity_regex["entity"],
-                    named_entity_regex["pattern"],
-                    named_entity_regex["parent_terms"]
-                    if "parent_terms" in named_entity_regex
-                    else None,
-                )
-            config.prediction_pipeline.add_predictor(predictor)
-
-        # from_spacy
-        spacy_path = "named_entities/predictors/from_spacy"
-        if ConfigManager.has_config_value(spacy_path):
-            print("Initializing named entities from spacy predictor...")
-            config.spacy_ner_model_source = ConfigManager.get_config_value(
-                spacy_path + "/source"
-            )
-            config.spacy_ner_model_target = ConfigManager.get_config_value(
-                spacy_path + "/target"
-            )
-            config.spacy_ner_model_target_name = ConfigManager.get_config_value(
-                spacy_path + "/target_model_name"
-            )
-            predictor = FromSpacyNamedEntitiesPredictor(
-                "Named entities from spacy",
-                True,
-                config.named_entity_definitions,
-                config.spacy_ner_model_source,
-                config.text_column,
-                config.is_annotated_column,
-                config.spacy_ner_model_target,
-                config.spacy_ner_model_target_name,
+            print("Adding {} to prediction pipeline...".format(predictor_class_name))
+            predictor = getattr(predictor_module, predictor_class_name)(
+                predictor_config
             )
             config.prediction_pipeline.add_predictor(predictor)
 

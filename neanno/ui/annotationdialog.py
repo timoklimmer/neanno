@@ -191,10 +191,10 @@ class AnnotationDialog(QMainWindow):
         if config.prediction_pipeline.has_predictors():
             predictors_from_vertical_layout = QVBoxLayout()
 
-            configure_predictors_button = QPushButton("Enable/Disable predictors for prediction")
-            configure_predictors_button.clicked.connect(
-                self.configure_predictors
+            configure_predictors_button = QPushButton(
+                "Enable/Disable predictors for prediction"
             )
+            configure_predictors_button.clicked.connect(self.configure_predictors)
             predictors_from_vertical_layout.addWidget(configure_predictors_button)
 
             trigger_time_consuming_trainings_button = QPushButton(
@@ -707,7 +707,12 @@ class AnnotationDialog(QMainWindow):
         PredictorSelectionDialog.show(self)
 
     def trigger_time_consuming_trainings(self):
-        config.prediction_pipeline.learn_from_annotated_dataset(config.dataset_to_edit)
+        config.prediction_pipeline.learn_from_annotated_dataset(
+            config.dataset_to_edit,
+            config.text_column,
+            config.is_annotated_column,
+            config.named_entity_codes,
+        )
 
     def export_pipeline_model(self):
         QMessageBox.information(

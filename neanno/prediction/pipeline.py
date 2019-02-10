@@ -27,11 +27,11 @@ class PredictionPipeline:
     def get_all_predictors(self):
         return self._predictors.values()
 
-    def get_all_predictors_enabled_for_prediction(self):
+    def get_all_predictors_is_prediction_enabled(self):
         return [
             predictor
             for predictor in self._predictors.values()
-            if predictor.enabled_for_prediction
+            if predictor.is_prediction_enabled
         ]
 
     def invoke_predictors(self, function_name, *args):
@@ -57,14 +57,22 @@ class PredictionPipeline:
     def learn_from_annotated_text(self, annotated_text):
         self.invoke_predictors("learn_from_annotated_text", annotated_text)
 
-    def learn_from_annotated_dataset(self, dataset):
-        self.invoke_predictors("learn_from_annotated_dataset", dataset)
+    def learn_from_annotated_dataset(
+        self, dataset, text_column, is_annotated_column, entity_codes_to_train
+    ):
+        self.invoke_predictors(
+            "learn_from_annotated_dataset",
+            dataset,
+            text_column,
+            is_annotated_column,
+            entity_codes_to_train,
+        )
 
     def predict_inline_annotations(self, text):
         if not text:
             return ""
         result = mask_annotations(text)
-        for predictor in self.get_all_predictors_enabled_for_prediction():
+        for predictor in self.get_all_predictors_is_prediction_enabled():
             if hasattr(predictor, "predict_inline_annotations"):
                 result_candidate = predictor.predict_inline_annotations(result, True)
                 result = result_candidate if not None else result
@@ -75,7 +83,7 @@ class PredictionPipeline:
         if not text:
             return ""
         result = []
-        for predictor in self.get_all_predictors_enabled_for_prediction():
+        for predictor in self.get_all_predictors_is_prediction_enabled():
             if hasattr(predictor, "predict_categories"):
                 result = result.extend(predictor.predict_categories(text))
         return result

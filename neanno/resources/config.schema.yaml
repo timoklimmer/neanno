@@ -51,6 +51,12 @@ key_terms:
                 from_dataset:
                     type: dict
                     schema:
+                        name:
+                            type: string
+                            required: True
+                        is_prediction_enabled:
+                            type: boolean
+                            required: True
                         location:
                             type: string
                             regex: "^.+?:.+"
@@ -58,6 +64,12 @@ key_terms:
                 from_regexes:
                     type: dict
                     schema:
+                        name:
+                            type: string
+                            required: True
+                        is_prediction_enabled:
+                            type: boolean
+                            required: True
                         patterns:
                             type: list
                             schema:
@@ -109,6 +121,12 @@ named_entities:
                 from_datasets:
                     type: dict
                     schema:
+                        name:
+                            type: string
+                            required: True
+                        is_prediction_enabled:
+                            type: boolean
+                            required: True
                         datasets:
                             type: list
                             schema:
@@ -121,9 +139,15 @@ named_entities:
                                         type: string
                                         regex: "^.+?:.+"
                                         required: True                
-                from_regex_patterns:
+                from_regexes:
                     type: dict
                     schema:
+                        name:
+                            type: string
+                            required: True
+                        is_prediction_enabled:
+                            type: boolean
+                            required: True
                         patterns:
                             type: list
                             schema:
@@ -142,10 +166,16 @@ named_entities:
                 from_spacy:
                     type: dict
                     schema:
-                        source:
+                        name:
                             type: string
                             required: True
-                        target:
+                        is_prediction_enabled:
+                            type: boolean
+                            required: True
+                        source_model:
+                            type: string
+                            required: True
+                        target_model_directory:
                             type: string
                             required: False
                         target_model_name:

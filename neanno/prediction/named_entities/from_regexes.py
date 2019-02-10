@@ -9,8 +9,16 @@ class FromRegexesNamedEntitiesPredictor(Predictor):
 
     named_entity_regexes = {}
 
-    def __init__(self, name, enabled):
-        super().__init__(name, enabled)
+    def __init__(self, predictor_config):
+        super().__init__(predictor_config)
+        for named_entity_regex in predictor_config["patterns"]:
+            self.add_named_entity_regex(
+                named_entity_regex["entity"],
+                named_entity_regex["pattern"],
+                named_entity_regex["parent_terms"]
+                if "parent_terms" in named_entity_regex
+                else None,
+            )
 
     def add_named_entity_regex(self, entity_code, pattern, parent_terms):
         self.named_entity_regexes[entity_code] = NamedEntityRegex(

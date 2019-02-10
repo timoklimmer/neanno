@@ -19,8 +19,9 @@ class FromDatasetKeyTermsPredictor(Predictor):
     flashtext = None
     key_terms_marked_for_removal = []
 
-    def __init__(self, name, enabled):
-        super().__init__(name, enabled)
+    def __init__(self, predictor_config):
+        super().__init__(predictor_config)
+        self.load_dataset(predictor_config["location"])
 
     def load_dataset(self, location_string):
         # update location_string

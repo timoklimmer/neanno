@@ -9,7 +9,7 @@
 
 dataset:
     source: csv:samples/airline_tickets/texts.annotating.csv
-    text_column: Text
+    text_column: text
     is_annotated_column: is_text_annotated
     target: csv:samples/airline_tickets/texts.annotating.csv
 
@@ -26,18 +26,22 @@ categories:
   column: categories
 
 key_terms:
+  #shortcuts:
+  #  standalone: Alt+1
+  #  parented: Alt+2
+  #  backcolor: "#333333"
+  #  forecolor: "#50e6ff"
   predictors:
     from_dataset:
+      name: Key Terms from Dataset
+      is_prediction_enabled: true
       location: csv:samples/airline_tickets/default.key_terms.csv
     from_regexes:
+      name: Key Terms from Regexes
+      is_prediction_enabled: true
       patterns:
         - name: terminals
           pattern: (?i)(\bterminal\s*\d+\b)|(\bT[1-9]\b)|(\bterminal\b)
-  # shortcuts:
-  #   standalone: Alt+1
-  #   parented: Alt+2
-  #backcolor: "#333333"
-  #forecolor: "#50e6ff"
 
 named_entities:
   definitions:
@@ -58,31 +62,38 @@ named_entities:
         shortcut: Alt+C
   predictors:
     from_datasets:
+      name: Named Entities from Dataset
+      is_prediction_enabled: true
       datasets:
         - code: AIRLINE
           location: csv:samples/airline_tickets/airlines.named_entities.csv
         # - code: ...
-    from_regex_patterns:
-      patterns:
-        - entity: FROM
-          pattern: (?<=\bfrom\s)[A-Z][A-Za-z]+\b
-          #parent_terms: just an example to show that we can add parent terms here as well
-        - entity: TO
-          pattern: (?<=\bto\s)[A-Z][A-Za-z]+\b
-        - entity: VIA
-          pattern: (?<=\bvia\s)[A-Z][A-Za-z]+\b
-        - entity: AIRCRAFT
-          pattern: (A\s*)?3[28]0|(B\s*)?7\d7(-\d{3})|(Boeing\s*)?7\d7(-\d{3})CRJ|MD-\d{2}?
-        #- entity: TIME
-        #  pattern: "(?x)
-        #             January \\b | Jan \\b | February \\b | Feb \\b | March \\b | Mar \\b | April \\b | Apr \\b
-        #            | May \\b | June \\b | Jun \\b | July \\b | Jul \\b | August \\b | Aug \\b | September \\b
-        #            | Sep \\b | October \\b | Oct \\b | November \\b | Nov \\b | December \\b | Dec \\b
-        #            | \\b(([01]?[0-9])|(2[0-3]))[:\\.]?[0-5][0-9]\\s*([Aa]\\.?[Mm]\\.?|[Pp]\\.?[Mm]\\.?|hrs)\\b
-        #           "
+    from_regexes:
+     name: Named Entities from Regexes
+     is_prediction_enabled: true
+     patterns:
+      - entity: FROM
+        pattern: (?<=\bfrom\s)[A-Z][A-Za-z]+\b
+        #parent_terms: just an example to show that we can add parent terms here as well
+      - entity: TO
+        pattern: (?<=\bto\s)[A-Z][A-Za-z]+\b
+      - entity: VIA
+        pattern: (?<=\bvia\s)[A-Z][A-Za-z]+\b
+      - entity: AIRCRAFT
+        pattern: (A\s*)?3[28]0|(B\s*)?7\d7(-\d{3})|(Boeing\s*)?7\d7(-\d{3})CRJ|MD-\d{2}?
+      #- entity: TIME
+      #  pattern: "(?x)
+      #             January \\b | Jan \\b | February \\b | Feb \\b | March \\b | Mar \\b | April \\b | Apr \\b
+      #            | May \\b | June \\b | Jun \\b | July \\b | Jul \\b | August \\b | Aug \\b | September \\b
+      #            | Sep \\b | October \\b | Oct \\b | November \\b | Nov \\b | December \\b | Dec \\b
+      #            | \\b(([01]?[0-9])|(2[0-3]))[:\\.]?[0-5][0-9]\\s*([Aa]\\.?[Mm]\\.?|[Pp]\\.?[Mm]\\.?|hrs)\\b
+      #           "
+      
     from_spacy:
-      source: blank:en
-      target: samples/airline_tickets/spacy_model
+      name: Named Entities from spacy
+      is_prediction_enabled: true
+      source_model: blank:en
+      target_model_directory: samples/airline_tickets/spacy_model
       target_model_name: airline_tickets
 
 instructions: "
