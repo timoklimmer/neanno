@@ -1,4 +1,5 @@
 import pandas as pd
+import yaml
 from flashtext import KeywordProcessor
 
 from neanno.prediction.predictor import Predictor
@@ -9,6 +10,7 @@ from neanno.utils.text import (
     mask_annotations,
     unmask_annotations,
 )
+
 
 class FromDatasetKeyTermsPredictor(Predictor):
     """ Predicts key terms of a text by looking up terms in a dataset."""
@@ -23,19 +25,15 @@ class FromDatasetKeyTermsPredictor(Predictor):
         self.load_dataset(predictor_config["location"])
 
     @property
-    def config_validation_schema(self):
-        return """
-            name:
-                type: string
-                required: True
-            is_prediction_enabled:
-                type: boolean
-                required: True
+    def config_validation_schema_custom_part(self):
+        return yaml.load(
+            """
             location:
                 type: string
                 regex: "^.+?:.+"
                 required: True
-        """
+            """
+        )
 
     def load_dataset(self, location_string):
         # update location_string

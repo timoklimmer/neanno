@@ -1,5 +1,7 @@
 import re
 
+import yaml
+
 from neanno.prediction.predictor import Predictor
 from neanno.utils.text import mask_annotations, unmask_annotations
 
@@ -17,18 +19,13 @@ class FromRegexesKeyTermsPredictor(Predictor):
                 key_term_regex["pattern"],
                 key_term_regex["parent_terms"]
                 if "parent_terms" in key_term_regex
-                else None
+                else None,
             )
 
     @property
-    def config_validation_schema(self):
-        return """
-            name:
-                type: string
-                required: True
-            is_prediction_enabled:
-                type: boolean
-                required: True
+    def config_validation_schema_custom_part(self):
+        return yaml.load(
+            """
             patterns:
                 type: list
                 schema:
@@ -43,7 +40,8 @@ class FromRegexesKeyTermsPredictor(Predictor):
                         parent_terms:
                             type: string
                             required: False
-        """
+            """
+        )
 
     def add_key_term_regex(self, entity_code, pattern, parent_terms):
         self.key_term_regexes[entity_code] = KeyTermRegex(

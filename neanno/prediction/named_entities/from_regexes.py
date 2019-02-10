@@ -1,5 +1,7 @@
 import re
 
+import yaml
+
 from neanno.prediction.predictor import Predictor
 from neanno.utils.text import mask_annotations, unmask_annotations
 
@@ -21,14 +23,9 @@ class FromRegexesNamedEntitiesPredictor(Predictor):
             )
 
     @property
-    def config_validation_schema(self):
-        return """
-            name:
-                type: string
-                required: True
-            is_prediction_enabled:
-                type: boolean
-                required: True
+    def config_validation_schema_custom_part(self):
+        return yaml.load(
+            """
             patterns:
                 type: list
                 schema:
@@ -43,8 +40,8 @@ class FromRegexesNamedEntitiesPredictor(Predictor):
                         parent_terms:
                             type: string
                             required: False
-                    required: False
-        """
+            """
+        )
 
     def add_named_entity_regex(self, entity_code, pattern, parent_terms):
         self.named_entity_regexes[entity_code] = NamedEntityRegex(

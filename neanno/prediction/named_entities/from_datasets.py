@@ -1,4 +1,5 @@
 import pandas as pd
+import yaml
 from flashtext import KeywordProcessor
 
 from neanno.prediction.predictor import Predictor
@@ -24,14 +25,9 @@ class FromDatasetsNamedEntitiesPredictor(Predictor):
         self.load_datasets(predictor_config["datasets"])
 
     @property
-    def config_validation_schema(self):
-        return """
-            name:
-                type: string
-                required: True
-            is_prediction_enabled:
-                type: boolean
-                required: True
+    def config_validation_schema_custom_part(self):
+        return yaml.load(
+            """
             datasets:
                 type: list
                 schema:
@@ -44,7 +40,8 @@ class FromDatasetsNamedEntitiesPredictor(Predictor):
                             type: string
                             regex: "^.+?:.+"
                             required: True
-        """
+            """
+        )
 
     def load_datasets(self, entity_code_location_string_dict):
         for entity_code_location_string in entity_code_location_string_dict:

@@ -2,6 +2,7 @@ import pathlib
 import random
 
 import spacy
+import yaml
 from PyQt5.QtCore import QThreadPool
 from spacy.util import compounding, minibatch
 
@@ -37,14 +38,9 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
         )
 
     @property
-    def config_validation_schema(self):
-        return """
-            name:
-                type: string
-                required: True
-            is_prediction_enabled:
-                type: boolean
-                required: True
+    def config_validation_schema_custom_part(self):
+        return yaml.load(
+            """
             source_model:
                 type: string
                 required: True
@@ -54,7 +50,8 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
             target_model_name:
                 type: string
                 required: False
-        """
+            """
+        )
 
     def learn_from_annotated_dataset(
         self, dataset, text_column, is_annotated_column, entity_codes_to_train

@@ -46,9 +46,26 @@ key_terms:
                     type: string
                     required: False
         predictors:
-            # note: the predictors are loaded dynamically based on the key in the dict and
-            #       have a validation by themselves
-            type: dict
+            # note: this validation is required to instantiate predictors.
+            #       usually, predictors have additional, specific fields.
+            #       hence, predictors do their own validation in addition.
+            type: list
+            schema:
+                type: dict
+                schema:
+                    name:
+                        type: string
+                        required: True
+                    module:
+                        type: string
+                        required: True
+                    class:
+                        type: string
+                        required: True
+                    is_prediction_enabled:
+                        type: boolean
+                        required: True
+                allow_unknown: True
             required: False
         backcolor:
             type: string
@@ -80,9 +97,26 @@ named_entities:
                         regex: "(?i)^#[A-F0-9]{6}$|^[A-Z]+$"
                         required: False
         predictors:
-            # note: the predictors are loaded dynamically based on the key in the dict and
-            #       have a validation by themselves
-            type: dict
+            # note: this validation is required to instantiate predictors.
+            #       usually, predictors have additional, specific fields.
+            #       hence, predictors do their own validation in addition.
+            type: list
+            schema:
+                type: dict
+                schema:
+                    name:
+                        type: string
+                        required: True
+                    module:
+                        type: string
+                        required: True
+                    class:
+                        type: string
+                        required: True
+                    is_prediction_enabled:
+                        type: boolean
+                        required: True
+                allow_unknown: True
             required: False
     required: False
 

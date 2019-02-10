@@ -32,12 +32,16 @@ key_terms:
   #  backcolor: "#333333"
   #  forecolor: "#50e6ff"
   predictors:
-    from_dataset:
-      name: Key Terms from Dataset
+    # Key Terms from Dataset
+    - name: Key Terms from Dataset
+      module: neanno.prediction.key_terms.from_dataset
+      class: FromDatasetKeyTermsPredictor
       is_prediction_enabled: true
       location: csv:samples/airline_tickets/default.key_terms.csv
-    from_regexes:
-      name: Key Terms from Regexes
+    # Key Terms from Regexes
+    - name: Key Terms from Regexes
+      module: neanno.prediction.key_terms.from_regexes
+      class: FromRegexesKeyTermsPredictor
       is_prediction_enabled: true
       patterns:
         - name: terminals
@@ -61,17 +65,21 @@ named_entities:
       - code: AIRCRAFT
         shortcut: Alt+C
   predictors:
-    from_datasets:
-      name: Named Entities from Dataset
+    # Named Entities from Dataset
+    - name: Named Entities from Dataset
+      module: neanno.prediction.named_entities.from_datasets
+      class: FromDatasetsNamedEntitiesPredictor
       is_prediction_enabled: true
       datasets:
         - code: AIRLINE
           location: csv:samples/airline_tickets/airlines.named_entities.csv
         # - code: ...
-    from_regexes:
-     name: Named Entities from Regexes
-     is_prediction_enabled: true
-     patterns:
+    # Named Entities from Regexes
+    - name: Named Entities from Regexes
+      module: neanno.prediction.named_entities.from_regexes
+      class: FromRegexesNamedEntitiesPredictor
+      is_prediction_enabled: true
+      patterns:
       - entity: FROM
         pattern: (?<=\bfrom\s)[A-Z][A-Za-z]+\b
         #parent_terms: just an example to show that we can add parent terms here as well
@@ -88,9 +96,9 @@ named_entities:
       #            | Sep \\b | October \\b | Oct \\b | November \\b | Nov \\b | December \\b | Dec \\b
       #            | \\b(([01]?[0-9])|(2[0-3]))[:\\.]?[0-5][0-9]\\s*([Aa]\\.?[Mm]\\.?|[Pp]\\.?[Mm]\\.?|hrs)\\b
       #           "
-      
-    from_spacy:
-      name: Named Entities from spacy
+    - name: Named Entities from spacy
+      module: neanno.prediction.named_entities.from_spacy
+      class: FromSpacyNamedEntitiesPredictor
       is_prediction_enabled: true
       source_model: blank:en
       target_model_directory: samples/airline_tickets/spacy_model

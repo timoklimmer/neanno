@@ -191,14 +191,14 @@ class AnnotationDialog(QMainWindow):
         if config.prediction_pipeline.has_predictors():
             predictors_from_vertical_layout = QVBoxLayout()
 
-            configure_predictors_button = QPushButton(
-                "Enable/Disable predictors for prediction"
+            manage_predictors_button = QPushButton(
+                "Manage Predictors"
             )
-            configure_predictors_button.clicked.connect(self.configure_predictors)
-            predictors_from_vertical_layout.addWidget(configure_predictors_button)
+            manage_predictors_button.clicked.connect(self.configure_predictors)
+            predictors_from_vertical_layout.addWidget(manage_predictors_button)
 
             trigger_batch_trainings_button = QPushButton(
-                "Trigger batch training(s)"
+                "Trigger Batch Training(s)"
             )
             trigger_batch_trainings_button.clicked.connect(
                 self.trigger_batch_trainings
@@ -207,7 +207,7 @@ class AnnotationDialog(QMainWindow):
                 trigger_batch_trainings_button
             )
 
-            export_pipeline_model_button = QPushButton("Export pipeline model")
+            export_pipeline_model_button = QPushButton("Export Pipeline Model")
             export_pipeline_model_button.clicked.connect(self.export_pipeline_model)
             predictors_from_vertical_layout.addWidget(export_pipeline_model_button)
             predictors_from_groupbox = QGroupBox("Predictors")

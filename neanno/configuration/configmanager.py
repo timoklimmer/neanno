@@ -129,39 +129,10 @@ class ConfigManager:
             ConfigManager.key_terms_predictors()
 
     @staticmethod
-    def get_prefix_for_predictor_class_name(predictor_config_key):
-        result = predictor_config_key
-        result = result[:1].upper() + result[1:]
-        result = re.sub(
-            "_.", lambda match: match.group().replace("_", "").upper(), result
-        )
-        return result
-
-    @staticmethod
     def key_terms_predictors():
-        # iterate through all predictor configs, dynamically instantiate a predictor instance for
-        # each config and add it to the prediction pipeline
-        if ConfigManager.has_config_value("key_terms/predictors"):
-            predictor_configs_dict = ConfigManager.get_config_value(
-                "key_terms/predictors"
-            )
-            for predictor_config_key in predictor_configs_dict:
-                predictor_config = predictor_configs_dict[predictor_config_key]
-                predictor_module = importlib.import_module(
-                    "neanno.prediction.key_terms.{}".format(predictor_config_key)
-                )
-                predictor_class_name = "{}KeyTermsPredictor".format(
-                    ConfigManager.get_prefix_for_predictor_class_name(
-                        predictor_config_key
-                    )
-                )
-                print(
-                    "Adding {} to prediction pipeline...".format(predictor_class_name)
-                )
-                predictor = getattr(predictor_module, predictor_class_name)(
-                    predictor_config
-                )
-                config.prediction_pipeline.add_predictor(predictor)
+        predictors_path = "key_terms/predictors"
+        if ConfigManager.has_config_value(predictors_path):
+            ConfigManager.add_predictors_from_predictors_node(predictors_path)
 
     @staticmethod
     def named_entities():
@@ -207,29 +178,9 @@ class ConfigManager:
 
     @staticmethod
     def named_entities_predictors():
-        # iterate through all predictor configs, dynamically instantiate a predictor instance for
-        # each config and add it to the prediction pipeline
-        if ConfigManager.has_config_value("named_entities/predictors"):
-            predictor_configs_dict = ConfigManager.get_config_value(
-                "named_entities/predictors"
-            )
-            for predictor_config_key in predictor_configs_dict:
-                predictor_config = predictor_configs_dict[predictor_config_key]
-                predictor_module = importlib.import_module(
-                    "neanno.prediction.named_entities.{}".format(predictor_config_key)
-                )
-                predictor_class_name = "{}NamedEntitiesPredictor".format(
-                    ConfigManager.get_prefix_for_predictor_class_name(
-                        predictor_config_key
-                    )
-                )
-                print(
-                    "Adding {} to prediction pipeline...".format(predictor_class_name)
-                )
-                predictor = getattr(predictor_module, predictor_class_name)(
-                    predictor_config
-                )
-                config.prediction_pipeline.add_predictor(predictor)
+        predictors_path = "named_entities/predictors"
+        if ConfigManager.has_config_value(predictors_path):
+            ConfigManager.add_predictors_from_predictors_node(predictors_path)
 
     @staticmethod
     def categories():
@@ -274,3 +225,17 @@ class ConfigManager:
             ):
                 return named_entity_definition
                 break
+
+    @staticmethod
+    def add_predictors_from_predictors_node(predictors_node_path):
+        # iterate through all predictors, dynamically instantiate an instance and it to the pipeline
+        predictor_configs_list = ConfigManager.get_config_value(predictors_node_path)
+        for predictor_config in predictor_configs_list:
+            predictor_name = predictor_config["name"]
+            predictor_module = importlib.import_module(predictor_config["module"])
+            predictor_class_name = predictor_config["class"]
+            print("Adding predictor '{}' to pipeline...".format(predictor_name))
+            predictor = getattr(predictor_module, predictor_class_name)(
+                predictor_config
+            )
+            config.prediction_pipeline.add_predictor(predictor)
