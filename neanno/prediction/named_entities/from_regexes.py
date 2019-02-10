@@ -20,6 +20,32 @@ class FromRegexesNamedEntitiesPredictor(Predictor):
                 else None,
             )
 
+    @property
+    def config_validation_schema(self):
+        return """
+            name:
+                type: string
+                required: True
+            is_prediction_enabled:
+                type: boolean
+                required: True
+            patterns:
+                type: list
+                schema:
+                    type: dict
+                    schema:
+                        entity:
+                            type: string
+                            required: True
+                        pattern:
+                            type: string
+                            required: True
+                        parent_terms:
+                            type: string
+                            required: False
+                    required: False
+        """
+
     def add_named_entity_regex(self, entity_code, pattern, parent_terms):
         self.named_entity_regexes[entity_code] = NamedEntityRegex(
             entity_code, pattern, parent_terms

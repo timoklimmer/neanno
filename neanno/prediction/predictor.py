@@ -1,15 +1,25 @@
-from abc import ABC
+from abc import ABC, abstractmethod, abstractproperty
+from neanno.utils.yaml import validate_yaml
 
 
 class Predictor(ABC):
     _name = None
     _is_prediction_enabled = None
-    _predictor_config = None
+    _config = None
 
-    def __init__(self, _predictor_config):
-        self._predictor_config = _predictor_config
-        self._name = self._predictor_config["name"]
-        self._is_prediction_enabled = self._predictor_config["is_prediction_enabled"]
+    def __init__(self, config):
+        try:
+            validate_yaml(config, self.config_validation_schema)
+        except:
+            print(
+                "Failed to create predictor{} because it was given a wrong configuration. To create the predictor you must follow it's required configuration schema.".format(
+                    " '" + config["name"] + "'" if "name" in config else ""
+                )
+            )
+            raise
+        self._config = config
+        self._name = self._config["name"]
+        self._is_prediction_enabled = self._config["is_prediction_enabled"]
 
     @property
     def name(self):
@@ -20,12 +30,17 @@ class Predictor(ABC):
         self._name = value
 
     @property
-    def predictor_config(self):
-        return self._predictor_config
+    def config(self):
+        return self._config
 
-    @predictor_config.setter
-    def predictor_config(self, value):
-        self._predictor_config = value
+    @config.setter
+    def config(self, value):
+        self._config = value
+
+    @property
+    @abstractmethod
+    def config_validation_schema(self):
+        pass
 
     @property
     def is_prediction_enabled(self):
@@ -34,4 +49,3 @@ class Predictor(ABC):
     @is_prediction_enabled.setter
     def is_prediction_enabled(self, value):
         self._is_prediction_enabled = value
-

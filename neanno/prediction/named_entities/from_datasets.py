@@ -23,6 +23,29 @@ class FromDatasetsNamedEntitiesPredictor(Predictor):
         super().__init__(predictor_config)
         self.load_datasets(predictor_config["datasets"])
 
+    @property
+    def config_validation_schema(self):
+        return """
+            name:
+                type: string
+                required: True
+            is_prediction_enabled:
+                type: boolean
+                required: True
+            datasets:
+                type: list
+                schema:
+                    type: dict
+                    schema:
+                        code:
+                            type: string
+                            required: True
+                        location:
+                            type: string
+                            regex: "^.+?:.+"
+                            required: True
+        """
+
     def load_datasets(self, entity_code_location_string_dict):
         for entity_code_location_string in entity_code_location_string_dict:
             entity_code = entity_code_location_string["code"]

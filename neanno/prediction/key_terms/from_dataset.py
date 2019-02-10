@@ -10,7 +10,6 @@ from neanno.utils.text import (
     unmask_annotations,
 )
 
-
 class FromDatasetKeyTermsPredictor(Predictor):
     """ Predicts key terms of a text by looking up terms in a dataset."""
 
@@ -22,6 +21,21 @@ class FromDatasetKeyTermsPredictor(Predictor):
     def __init__(self, predictor_config):
         super().__init__(predictor_config)
         self.load_dataset(predictor_config["location"])
+
+    @property
+    def config_validation_schema(self):
+        return """
+            name:
+                type: string
+                required: True
+            is_prediction_enabled:
+                type: boolean
+                required: True
+            location:
+                type: string
+                regex: "^.+?:.+"
+                required: True
+        """
 
     def load_dataset(self, location_string):
         # update location_string

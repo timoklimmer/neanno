@@ -21,6 +21,7 @@ from neanno.prediction.named_entities.from_spacy import FromSpacyNamedEntitiesPr
 from neanno.prediction.pipeline import PredictionPipeline
 from neanno.utils.dataset import DatasetLocation, DatasetManager
 from neanno.utils.dict import QueryDict
+from neanno.utils.yaml import validate_yaml
 
 
 class ConfigManager:
@@ -76,17 +77,7 @@ class ConfigManager:
                 )
             ) as config_schema_file:
                 config.yaml = yaml.load(config_file)
-                config_yaml_schema = yaml.load(config_schema_file)
-                config_yaml_validator = Validator(config_yaml_schema)
-                config_yaml_validator.validate(config.yaml)
-                errors = config_yaml_validator.errors
-                if errors:
-                    config.parser.error(
-                        yaml.dump(errors)
-                        + os.linesep
-                        + os.linesep
-                        + "The given config file does not follow the required schema (from file config.schema.yaml). See error message(s) above for more details."
-                    )
+                validate_yaml(config.yaml, config_schema_file)
 
     @staticmethod
     def dataset_source():
@@ -150,20 +141,27 @@ class ConfigManager:
     def key_terms_predictors():
         # iterate through all predictor configs, dynamically instantiate a predictor instance for
         # each config and add it to the prediction pipeline
-        predictor_configs_dict = ConfigManager.get_config_value("key_terms/predictors")
-        for predictor_config_key in predictor_configs_dict:
-            predictor_config = predictor_configs_dict[predictor_config_key]
-            predictor_module = importlib.import_module(
-                "neanno.prediction.key_terms.{}".format(predictor_config_key)
+        if ConfigManager.has_config_value("key_terms/predictors"):
+            predictor_configs_dict = ConfigManager.get_config_value(
+                "key_terms/predictors"
             )
-            predictor_class_name = "{}KeyTermsPredictor".format(
-                ConfigManager.get_prefix_for_predictor_class_name(predictor_config_key)
-            )
-            print("Adding {} to prediction pipeline...".format(predictor_class_name))
-            predictor = getattr(predictor_module, predictor_class_name)(
-                predictor_config
-            )
-            config.prediction_pipeline.add_predictor(predictor)
+            for predictor_config_key in predictor_configs_dict:
+                predictor_config = predictor_configs_dict[predictor_config_key]
+                predictor_module = importlib.import_module(
+                    "neanno.prediction.key_terms.{}".format(predictor_config_key)
+                )
+                predictor_class_name = "{}KeyTermsPredictor".format(
+                    ConfigManager.get_prefix_for_predictor_class_name(
+                        predictor_config_key
+                    )
+                )
+                print(
+                    "Adding {} to prediction pipeline...".format(predictor_class_name)
+                )
+                predictor = getattr(predictor_module, predictor_class_name)(
+                    predictor_config
+                )
+                config.prediction_pipeline.add_predictor(predictor)
 
     @staticmethod
     def named_entities():
@@ -211,20 +209,27 @@ class ConfigManager:
     def named_entities_predictors():
         # iterate through all predictor configs, dynamically instantiate a predictor instance for
         # each config and add it to the prediction pipeline
-        predictor_configs_dict = ConfigManager.get_config_value("named_entities/predictors")
-        for predictor_config_key in predictor_configs_dict:
-            predictor_config = predictor_configs_dict[predictor_config_key]
-            predictor_module = importlib.import_module(
-                "neanno.prediction.named_entities.{}".format(predictor_config_key)
+        if ConfigManager.has_config_value("named_entities/predictors"):
+            predictor_configs_dict = ConfigManager.get_config_value(
+                "named_entities/predictors"
             )
-            predictor_class_name = "{}NamedEntitiesPredictor".format(
-                ConfigManager.get_prefix_for_predictor_class_name(predictor_config_key)
-            )
-            print("Adding {} to prediction pipeline...".format(predictor_class_name))
-            predictor = getattr(predictor_module, predictor_class_name)(
-                predictor_config
-            )
-            config.prediction_pipeline.add_predictor(predictor)
+            for predictor_config_key in predictor_configs_dict:
+                predictor_config = predictor_configs_dict[predictor_config_key]
+                predictor_module = importlib.import_module(
+                    "neanno.prediction.named_entities.{}".format(predictor_config_key)
+                )
+                predictor_class_name = "{}NamedEntitiesPredictor".format(
+                    ConfigManager.get_prefix_for_predictor_class_name(
+                        predictor_config_key
+                    )
+                )
+                print(
+                    "Adding {} to prediction pipeline...".format(predictor_class_name)
+                )
+                predictor = getattr(predictor_module, predictor_class_name)(
+                    predictor_config
+                )
+                config.prediction_pipeline.add_predictor(predictor)
 
     @staticmethod
     def categories():

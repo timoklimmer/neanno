@@ -46,45 +46,9 @@ key_terms:
                     type: string
                     required: False
         predictors:
+            # note: the predictors are loaded dynamically based on the key in the dict and
+            #       have a validation by themselves
             type: dict
-            schema:
-                from_dataset:
-                    type: dict
-                    schema:
-                        name:
-                            type: string
-                            required: True
-                        is_prediction_enabled:
-                            type: boolean
-                            required: True
-                        location:
-                            type: string
-                            regex: "^.+?:.+"
-                            required: True
-                from_regexes:
-                    type: dict
-                    schema:
-                        name:
-                            type: string
-                            required: True
-                        is_prediction_enabled:
-                            type: boolean
-                            required: True
-                        patterns:
-                            type: list
-                            schema:
-                                type: dict
-                                schema:
-                                    name:
-                                        type: string
-                                        required: True
-                                    pattern:
-                                        type: string
-                                        required: True
-                                    parent_terms:
-                                        type: string
-                                        required: False
-                    required: False
             required: False
         backcolor:
             type: string
@@ -116,72 +80,9 @@ named_entities:
                         regex: "(?i)^#[A-F0-9]{6}$|^[A-Z]+$"
                         required: False
         predictors:
+            # note: the predictors are loaded dynamically based on the key in the dict and
+            #       have a validation by themselves
             type: dict
-            schema:
-                from_datasets:
-                    type: dict
-                    schema:
-                        name:
-                            type: string
-                            required: True
-                        is_prediction_enabled:
-                            type: boolean
-                            required: True
-                        datasets:
-                            type: list
-                            schema:
-                                type: dict
-                                schema:
-                                    code:
-                                        type: string
-                                        required: True
-                                    location:
-                                        type: string
-                                        regex: "^.+?:.+"
-                                        required: True                
-                from_regexes:
-                    type: dict
-                    schema:
-                        name:
-                            type: string
-                            required: True
-                        is_prediction_enabled:
-                            type: boolean
-                            required: True
-                        patterns:
-                            type: list
-                            schema:
-                                type: dict
-                                schema:
-                                    entity:
-                                        type: string
-                                        required: True
-                                    pattern:
-                                        type: string
-                                        required: True
-                                    parent_terms:
-                                        type: string
-                                        required: False
-                                required: False
-                from_spacy:
-                    type: dict
-                    schema:
-                        name:
-                            type: string
-                            required: True
-                        is_prediction_enabled:
-                            type: boolean
-                            required: True
-                        source_model:
-                            type: string
-                            required: True
-                        target_model_directory:
-                            type: string
-                            required: False
-                        target_model_name:
-                            type: string
-                            required: False
-                    required: False
             required: False
     required: False
 

@@ -20,6 +20,31 @@ class FromRegexesKeyTermsPredictor(Predictor):
                 else None
             )
 
+    @property
+    def config_validation_schema(self):
+        return """
+            name:
+                type: string
+                required: True
+            is_prediction_enabled:
+                type: boolean
+                required: True
+            patterns:
+                type: list
+                schema:
+                    type: dict
+                    schema:
+                        name:
+                            type: string
+                            required: True
+                        pattern:
+                            type: string
+                            required: True
+                        parent_terms:
+                            type: string
+                            required: False
+        """
+
     def add_key_term_regex(self, entity_code, pattern, parent_terms):
         self.key_term_regexes[entity_code] = KeyTermRegex(
             entity_code, pattern, parent_terms

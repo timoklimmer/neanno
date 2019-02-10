@@ -36,6 +36,26 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
             else spacy.load(self.source_model)
         )
 
+    @property
+    def config_validation_schema(self):
+        return """
+            name:
+                type: string
+                required: True
+            is_prediction_enabled:
+                type: boolean
+                required: True
+            source_model:
+                type: string
+                required: True
+            target_model_directory:
+                type: string
+                required: False
+            target_model_name:
+                type: string
+                required: False
+        """
+
     def learn_from_annotated_dataset(
         self, dataset, text_column, is_annotated_column, entity_codes_to_train
     ):
