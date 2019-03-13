@@ -31,6 +31,7 @@ from neanno.ui.predictorselection import PredictorSelectionDialog
 from neanno.ui.shortcuts import *
 from neanno.ui.syntaxhighlighters import TextEditHighlighter
 from neanno.utils.text import *
+from neanno.utils.threading import ParallelWorker
 
 DEFAULT_PARENT_KEY_TERM = "<add your consolidating terms here, separated by commas>"
 
@@ -191,21 +192,13 @@ class AnnotationDialog(QMainWindow):
         if config.prediction_pipeline.has_predictors():
             predictors_from_vertical_layout = QVBoxLayout()
 
-            manage_predictors_button = QPushButton(
-                "Manage Predictors"
-            )
+            manage_predictors_button = QPushButton("Manage Predictors")
             manage_predictors_button.clicked.connect(self.configure_predictors)
             predictors_from_vertical_layout.addWidget(manage_predictors_button)
 
-            trigger_batch_trainings_button = QPushButton(
-                "Trigger Batch Training(s)"
-            )
-            trigger_batch_trainings_button.clicked.connect(
-                self.trigger_batch_trainings
-            )
-            predictors_from_vertical_layout.addWidget(
-                trigger_batch_trainings_button
-            )
+            trigger_batch_trainings_button = QPushButton("Trigger Batch Training(s)")
+            trigger_batch_trainings_button.clicked.connect(self.trigger_batch_trainings)
+            predictors_from_vertical_layout.addWidget(trigger_batch_trainings_button)
 
             export_pipeline_model_button = QPushButton("Export Pipeline Model")
             export_pipeline_model_button.clicked.connect(self.export_pipeline_model)
@@ -707,13 +700,13 @@ class AnnotationDialog(QMainWindow):
         PredictorSelectionDialog.show(self)
 
     def trigger_batch_trainings(self):
-        config.prediction_pipeline.learn_from_annotated_dataset(
+        config.prediction_pipeline.learn_from_annotated_dataset_async(
             config.dataset_to_edit,
             config.text_column,
             config.is_annotated_column,
             config.categories_column,
             config.categories_names_list,
-            config.named_entity_codes,
+            config.named_entity_codes
         )
 
     def export_pipeline_model(self):

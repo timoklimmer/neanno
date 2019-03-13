@@ -103,6 +103,7 @@ class Predictor(ABC):
         categories_column,
         categories_to_train,
         entity_codes_to_train,
+        signals
     ):
         pass
 

@@ -1,5 +1,8 @@
+from PyQt5.QtCore import QThreadPool
+
 from neanno.utils.list import get_set_of_list_and_keep_sequence, not_none
 from neanno.utils.text import mask_annotations, unmask_annotations
+from neanno.utils.threading import ParallelWorker, ParallelWorkerSignals
 
 
 class PredictionPipeline:
@@ -8,6 +11,7 @@ class PredictionPipeline:
     # TODO: finalize category predictor
 
     _predictors = {}
+    _threadpool = QThreadPool()
 
     def add_predictor(self, predictor):
         self._predictors[predictor.name] = predictor
@@ -34,20 +38,22 @@ class PredictionPipeline:
             if predictor.is_prediction_enabled
         ]
 
-    def invoke_predictors(self, function_name, *args):
+    def invoke_predictors(self, function_name, *args, **kwargs):
         for predictor in self.get_all_predictors():
             if hasattr(predictor, function_name):
-                getattr(predictor, function_name)(*args)
+                getattr(predictor, function_name)(*args, **kwargs)
 
     def collect_from_predictors(
-        self, function_name, make_result_distinct, filter_none_values, *args
+        self, function_name, make_result_distinct, filter_none_values, *args, **kwargs
     ):
         result = []
         for predictor in self.get_all_predictors():
             if hasattr(predictor, function_name):
-                predictor_response = getattr(predictor, function_name)(*args)
+                predictor_response = getattr(predictor, function_name)(*args, **kwargs)
                 if predictor_response:
-                    result = result.extend(getattr(predictor, function_name)(*args))
+                    result = result.extend(
+                        getattr(predictor, function_name)(*args, **kwargs)
+                    )
         if filter_none_values:
             result = not_none(result)
         if make_result_distinct:
@@ -57,7 +63,7 @@ class PredictionPipeline:
     def learn_from_annotated_text(self, annotated_text):
         self.invoke_predictors("learn_from_annotated_text", annotated_text)
 
-    def learn_from_annotated_dataset(
+    def learn_from_annotated_dataset_async(
         self,
         dataset,
         text_column,
@@ -65,8 +71,11 @@ class PredictionPipeline:
         categories_column,
         categories_to_train,
         entity_codes_to_train,
+        signals=ParallelWorkerSignals.default_handlers(),
     ):
-        self.invoke_predictors(
+        parallel_worker = ParallelWorker(
+            self.invoke_predictors,
+            signals,
             "learn_from_annotated_dataset",
             dataset,
             text_column,
@@ -75,6 +84,30 @@ class PredictionPipeline:
             categories_to_train,
             entity_codes_to_train,
         )
+        self._threadpool.start(parallel_worker)
+
+    def learn_from_annotated_dataset(self,
+        dataset,
+        text_column,
+        is_annotated_column,
+        categories_column,
+        categories_to_train,
+        entity_codes_to_train,
+        signals=ParallelWorkerSignals.default_handlers(),):
+        # call the async version of this method
+        self.learn_from_annotated_dataset_async(
+            dataset,
+            text_column,
+            is_annotated_column,
+            categories_column,
+            categories_to_train,
+            entity_codes_to_train,
+            signals
+        )
+        # wait for done
+        # note: this waits until the entire threadpool is done
+        # TODO: check if there is a way to wait only for this worker
+        self._threadpool.waitForDone()
 
     def predict_inline_annotations(self, text):
         if not text:
