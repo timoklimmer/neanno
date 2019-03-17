@@ -59,7 +59,7 @@ class ParallelWorkerSignals(QObject):
         print(exception_info[1])
         print(exception_info[2])
 
-    def default():
+    def default_slots():
         result = ParallelWorkerSignals()
         result.message.connect(
             ParallelWorkerSignals.default_message_handler, type=Qt.DirectConnection

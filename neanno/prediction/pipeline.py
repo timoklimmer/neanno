@@ -69,11 +69,11 @@ class PredictionPipeline(QObject):
         categories_column,
         categories_to_train,
         entity_codes_to_train,
-        signals=ParallelWorkerSignals.default(),
+        signal_slots=ParallelWorkerSignals.default_slots(),
     ):
         parallel_worker = ParallelWorker(
             self.invoke_predictors,
-            signals,
+            signal_slots,
             "learn_from_annotated_dataset",
             dataset,
             text_column,
@@ -92,7 +92,7 @@ class PredictionPipeline(QObject):
         categories_column,
         categories_to_train,
         entity_codes_to_train,
-        signals=ParallelWorkerSignals.default(),
+        signal_slots=ParallelWorkerSignals.default_slots(),
     ):
         # call the async version of this method
         self.learn_from_annotated_dataset_async(
@@ -102,7 +102,7 @@ class PredictionPipeline(QObject):
             categories_column,
             categories_to_train,
             entity_codes_to_train,
-            signals,
+            signal_slots,
         )
         # wait for done
         # note: this waits until the entire threadpool is done
