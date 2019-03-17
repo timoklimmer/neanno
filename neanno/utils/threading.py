@@ -1,9 +1,10 @@
+import sys
+import time
+import traceback
+
+from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
-from PyQt5.QtCore import *
-
-import time
-import traceback, sys
 
 
 class ParallelWorkerSignals(QObject):
@@ -35,32 +36,47 @@ class ParallelWorkerSignals(QObject):
     progress = pyqtSignal(int)
     message = pyqtSignal(str)
 
-    def default_handlers():
-        result = ParallelWorkerSignals()
-        result.message.connect(ParallelWorkerSignals.default_message_handler)
-        result.progress.connect(ParallelWorkerSignals.default_progress_handler)
-        result.completed.connect(ParallelWorkerSignals.default_completed_handler)
-        result.success.connect(ParallelWorkerSignals.default_success_handler)
-        result.failure.connect(ParallelWorkerSignals.default_failure_handler)  
-        return result
-    
+    @pyqtSlot(str)
     def default_message_handler(message):
         print(message)
 
+    @pyqtSlot(float)
     def default_progress_handler(percent_completed):
         print("{:.2%}".format(percent_completed))
 
+    @pyqtSlot()
     def default_completed_handler():
         print("Done.")
 
+    @pyqtSlot(object)
     def default_success_handler(result):
         print("=> Success")
 
+    @pyqtSlot(tuple)
     def default_failure_handler(exception_info):
         print("=> Failed to run a parallel job.")
         print(exception_info[0])
         print(exception_info[1])
         print(exception_info[2])
+
+    def default():
+        result = ParallelWorkerSignals()
+        result.message.connect(
+            ParallelWorkerSignals.default_message_handler, type=Qt.DirectConnection
+        )
+        result.progress.connect(
+            ParallelWorkerSignals.default_progress_handler, type=Qt.DirectConnection
+        )
+        result.completed.connect(
+            ParallelWorkerSignals.default_completed_handler, type=Qt.DirectConnection
+        )
+        result.success.connect(
+            ParallelWorkerSignals.default_success_handler, type=Qt.DirectConnection
+        )
+        result.failure.connect(
+            ParallelWorkerSignals.default_failure_handler, type=Qt.DirectConnection
+        )
+        return result
 
 
 class ParallelWorker(QRunnable):
@@ -70,7 +86,7 @@ class ParallelWorker(QRunnable):
         self.fn = fn
         self.signals = signals
         self.args = args
-        self.kwargs = kwargs        
+        self.kwargs = kwargs
         self.kwargs["signals"] = self.signals
 
     @pyqtSlot()

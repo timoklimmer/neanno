@@ -1,11 +1,11 @@
-from PyQt5.QtCore import QThreadPool
+from PyQt5.QtCore import QObject, QThreadPool
 
 from neanno.utils.list import get_set_of_list_and_keep_sequence, not_none
 from neanno.utils.text import mask_annotations, unmask_annotations
 from neanno.utils.threading import ParallelWorker, ParallelWorkerSignals
 
 
-class PredictionPipeline:
+class PredictionPipeline(QObject):
     """ Predicts different annotations for a text."""
 
     # TODO: finalize category predictor
@@ -71,7 +71,7 @@ class PredictionPipeline:
         categories_column,
         categories_to_train,
         entity_codes_to_train,
-        signals=ParallelWorkerSignals.default_handlers(),
+        signals=ParallelWorkerSignals.default(),
     ):
         parallel_worker = ParallelWorker(
             self.invoke_predictors,
@@ -86,14 +86,16 @@ class PredictionPipeline:
         )
         self._threadpool.start(parallel_worker)
 
-    def learn_from_annotated_dataset(self,
+    def learn_from_annotated_dataset(
+        self,
         dataset,
         text_column,
         is_annotated_column,
         categories_column,
         categories_to_train,
         entity_codes_to_train,
-        signals=ParallelWorkerSignals.default_handlers(),):
+        signals=ParallelWorkerSignals.default(),
+    ):
         # call the async version of this method
         self.learn_from_annotated_dataset_async(
             dataset,
@@ -102,7 +104,7 @@ class PredictionPipeline:
             categories_column,
             categories_to_train,
             entity_codes_to_train,
-            signals
+            signals,
         )
         # wait for done
         # note: this waits until the entire threadpool is done
