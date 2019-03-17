@@ -8,8 +8,6 @@ from neanno.utils.threading import ParallelWorker, ParallelWorkerSignals
 class PredictionPipeline(QObject):
     """ Predicts different annotations for a text."""
 
-    # TODO: finalize category predictor
-
     _predictors = {}
     _threadpool = QThreadPool()
 
@@ -31,7 +29,7 @@ class PredictionPipeline(QObject):
     def get_all_predictors(self):
         return self._predictors.values()
 
-    def get_all_predictors_is_prediction_enabled(self):
+    def get_all_prediction_enabled_predictors(self):
         return [
             predictor
             for predictor in self._predictors.values()
@@ -115,18 +113,20 @@ class PredictionPipeline(QObject):
         if not text:
             return ""
         result = mask_annotations(text)
-        for predictor in self.get_all_predictors_is_prediction_enabled():
+        for predictor in self.get_all_prediction_enabled_predictors():
             result_candidate = predictor.predict_inline_annotations(result, True)
             result = result_candidate if not None else result
         result = unmask_annotations(result)
         return result
 
-    def predict_categories(self, text):
+    def predict_text_categories(self, text):
         if not text:
             return ""
         result = []
-        for predictor in self.get_all_predictors_is_prediction_enabled():
-            result = result.extend(predictor.predict_categories(text))
+        for predictor in self.get_all_prediction_enabled_predictors():
+            new_text_categories = predictor.predict_text_categories(text)
+            result.extend(new_text_categories)
+            result = get_set_of_list_and_keep_sequence(result)
         return result
 
     def get_parent_terms_for_named_entity(self, term, entity_code):

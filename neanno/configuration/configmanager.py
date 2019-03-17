@@ -1,23 +1,13 @@
 import argparse
+import importlib
 import os
 import re
-import importlib
 
 import config
 import yaml
-from cerberus import Validator
 
 from neanno.configuration.colors import DEFAULT_ENTITY_COLORS_PALETTE
 from neanno.configuration.definitions import CategoryDefinition, NamedEntityDefinition
-from neanno.prediction.key_terms.from_dataset import FromDatasetKeyTermsPredictor
-from neanno.prediction.key_terms.from_regexes import FromRegexesKeyTermsPredictor
-from neanno.prediction.named_entities.from_datasets import (
-    FromDatasetsNamedEntitiesPredictor,
-)
-from neanno.prediction.named_entities.from_regexes import (
-    FromRegexesNamedEntitiesPredictor,
-)
-from neanno.prediction.named_entities.from_spacy import FromSpacyNamedEntitiesPredictor
 from neanno.prediction.pipeline import PredictionPipeline
 from neanno.utils.dataset import DatasetLocation, DatasetManager
 from neanno.utils.dict import QueryDict
@@ -198,11 +188,13 @@ class ConfigManager:
                 definition.name for definition in config.category_definitions
             ]
             config.categories_count = len(config.category_definitions)
+            ConfigManager.categories_predictors()
 
     @staticmethod
     def categories_predictors():
-        # TODO: complete
-        pass
+        predictors_path = "categories/predictors"
+        if ConfigManager.has_config_value(predictors_path):
+            ConfigManager.add_predictors_from_predictors_node(predictors_path)
 
     @staticmethod
     def instructions():

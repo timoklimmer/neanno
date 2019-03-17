@@ -1,5 +1,5 @@
 import uuid
-from abc import ABC, abstractmethod, abstractproperty
+from abc import ABC, abstractmethod
 
 import yaml
 
@@ -51,10 +51,13 @@ class Predictor(ABC):
 
     @property
     def config_validation_schema(self):
-        return {
-            **self.config_validation_schema_base,
-            **self.config_validation_schema_custom_part,
-        }
+        if self.config_validation_schema_custom_part:
+            return {
+                **self.config_validation_schema_base,
+                **self.config_validation_schema_custom_part,
+            }
+        else:
+            return {**self.config_validation_schema_base}
 
     @property
     def config_validation_schema_base(self):
@@ -103,12 +106,12 @@ class Predictor(ABC):
         categories_column,
         categories_to_train,
         entity_codes_to_train,
-        signals
+        signals,
     ):
         pass
 
-    def predict_inline_annotations(self, text):
+    def predict_inline_annotations(self, text, mask_annotations_before_return=False):
         return text
 
-    def predict_categories(self, text):
+    def predict_text_categories(self, text):
         return []

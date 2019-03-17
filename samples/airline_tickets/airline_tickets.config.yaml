@@ -24,6 +24,12 @@ categories:
     - name: Legal
     - name: Complaint/Feedback
   column: categories
+  predictors:
+    # Random Categories
+    - name: Random Categories
+      module: neanno.prediction.categories.from_random
+      class: FromRandomCategoryPredictor
+      is_prediction_enabled: true
 
 key_terms:
   #shortcuts:
