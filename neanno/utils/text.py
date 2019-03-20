@@ -284,6 +284,26 @@ def get_annotation_at_position(annotated_text, position):
             return annotation
 
 
+def has_annotation_within_range(annotated_text, start_position, end_position):
+    """ Checks if the specified range overlaps with an annotation. """
+
+    for annotation in extract_annotations_as_generator(annotated_text):
+        if not (
+            (
+                start_position < annotation["start_gross"]
+                and end_position < annotation["start_gross"]
+            )
+            or (
+                start_position > annotation["start_gross"]
+                and start_position > annotation["end_gross"]
+            )
+        ):
+            # there is an overlap => return True
+            return True
+    # no overlap found => return False
+    return False
+
+
 def remove_all_annotations_from_text(annotated_text):
     """Removes all annotations from the specified text."""
 
@@ -445,53 +465,108 @@ def compute_term_distribution_from_column(
     )
 
 
-def replace_from_to(text, from_position, to_position, new_text):
+def replace_from_to(text, start_position, end_position, new_text):
     """ Replaces the substring within the given range against another text."""
-    return "{}{}{}".format(text[:from_position], new_text, text[to_position:])
+    return "{}{}{}".format(text[:start_position], new_text, text[end_position:])
 
 
-def add_standalone_key_term_at_position(text, from_position, to_position):
-    """ Annotates the given range as a standalone key term."""
-    return replace_from_to(
-        text,
-        from_position,
-        to_position,
-        "`{}``SK`´".format(text[from_position:to_position]),
-    )
+def add_standalone_key_term(text, start_position, end_position):
+    """ Annotates the given range as a standalone key term (as long as there is no other annotation yet)."""
+    if not has_annotation_within_range(text, start_position, end_position):
+        return replace_from_to(
+            text,
+            start_position,
+            end_position,
+            "`{}``SK`´".format(text[start_position:end_position]),
+        )
+    else:
+        return text
 
 
-def add_parented_key_term_at_position(text, from_position, to_position, parent_terms):
-    """ Annotates the given range as a parented key term."""
-    return replace_from_to(
-        text,
-        from_position,
-        to_position,
-        "`{}``PK``{}`´".format(text[from_position:to_position], parent_terms),
-    )
+def add_parented_key_term(text, start_position, end_position, parent_terms):
+    """ Annotates the given range as a parented key term (as long as there is no other annotation yet)."""
+    if not has_annotation_within_range(text, start_position, end_position):
+        return replace_from_to(
+            text,
+            start_position,
+            end_position,
+            "`{}``PK``{}`´".format(text[start_position:end_position], parent_terms),
+        )
+    else:
+        return text
 
 
-def add_standalone_named_entity_at_position(
-    text, from_position, to_position, entity_code
+def add_standalone_named_entity(text, start_position, end_position, entity_code):
+    """ Annotates the given range as a standalone named entity (as long as there is no other annotation yet)."""
+    if not has_annotation_within_range(text, start_position, end_position):
+        return replace_from_to(
+            text,
+            start_position,
+            end_position,
+            "`{}``SN``{}`´".format(text[start_position:end_position], entity_code),
+        )
+    else:
+        return text
+
+
+def add_parented_named_entity(
+    text, start_position, end_position, entity_code, parent_terms
 ):
-    """ Annotates the given range as a standalone named entity."""
-    return replace_from_to(
-        text,
-        from_position,
-        to_position,
-        "`{}``SN``{}`´".format(text[from_position:to_position], entity_code),
+    """ Annotates the given range as a parented named entity (as long as there is no other annotation yet)."""
+
+    if not has_annotation_within_range(text, start_position, end_position):
+        return replace_from_to(
+            text,
+            start_position,
+            end_position,
+            "`{}``PN``{}``{}`´".format(
+                text[start_position:end_position], entity_code, parent_terms
+            ),
+        )
+    else:
+        return text
+
+
+def annotate_text(text, annotations):
+    """ Annotates the given text with the given annotations."""
+
+    # sort all annotations to make the algorithm below work
+    sorted_annotations = sorted(
+        annotations, key=lambda annotation: int(annotation["start_gross"])
     )
 
+    # iterate through all (sorted) annotations and add the annotations to the text
+    shift = 0
+    for annotation in sorted_annotations:
+        start_net = int(annotation["start_net"])
+        end_net = int(annotation["end_net"])
+        old_text_length = len(text)
 
-def add_parented_named_entity_at_position(
-    text, from_position, to_position, entity_code, parent_terms
-):
-    """ Annotates the given range as a parented named entity."""
+        # standalone_key_term
+        if annotation["type"] == "standalone_key_term":
+            text = add_standalone_key_term(text, shift + start_net, shift + end_net)
+        # parented_key_term
+        if annotation["type"] == "parented_key_term":
+            text = add_parented_key_term(
+                text, shift + start_net, shift + end_net, annotation["parent_terms"]
+            )
+        # standalone_named_entity
+        if annotation["type"] == "standalone_named_entity":
+            text = add_standalone_named_entity(
+                text, shift + start_net, shift + end_net, annotation["entity_code"]
+            )
+        # parented_named_entity
+        if annotation["type"] == "parented_named_entity":
+            text = add_parented_named_entity(
+                text,
+                shift + start_net,
+                shift + end_net,
+                annotation["entity_code"],
+                annotation["parent_terms"],
+            )
 
-    return replace_from_to(
-        text,
-        from_position,
-        to_position,
-        "`{}``PN``{}``{}`´".format(
-            text[from_position:to_position], entity_code, parent_terms
-        ),
-    )
+        # update shift
+        shift += len(text) - old_text_length
+
+    # return the result
+    return text

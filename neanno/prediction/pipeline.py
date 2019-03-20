@@ -2,6 +2,7 @@ from PyQt5.QtCore import QObject, QThreadPool
 
 from neanno.utils.list import get_set_of_list_and_keep_sequence, not_none
 from neanno.utils.threading import ParallelWorker, ParallelWorkerSignals
+from neanno.utils.text import extract_annotations_as_list, annotate_text
 
 
 class PredictionPipeline(QObject):
@@ -111,12 +112,13 @@ class PredictionPipeline(QObject):
     def predict_inline_annotations(self, text):
         if not text:
             return ""
-        result = text
-        # TODO: handle collisions
+        annotations = []
         for predictor in self.get_all_prediction_enabled_predictors():
-            result_candidate = predictor.predict_inline_annotations(result)
-            result = result_candidate if not None else result
-        return result
+            annotations_by_predictor = extract_annotations_as_list(
+                predictor.predict_inline_annotations(text)
+            )
+            annotations.extend(annotations_by_predictor)
+        return annotate_text(text, annotations)
 
     def predict_text_categories(self, text):
         if not text:

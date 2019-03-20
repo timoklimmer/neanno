@@ -14,15 +14,6 @@
             ]
         },
         {
-            "name": "neanno.py (meals)",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/neanno.py",
-            "args": [
-                "--config", "samples/meals/meals.config.yaml"
-            ]
-        },
-        {
             "name": "Python: Current File",
             "type": "python",
             "request": "launch",
