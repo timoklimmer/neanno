@@ -95,7 +95,7 @@ class Predictor(ABC):
     def is_prediction_enabled(self, value):
         self._is_prediction_enabled = value
 
-    def learn_from_annotated_text(self, annotated_text):
+    def learn_from_annotated_text(self, annotated_text, language):
         pass
 
     def learn_from_annotated_dataset(
@@ -103,6 +103,7 @@ class Predictor(ABC):
         dataset,
         text_column,
         is_annotated_column,
+        language_column,
         categories_column,
         categories_to_train,
         entity_codes_to_train,

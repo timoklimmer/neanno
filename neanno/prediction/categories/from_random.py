@@ -25,6 +25,7 @@ class FromRandomCategoryPredictor(Predictor):
         dataset,
         text_column,
         is_annotated_column,
+        language_column,
         categories_column,
         categories_to_train,
         entity_codes_to_train,

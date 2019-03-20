@@ -15,12 +15,16 @@ dataset:
             type: string
             required: False
             regex: "^.+?:.+"
-        default_language:
-            type: string
-            required: False
-        language_column:
-            type: string
-            required: False
+        languages:
+            type: dict
+            schema:
+                default:
+                    type: string
+                    required: False
+                column:
+                    type: string
+                    required: False
+            required: False                
     required: True
 
 categories:

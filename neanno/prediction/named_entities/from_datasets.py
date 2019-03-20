@@ -141,7 +141,7 @@ class FromDatasetsNamedEntitiesPredictor(Predictor):
             # no, no parent terms found in dataset
             return None
 
-    def learn_from_annotated_text(self, annotated_text):
+    def learn_from_annotated_text(self, annotated_text, language):
         # note: the definition of a "term" within this function is a tuple of term and entity code
         # get terms to add/update
         terms_to_add = {}

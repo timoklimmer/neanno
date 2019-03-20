@@ -21,6 +21,7 @@ from PyQt5.QtWidgets import (
     QSplitter,
     QVBoxLayout,
     QWidget,
+    QLineEdit,
 )
 
 from neanno.configuration.configmanager import ConfigManager
@@ -67,7 +68,7 @@ class AnnotationDialog(QMainWindow):
         self.setGeometry(0, 0, screen.width() * 0.75, screen.height() * 0.75)
         mysize = self.geometry()
         horizontal_position = (screen.width() - mysize.width()) / 2
-        vertical_position = (screen.height() - mysize.height()) / 2
+        vertical_position = (screen.height() - mysize.height()) / 6
         self.move(horizontal_position, vertical_position)
 
         # text edit
@@ -188,7 +189,15 @@ class AnnotationDialog(QMainWindow):
             named_entities_groupbox = QGroupBox("Named Entities")
             named_entities_groupbox.setLayout(named_entity_infos_layout)
 
-        # Predictors / modelling
+        # language
+        if config.uses_languages:
+            language_layout = QHBoxLayout()
+            self.language_edit = QLineEdit()
+            language_layout.addWidget(self.language_edit)
+            language_groupbox = QGroupBox("Language")
+            language_groupbox.setLayout(language_layout)
+
+        # predictors / modelling
         if config.prediction_pipeline.has_predictors():
             predictors_from_vertical_layout = QVBoxLayout()
 
@@ -255,6 +264,8 @@ class AnnotationDialog(QMainWindow):
             right_panel_layout.addWidget(key_terms_groupbox)
         if config.is_named_entities_enabled:
             right_panel_layout.addWidget(named_entities_groupbox)
+        if config.uses_languages:
+            right_panel_layout.addWidget(language_groupbox)
         if config.prediction_pipeline.has_predictors():
             right_panel_layout.addWidget(predictors_from_groupbox)
         right_panel_layout.addWidget(dataset_groupbox)
@@ -341,14 +352,16 @@ class AnnotationDialog(QMainWindow):
         self.navigator = TextNavigator(self)
         self.navigator.setSubmitPolicy(QDataWidgetMapper.ManualSubmit)
         self.navigator.setModel(self.textmodel)
-        self.navigator.addMapping(self.textedit, 0)
         self.navigator.addMapping(
-            self.is_annotated_label, 1, QByteArray().insert(0, "text")
+            self.is_annotated_label, 0, QByteArray().insert(0, "text")
         )
+        if config.uses_languages:
+            self.navigator.addMapping(self.language_edit, 1)
+        self.navigator.addMapping(self.textedit, 2)
         if config.is_categories_enabled:
             self.navigator.addMapping(
                 self.categories_selector,
-                2,
+                3,
                 QByteArray().insert(0, "selected_categories_text"),
             )
         self.navigator.currentIndexChanged.connect(
@@ -369,6 +382,8 @@ class AnnotationDialog(QMainWindow):
         # current index
         self.current_text_index_label.setText(str(self.navigator.currentIndex()))
         # remove focus from controls
+        if config.uses_languages:
+            self.language_edit.clearFocus()
         # textedit
         self.textedit.clearFocus()
         # categories_selector
@@ -704,9 +719,10 @@ class AnnotationDialog(QMainWindow):
             config.dataset_to_edit,
             config.text_column,
             config.is_annotated_column,
+            config.language_column,
             config.categories_column,
             config.categories_names_list,
-            config.named_entity_codes
+            config.named_entity_codes,
         )
 
     def export_pipeline_model(self):

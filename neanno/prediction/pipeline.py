@@ -58,14 +58,15 @@ class PredictionPipeline(QObject):
             result = get_set_of_list_and_keep_sequence(result)
         return result
 
-    def learn_from_annotated_text(self, annotated_text):
-        self.invoke_predictors("learn_from_annotated_text", annotated_text)
+    def learn_from_annotated_text(self, annotated_text, language):
+        self.invoke_predictors("learn_from_annotated_text", annotated_text, language)
 
     def learn_from_annotated_dataset_async(
         self,
         dataset,
         text_column,
         is_annotated_column,
+        language_column,
         categories_column,
         categories_to_train,
         entity_codes_to_train,
@@ -78,6 +79,7 @@ class PredictionPipeline(QObject):
             dataset,
             text_column,
             is_annotated_column,
+            language_column,
             categories_column,
             categories_to_train,
             entity_codes_to_train,
@@ -89,6 +91,7 @@ class PredictionPipeline(QObject):
         dataset,
         text_column,
         is_annotated_column,
+        language_column,
         categories_column,
         categories_to_train,
         entity_codes_to_train,
@@ -99,6 +102,7 @@ class PredictionPipeline(QObject):
             dataset,
             text_column,
             is_annotated_column,
+            language_column,
             categories_column,
             categories_to_train,
             entity_codes_to_train,

@@ -101,8 +101,20 @@ class TextModel(QAbstractTableModel):
         ]
 
         # return data for respective columns
-        # column 0: text
+        # column 0: is_annotated
         if index.column() == 0:
+            return str(is_annotated if is_annotated is not None else False)
+        # column 1: language
+        if index.column() == 1:
+            language_candidate = str(
+                config.dataset_to_edit.ix[index.row(), self.language_column_index]
+            )
+            if language_candidate:
+                return language_candidate
+            else:
+                return config.default_language
+        # column 2: text
+        if index.column() == 2:
             # get text from dataset
             result = str(config.dataset_to_edit.ix[index.row(), self.text_column_index])
             # add predicted/suggested annotations if not annotated yet
@@ -110,11 +122,8 @@ class TextModel(QAbstractTableModel):
                 result = config.prediction_pipeline.predict_inline_annotations(result)
             # return result
             return result
-        # column 1: is_annotated
-        if index.column() == 1:
-            return str(is_annotated if is_annotated is not None else False)
-        # column 2: categories
-        if index.column() == 2:
+        # column 3: categories
+        if index.column() == 3:
             if not is_annotated:
                 # predicted categories if not annotated yet
                 return "|".join(
@@ -131,65 +140,59 @@ class TextModel(QAbstractTableModel):
                 return str(
                     config.dataset_to_edit.ix[index.row(), self.categories_column_index]
                 )
-        # column 3: language
-        if index.column() == 3:
-            if not is_annotated:
-                # default language if not annotated yet
-                return config.default_language
-            else:
-                # language from dataset
-                return str(
-                    config.dataset_to_edit.ix[index.row(), self.language_column_index]
-                )
 
     def setData(self, index, value, role):
         row = index.row()
         col = index.column()
-        # skip writing is_annotated
-        if col == 1:
+        # skip setting is_annotated
+        if col == 0:
             return True
-        # update dataset and save if needed
+        # update dataset and do some additional things needed, depending on what is set
         if (
             self.data(index) != value
             or not config.dataset_to_edit.ix[row, self.is_annotated_column_index]
         ):
+            # set is annotated flag
             config.dataset_to_edit.iat[row, self.is_annotated_column_index] = True
-            if index.column() == 0:
-                # text
-                # update text
-                config.dataset_to_edit.iat[row, self.text_column_index] = value
-                # teach annotation suggester from the annotated text
-                config.prediction_pipeline.learn_from_annotated_text(value)
-                # re-compute distributions
-                # TODO: might be made more efficient with deltas instead of complete recomputation all the time
-                self.compute_named_entities_distribution()
+
+            # update the corresponding cell in the dataset (and do some more things if needed)
+            # language
+            if index.column() == 1:
+                config.dataset_to_edit.iat[row, self.language_column_index] = value
+            # text
             if index.column() == 2:
-                # categories
+                config.dataset_to_edit.iat[row, self.text_column_index] = value
+                self.compute_named_entities_distribution()
+                language = self.data(index.siblingAtColumn(1))
+                config.prediction_pipeline.learn_from_annotated_text(value, language)
+            # categories
+            if index.column() == 3:
                 config.dataset_to_edit.iat[row, self.categories_column_index] = value
                 self.compute_categories_distribution()
-            if index.column() == 3:
-                # language
-                config.dataset_to_edit.iat[row, self.language_column_index] = value
+
+            # save the dataset and emit a dataChanged signal
             self.save()
             self.dataChanged.emit(index, index)
+
+        # return true
         return True
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         if section == 0:
-            return config.text_column
-        if section == 1:
             return config.is_annotated_column
-        if section == 2:
-            return config.categories_column
-        if section == 3:
+        if section == 1:
             return config.language_column
+        if section == 2:
+            return config.text_column
+        if section == 3:
+            return config.categories_column
         return None
 
     def rowCount(self, parent=QModelIndex()):
         return len(config.dataset_to_edit.index)
 
     def columnCount(self, parent=QModelIndex()):
-        return 3
+        return 4
 
     def flags(self, index):
         return super().flags(index) | Qt.ItemIsEditable
