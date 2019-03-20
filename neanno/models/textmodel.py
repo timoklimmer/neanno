@@ -9,8 +9,6 @@ from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant, pyqtSig
 from neanno.utils.text import (
     compute_categories_distribution_from_column,
     compute_named_entities_distribution_from_column,
-    mask_annotations,
-    unmask_annotations,
 )
 
 
@@ -101,9 +99,22 @@ class TextModel(QAbstractTableModel):
             return str(is_annotated if is_annotated is not None else False)
         # column 2: categories
         if index.column() == 2:
-            return str(
-                config.dataset_to_edit.ix[index.row(), self.categories_column_index]
-            )
+            if not is_annotated:
+                # predicted categories if not annotated yet
+                return "|".join(
+                    config.prediction_pipeline.predict_text_categories(
+                        str(
+                            config.dataset_to_edit.ix[
+                                index.row(), self.text_column_index
+                            ]
+                        )
+                    )
+                )
+            else:
+                # categories given by annotation
+                return str(
+                    config.dataset_to_edit.ix[index.row(), self.categories_column_index]
+                )
 
     def setData(self, index, value, role):
         row = index.row()

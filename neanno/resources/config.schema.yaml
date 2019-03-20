@@ -31,6 +31,28 @@ categories:
         column:
             type: string
             required: True
+        predictors:
+            # note: this validation is required to instantiate predictors.
+            #       usually, predictors have additional, specific fields.
+            #       hence, predictors do their own validation in addition.
+            type: list
+            schema:
+                type: dict
+                schema:
+                    name:
+                        type: string
+                        required: True
+                    module:
+                        type: string
+                        required: True
+                    class:
+                        type: string
+                        required: True
+                    is_prediction_enabled:
+                        type: boolean
+                        required: True
+                allow_unknown: True
+            required: False
     required: False
 
 key_terms:
