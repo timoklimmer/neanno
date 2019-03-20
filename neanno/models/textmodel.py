@@ -15,6 +15,7 @@ from neanno.utils.text import (
 class TextModel(QAbstractTableModel):
     """Provides data to the annotation dialog / data widget mapper and triggers the saving of new annotated data."""
 
+    random_language_column_name = None
     random_categories_column_name = None
     named_entity_distribution = {}
     category_distribution = {}
@@ -29,10 +30,25 @@ class TextModel(QAbstractTableModel):
         self.text_column_index = config.dataset_to_edit.columns.get_loc(
             config.text_column
         )
+        # language
+        # note: if the dataset does not use languages, we will use our own language
+        #       column and default language but will remove the column before save
+        if not config.uses_languages:
+            self.random_language_column_name = "".join(
+                random.choice(string.ascii_uppercase + string.digits) for _ in range(16)
+            )
+            config.language_column = self.random_language_column_name
+        if config.language_column not in config.dataset_to_edit:
+            config.dataset_to_edit[config.language_column] = ""
+        config.dataset_to_edit[config.language_column] = config.dataset_to_edit[
+            config.language_column
+        ].astype(str)
+        self.language_column_index = config.dataset_to_edit.columns.get_loc(
+            config.language_column
+        )
         # categories
-        # note: if no category column is given, we will create a random column
-        #       to make the code below easier but will drop the column before
-        #       we save the dataframe
+        # note: same as language, we internally create the column if needed but
+        #       will drop it before save if none is specified
         if not config.is_categories_enabled:
             self.random_categories_column_name = "".join(
                 random.choice(string.ascii_uppercase + string.digits) for _ in range(16)
@@ -115,6 +131,16 @@ class TextModel(QAbstractTableModel):
                 return str(
                     config.dataset_to_edit.ix[index.row(), self.categories_column_index]
                 )
+        # column 3: language
+        if index.column() == 3:
+            if not is_annotated:
+                # default language if not annotated yet
+                return config.default_language
+            else:
+                # language from dataset
+                return str(
+                    config.dataset_to_edit.ix[index.row(), self.language_column_index]
+                )
 
     def setData(self, index, value, role):
         row = index.row()
@@ -141,6 +167,9 @@ class TextModel(QAbstractTableModel):
                 # categories
                 config.dataset_to_edit.iat[row, self.categories_column_index] = value
                 self.compute_categories_distribution()
+            if index.column() == 3:
+                # language
+                config.dataset_to_edit.iat[row, self.language_column_index] = value
             self.save()
             self.dataChanged.emit(index, index)
         return True
@@ -152,6 +181,8 @@ class TextModel(QAbstractTableModel):
             return config.is_annotated_column
         if section == 2:
             return config.categories_column
+        if section == 3:
+            return config.language_column
         return None
 
     def rowCount(self, parent=QModelIndex()):
@@ -166,13 +197,14 @@ class TextModel(QAbstractTableModel):
     def save(self):
         if config.save_callback is not None:
             self.saveStarted.emit()
-            config.save_callback(
-                config.dataset_to_edit
-                if not self.random_categories_column_name
-                else config.dataset_to_edit.drop(
-                    [self.random_categories_column_name], axis=1
+            df_to_save = config.dataset_to_edit
+            if self.random_language_column_name:
+                df_to_save = df_to_save.drop(columns=[self.random_language_column_name])
+            if self.random_categories_column_name:
+                df_to_save = df_to_save.drop(
+                    columns=[self.random_categories_column_name]
                 )
-            )
+            config.save_callback(df_to_save)
             self.saveCompleted.emit()
 
     def get_annotated_texts_count(self):

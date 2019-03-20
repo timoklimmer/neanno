@@ -81,6 +81,15 @@ class ConfigManager:
             {config.text_column: str},
             "dataset/source",
         )
+        config.is_default_language_given = ConfigManager.get_config_value("dataset/default_language") is not None
+        config.is_language_column_given = ConfigManager.get_config_value("dataset/language_column") is not None
+        config.uses_languages = config.is_default_language_given or config.is_language_column_given        
+        config.default_language = ConfigManager.get_config_value(
+            "dataset/default_language", "English"
+        )
+        config.language_column = ConfigManager.get_config_value(
+            "dataset/language_column", "language"
+        )
 
     @staticmethod
     def dataset_target():

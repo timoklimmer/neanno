@@ -15,6 +15,12 @@ dataset:
             type: string
             required: False
             regex: "^.+?:.+"
+        default_language:
+            type: string
+            required: False
+        language_column:
+            type: string
+            required: False
     required: True
 
 categories:

@@ -12,6 +12,8 @@ dataset:
     text_column: text
     is_annotated_column: is_text_annotated
     target: csv:samples/airline_tickets/texts.annotating.csv
+    #default_language: en-US
+    #language_column: language
 
 categories:
   definitions:
