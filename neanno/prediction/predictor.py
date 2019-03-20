@@ -110,7 +110,7 @@ class Predictor(ABC):
     ):
         pass
 
-    def predict_inline_annotations(self, text, mask_annotations_before_return=False):
+    def predict_inline_annotations(self, text):
         return text
 
     def predict_text_categories(self, text):

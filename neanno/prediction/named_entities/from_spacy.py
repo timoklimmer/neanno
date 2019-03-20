@@ -8,7 +8,6 @@ from spacy.util import compounding, minibatch
 from neanno.prediction.predictor import Predictor
 from neanno.utils.text import (
     extract_annotations_for_spacy_ner,
-    mask_annotations,
     replace_from_to,
 )
 
@@ -114,7 +113,7 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
             self.spacy_model.meta["name"] = self.target_model_name
             self.spacy_model.to_disk(output_dir)
 
-    def predict_inline_annotations(self, text, mask_annotations_before_return=False):
+    def predict_inline_annotations(self, text):
         if self.spacy_model:
             # TODO: add parent terms
             result = text
@@ -129,6 +128,4 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
                     "`{}``SN``{}`´".format(ent.text, ent.label_),
                 )
                 shift += len(result) - old_result_length
-            if mask_annotations_before_return:
-                result = mask_annotations(result)
             return result

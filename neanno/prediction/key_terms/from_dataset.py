@@ -5,11 +5,7 @@ from flashtext import KeywordProcessor
 from neanno.prediction.predictor import Predictor
 from neanno.utils.dataset import DatasetManager
 from neanno.utils.dict import merge_dict
-from neanno.utils.text import (
-    extract_annotations_as_generator,
-    mask_annotations,
-    unmask_annotations,
-)
+from neanno.utils.text import extract_annotations_as_generator
 
 
 class FromDatasetKeyTermsPredictor(Predictor):
@@ -160,14 +156,9 @@ class FromDatasetKeyTermsPredictor(Predictor):
         # save
         self.save_dataset(self.location_string)
 
-    def predict_inline_annotations(self, text, mask_annotations_before_return=False):
-        if self.flashtext is not None:
-            result = mask_annotations(text)
-            result = self.flashtext.replace_keywords(result)
-        else:
-            result = text
+    def predict_inline_annotations(self, text):
         return (
-            mask_annotations(result)
-            if mask_annotations_before_return
-            else unmask_annotations(result)
+            self.flashtext.replace_keywords(text)
+            if self.flashtext is not None
+            else text
         )

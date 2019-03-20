@@ -4,8 +4,6 @@ import re
 import yaml
 
 from neanno.prediction.predictor import Predictor
-from neanno.utils.text import mask_annotations, unmask_annotations
-
 
 class FromRandomCategoryPredictor(Predictor):
     """ Randomly predicts some text categories."""

@@ -3,8 +3,6 @@ import re
 import yaml
 
 from neanno.prediction.predictor import Predictor
-from neanno.utils.text import mask_annotations, unmask_annotations
-
 
 class FromRegexesNamedEntitiesPredictor(Predictor):
     """ Predicts named entities of a text by using regular expressions."""
@@ -51,8 +49,8 @@ class FromRegexesNamedEntitiesPredictor(Predictor):
     def remove_pattern_definition(self, entity_code):
         del self.pattern_definitions[entity_code]
 
-    def predict_inline_annotations(self, text, mask_annotations_before_return=False):
-        result = mask_annotations(text)
+    def predict_inline_annotations(self, text):
+        result = text
         for named_entity_code in self.pattern_definitions:
             pattern_definition = self.pattern_definitions[named_entity_code]
             if pattern_definition.parent_terms:
@@ -71,11 +69,7 @@ class FromRegexesNamedEntitiesPredictor(Predictor):
                     "`{}``SN``{}`´".format("\g<term>", pattern_definition.entity),
                     result,
                 )
-        return (
-            mask_annotations(result)
-            if mask_annotations_before_return
-            else unmask_annotations(result)
-        )
+        return result
 
     def get_parent_terms_for_named_entity(self, term, entity_code):
         if entity_code in self.pattern_definitions:

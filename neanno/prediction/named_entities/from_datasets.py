@@ -6,9 +6,7 @@ from neanno.prediction.predictor import Predictor
 from neanno.utils.dataset import DatasetManager
 from neanno.utils.dict import merge_dict
 from neanno.utils.text import (
-    extract_annotations_as_generator,
-    mask_annotations,
-    unmask_annotations,
+    extract_annotations_as_generator
 )
 
 
@@ -228,11 +226,9 @@ class FromDatasetsNamedEntitiesPredictor(Predictor):
                     self.location_strings[affected_entity_code], affected_entity_code
                 )
 
-    def predict_inline_annotations(self, text, mask_annotations_before_return=False):
-        result = mask_annotations(text)
-        result = self.flashtext.replace_keywords(result)
+    def predict_inline_annotations(self, text):
         return (
-            mask_annotations(result)
-            if mask_annotations_before_return
-            else unmask_annotations(result)
+            self.flashtext.replace_keywords(text)
+            if self.flashtext is not None
+            else text
         )
