@@ -79,13 +79,13 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
         # note: there is certainly room for improvement, maybe switching to spacy's CLI
         #       which seems the recommendation by the spacy authors
         signals.message.emit("Training NER model...")
-        n_iter = 10
+        n_iterations = 10
         # note: this removes the unnamed vectors warning, TBD if needs changes
         self.spacy_model.vocab.vectors.name = "spacy_pretrained_vectors"
         optimizer = self.spacy_model.begin_training()
         other_pipes = [pipe for pipe in self.spacy_model.pipe_names if pipe != "ner"]
         with self.spacy_model.disable_pipes(*other_pipes):
-            for itn in range(n_iter):
+            for iteration in range(n_iterations):
                 random.shuffle(trainset)
                 losses = {}
                 batches = minibatch(trainset, size=compounding(4.0, 32.0, 1.001))
@@ -94,7 +94,9 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
                     self.spacy_model.update(
                         texts, annotations, sgd=optimizer, drop=0.35, losses=losses
                     )
-                signals.message.emit("Iteration: {}, losses: {}".format(itn, losses))
+                signals.message.emit(
+                    "Iteration: {}, loss: {}".format(iteration, losses["ner"])
+                )
 
         # compute precision/recall for each entity code
         # TODO: dataset might have changed meanwhile, need to use a frozen dataset for evaluation
