@@ -28,7 +28,8 @@ class FromDatasetKeyTermsPredictor(Predictor):
                 type: string
                 regex: "^.+?:.+"
                 required: True
-            """
+            """,
+            Loader=yaml.FullLoader,
         )
 
     def load_dataset(self, location_string):

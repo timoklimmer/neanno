@@ -22,12 +22,14 @@ def validate_yaml(yaml_to_validate, yaml_schema_to_use):
     yaml_dom = yaml.load(
         str(yaml_to_validate)
         if isinstance(yaml_to_validate, (dict,))
-        else yaml_to_validate
+        else yaml_to_validate,
+        Loader=yaml.FullLoader,
     )
     yaml_schema_dom = yaml.load(
         str(yaml_schema_to_use)
         if isinstance(yaml_schema_to_use, (dict,))
-        else yaml_schema_to_use
+        else yaml_schema_to_use,
+        Loader=yaml.FullLoader,
     )
 
     # ensure that yaml_dom and yaml_schema_dom are not None

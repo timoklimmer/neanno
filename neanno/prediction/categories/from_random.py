@@ -5,6 +5,7 @@ import yaml
 
 from neanno.prediction.predictor import Predictor
 
+
 class FromRandomCategoryPredictor(Predictor):
     """ Randomly predicts some text categories."""
 
@@ -17,7 +18,8 @@ class FromRandomCategoryPredictor(Predictor):
     def config_validation_schema_custom_part(self):
         return yaml.load(
             """
-            """
+            """,
+            Loader=yaml.FullLoader,
         )
 
     def learn_from_annotated_dataset(

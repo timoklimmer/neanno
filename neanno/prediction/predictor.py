@@ -79,7 +79,8 @@ class Predictor(ABC):
             is_prediction_enabled:
                 type: boolean
                 required: False
-        """
+        """,
+            Loader=yaml.FullLoader,
         )
 
     @property

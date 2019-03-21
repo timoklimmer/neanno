@@ -39,7 +39,8 @@ class FromRegexesKeyTermsPredictor(Predictor):
                         parent_terms:
                             type: string
                             required: False
-            """
+            """,
+            Loader=yaml.FullLoader,
         )
 
     def add_pattern_definition(self, name, pattern, parent_terms):

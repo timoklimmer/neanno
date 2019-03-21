@@ -4,6 +4,7 @@ import yaml
 
 from neanno.prediction.predictor import Predictor
 
+
 class FromRegexesNamedEntitiesPredictor(Predictor):
     """ Predicts named entities of a text by using regular expressions."""
 
@@ -38,7 +39,8 @@ class FromRegexesNamedEntitiesPredictor(Predictor):
                         parent_terms:
                             type: string
                             required: False
-            """
+            """,
+            Loader=yaml.FullLoader,
         )
 
     def add_pattern_definition(self, entity_code, pattern, parent_terms):

@@ -6,10 +6,8 @@ import yaml
 from spacy.util import compounding, minibatch
 
 from neanno.prediction.predictor import Predictor
-from neanno.utils.text import (
-    extract_annotations_for_spacy_ner,
-    replace_from_to,
-)
+from neanno.utils.text import extract_annotations_for_spacy_ner, replace_from_to
+
 
 class FromSpacyNamedEntitiesPredictor(Predictor):
     """ Trains and uses a spacy model to predict named entities. """
@@ -45,7 +43,8 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
             target_model_name:
                 type: string
                 required: False
-            """
+            """,
+            Loader=yaml.FullLoader,
         )
 
     def learn_from_annotated_dataset(
@@ -57,7 +56,7 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
         categories_column,
         categories_to_train,
         entity_codes_to_train,
-        signals
+        signals,
     ):
         # ensure and get the ner pipe from the spacy model
         if "ner" not in self.spacy_model.pipe_names:
@@ -106,9 +105,7 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
         # save model to output directory
         if self.target_model_directory is not None:
             output_dir = pathlib.Path(self.target_model_directory)
-            signals.message.emit(
-                "Saving model to folder '{}'...".format(output_dir)
-            )
+            signals.message.emit("Saving model to folder '{}'...".format(output_dir))
             if not output_dir.exists():
                 output_dir.mkdir()
             self.spacy_model.meta["name"] = self.target_model_name

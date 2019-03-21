@@ -5,9 +5,7 @@ from flashtext import KeywordProcessor
 from neanno.prediction.predictor import Predictor
 from neanno.utils.dataset import DatasetManager
 from neanno.utils.dict import merge_dict
-from neanno.utils.text import (
-    extract_annotations_as_generator
-)
+from neanno.utils.text import extract_annotations_as_generator
 
 
 class FromDatasetsNamedEntitiesPredictor(Predictor):
@@ -38,7 +36,8 @@ class FromDatasetsNamedEntitiesPredictor(Predictor):
                             type: string
                             regex: "^.+?:.+"
                             required: True
-            """
+            """,
+            Loader=yaml.FullLoader,
         )
 
     def load_datasets(self, entity_code_location_string_dict):

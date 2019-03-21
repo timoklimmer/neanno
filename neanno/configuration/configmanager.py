@@ -66,7 +66,7 @@ class ConfigManager:
                     "config.schema.yaml",
                 )
             ) as config_schema_file:
-                config.yaml = yaml.load(config_file)
+                config.yaml = yaml.load(config_file, Loader=yaml.FullLoader)
                 validate_yaml(config.yaml, config_schema_file)
 
     @staticmethod
