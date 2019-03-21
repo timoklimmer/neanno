@@ -111,8 +111,8 @@ class Predictor(ABC):
     ):
         pass
 
-    def predict_inline_annotations(self, text):
+    def predict_inline_annotations(self, text, language="en-US"):
         return text
 
-    def predict_text_categories(self, text):
+    def predict_text_categories(self, text, language="en-US"):
         return []

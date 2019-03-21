@@ -729,7 +729,7 @@ class AnnotationDialog(QMainWindow):
         QMessageBox.information(
             self,
             "Unfortunately...",
-            "...this feature has not been implemented yet. Check back soon.",
+            "...this feature has not been implemented yet but some predictors save their own models already. Check back soon.",
             QMessageBox.Ok,
         )
 

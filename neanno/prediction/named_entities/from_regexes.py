@@ -49,7 +49,7 @@ class FromRegexesNamedEntitiesPredictor(Predictor):
     def remove_pattern_definition(self, entity_code):
         del self.pattern_definitions[entity_code]
 
-    def predict_inline_annotations(self, text):
+    def predict_inline_annotations(self, text, language="en-US"):
         result = text
         for named_entity_code in self.pattern_definitions:
             pattern_definition = self.pattern_definitions[named_entity_code]

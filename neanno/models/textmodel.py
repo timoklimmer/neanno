@@ -119,20 +119,25 @@ class TextModel(QAbstractTableModel):
             result = str(config.dataset_to_edit.ix[index.row(), self.text_column_index])
             # add predicted/suggested annotations if not annotated yet
             if not is_annotated:
-                result = config.prediction_pipeline.predict_inline_annotations(result)
+                language = self.data(index.siblingAtColumn(1))
+                result = config.prediction_pipeline.predict_inline_annotations(
+                    result, language
+                )
             # return result
             return result
         # column 3: categories
         if index.column() == 3:
             if not is_annotated:
                 # predicted categories if not annotated yet
+                language = self.data(index.siblingAtColumn(1))
                 return "|".join(
                     config.prediction_pipeline.predict_text_categories(
                         str(
                             config.dataset_to_edit.ix[
                                 index.row(), self.text_column_index
                             ]
-                        )
+                        ),
+                        language,
                     )
                 )
             else:

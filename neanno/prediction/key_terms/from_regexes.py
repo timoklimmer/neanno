@@ -48,7 +48,7 @@ class FromRegexesKeyTermsPredictor(Predictor):
     def remove_pattern_definition(self, name):
         del self.pattern_definitions[name]
 
-    def predict_inline_annotations(self, text):
+    def predict_inline_annotations(self, text, language="en-US"):
         result = text
         for name in self.pattern_definitions:
             pattern_definition = self.pattern_definitions[name]

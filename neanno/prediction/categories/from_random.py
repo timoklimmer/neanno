@@ -33,7 +33,7 @@ class FromRandomCategoryPredictor(Predictor):
     ):
         self.categories = categories_to_train
 
-    def predict_text_categories(self, text):
+    def predict_text_categories(self, text, language="en-US"):
         if self.categories:
             return random.sample(
                 self.categories, random.sample(range(1, len(self.categories)), 1)[0]

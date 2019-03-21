@@ -113,23 +113,23 @@ class PredictionPipeline(QObject):
         # TODO: check if there is a way to wait only for this worker
         self._threadpool.waitForDone()
 
-    def predict_inline_annotations(self, text):
+    def predict_inline_annotations(self, text, language="en-US"):
         if not text:
             return ""
         annotations = []
         for predictor in self.get_all_prediction_enabled_predictors():
             annotations_by_predictor = extract_annotations_as_list(
-                predictor.predict_inline_annotations(text)
+                predictor.predict_inline_annotations(text, language)
             )
             annotations.extend(annotations_by_predictor)
         return annotate_text(text, annotations)
 
-    def predict_text_categories(self, text):
+    def predict_text_categories(self, text, language="en-US"):
         if not text:
             return ""
         result = []
         for predictor in self.get_all_prediction_enabled_predictors():
-            new_text_categories = predictor.predict_text_categories(text)
+            new_text_categories = predictor.predict_text_categories(text, language)
             result.extend(new_text_categories)
             result = get_set_of_list_and_keep_sequence(result)
         return result

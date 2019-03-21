@@ -226,7 +226,7 @@ class FromDatasetsNamedEntitiesPredictor(Predictor):
                     self.location_strings[affected_entity_code], affected_entity_code
                 )
 
-    def predict_inline_annotations(self, text):
+    def predict_inline_annotations(self, text, language="en-US"):
         return (
             self.flashtext.replace_keywords(text)
             if self.flashtext is not None

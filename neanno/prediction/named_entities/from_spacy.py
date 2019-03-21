@@ -114,7 +114,7 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
             self.spacy_model.meta["name"] = self.target_model_name
             self.spacy_model.to_disk(output_dir)
 
-    def predict_inline_annotations(self, text):
+    def predict_inline_annotations(self, text, language="en-US"):
         if self.spacy_model:
             # TODO: add parent terms
             result = text
