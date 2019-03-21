@@ -84,6 +84,9 @@ class ConfigManager:
         config.uses_languages = (
             ConfigManager.get_config_value("dataset/languages") is not None
         )
+        config.languages_available_for_selection = ConfigManager.get_config_value(
+            "dataset/languages/available_for_selection", ["en-US"]
+        )
         config.default_language = ConfigManager.get_config_value(
             "dataset/languages/default", "en-US"
         )

@@ -5,6 +5,7 @@ from PyQt5.QtCore import QByteArray
 from PyQt5.QtGui import QIcon, QTextCursor
 from PyQt5.QtWidgets import (
     QApplication,
+    QComboBox,
     QDataWidgetMapper,
     QDesktopWidget,
     QGridLayout,
@@ -21,7 +22,6 @@ from PyQt5.QtWidgets import (
     QSplitter,
     QVBoxLayout,
     QWidget,
-    QLineEdit,
 )
 
 from neanno.configuration.configmanager import ConfigManager
@@ -192,8 +192,9 @@ class AnnotationDialog(QMainWindow):
         # language
         if config.uses_languages:
             language_layout = QHBoxLayout()
-            self.language_edit = QLineEdit()
-            language_layout.addWidget(self.language_edit)
+            self.language_combobox = QComboBox()
+            self.language_combobox.addItems(config.languages_available_for_selection)
+            language_layout.addWidget(self.language_combobox)
             language_groupbox = QGroupBox("Language")
             language_groupbox.setLayout(language_layout)
 
@@ -356,7 +357,7 @@ class AnnotationDialog(QMainWindow):
             self.is_annotated_label, 0, QByteArray().insert(0, "text")
         )
         if config.uses_languages:
-            self.navigator.addMapping(self.language_edit, 1)
+            self.navigator.addMapping(self.language_combobox, 1)
         self.navigator.addMapping(self.textedit, 2)
         if config.is_categories_enabled:
             self.navigator.addMapping(
@@ -383,7 +384,7 @@ class AnnotationDialog(QMainWindow):
         self.current_text_index_label.setText(str(self.navigator.currentIndex()))
         # remove focus from controls
         if config.uses_languages:
-            self.language_edit.clearFocus()
+            self.language_combobox.clearFocus()
         # textedit
         self.textedit.clearFocus()
         # categories_selector

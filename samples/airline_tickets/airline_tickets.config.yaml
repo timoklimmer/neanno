@@ -13,6 +13,9 @@ dataset:
     is_annotated_column: is_text_annotated
     target: csv:samples/airline_tickets/texts.annotating.csv
     #languages:
+    #  available_for_selection:
+    #    - en-US
+    #    - de-DE
     #  default: en-US
     #  column: language
 

@@ -18,6 +18,10 @@ dataset:
         languages:
             type: dict
             schema:
+                available_for_selection:
+                    type: list
+                    schema:
+                        type: string
                 default:
                     type: string
                     required: False
