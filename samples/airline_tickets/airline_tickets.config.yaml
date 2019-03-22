@@ -31,11 +31,14 @@ categories:
     - name: Complaint/Feedback
   column: categories
   predictors:
-    # Random Categories
-    - name: Random Categories
-      module: neanno.prediction.categories.from_random
-      class: FromRandomCategoryPredictor
+    # Categories from spacy
+    - name: Categories from spacy
+      module: neanno.prediction.categories.from_spacy
+      class: FromSpacyCategoriesPredictor
       is_prediction_enabled: true
+      source_model: blank:en
+      target_model_directory: samples/airline_tickets/textcats_model
+      target_model_name: airline_tickets_textcats
 
 key_terms:
   #shortcuts:
@@ -113,8 +116,8 @@ named_entities:
       class: FromSpacyNamedEntitiesPredictor
       is_prediction_enabled: true
       source_model: blank:en
-      target_model_directory: samples/airline_tickets/spacy_model
-      target_model_name: airline_tickets
+      target_model_directory: samples/airline_tickets/ner_model
+      target_model_name: airline_tickets_ner
 
 instructions: "
 Put your instructions for the annotators here.

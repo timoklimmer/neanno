@@ -1,4 +1,5 @@
 /.vscode/.ropeproject
 __pycache__/
 .ipynb_checkpoints
-spacy_model/
+ner_model/
+textcats_model/
