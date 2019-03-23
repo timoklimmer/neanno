@@ -1,5 +1,4 @@
 import pathlib
-import random
 
 import spacy
 import yaml
@@ -60,10 +59,7 @@ class FromSpacyCategoriesPredictor(Predictor):
     ):
         # ensure and get the textcat pipe from the spacy model
         if "textcat" not in self.spacy_model.pipe_names:
-            textcat_pipe = self.spacy_model.create_pipe(
-                "textcat",
-                config={"architecture": "simple_cnn", "exclusive_classes": True},
-            )
+            textcat_pipe = self.spacy_model.create_pipe("textcat")
             self.spacy_model.add_pipe(textcat_pipe, last=True)
         textcat_pipe = self.spacy_model.get_pipe("textcat")
         # ensure we have all categories in the model
@@ -77,7 +73,7 @@ class FromSpacyCategoriesPredictor(Predictor):
                     row["text"],
                     {
                         "cats": {
-                            category: (category in [row["categories"].split("|")])
+                            category in row["categories"].split("|")
                             for category in categories_to_train
                         }
                     },
@@ -122,6 +118,8 @@ class FromSpacyCategoriesPredictor(Predictor):
     def predict_text_categories(self, text, language="en-US"):
         if self.spacy_model:
             doc = self.spacy_model(text)
-            return doc.cats
+            return [
+                category for category in doc.cats.keys() if doc.cats[category] >= 0.5
+            ]
         else:
             return []
