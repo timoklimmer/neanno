@@ -110,24 +110,29 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
                     self.spacy_model.update(
                         texts, annotations, sgd=optimizer, drop=0.35, losses=losses
                     )
-                signals.message.emit(
-                    "Iteration: {}...".format(iteration)
-                )
+                signals.message.emit("Iteration: {}...".format(iteration))
 
         # compute precision/recall values
+        signals.message.emit("Computing precision/recall matrix...")
+        signals.message.emit("Note: the eval algorithm currently tests on strict positions, hence precision/recall are low although performance is good. needs rework to better reflect reality.")
+
         def predict_annotations(text, language):
             return self.predict_inline_annotations(
                 remove_all_annotations_from_text(text), language
             )
 
-        ner_metrics = compute_ner_metrics_from_actual_predicted_annotated_text_columns(
-            testset[text_column],
-            testset.apply(
-                lambda row: (
-                    predict_annotations(row[text_column], row[language_column])
-                ),
-                axis=1,
+        actual_annotations = testset[text_column]
+        predicted_annotations = testset.apply(
+            lambda row: (
+                predict_annotations(
+                    row[text_column],
+                    row[language_column] if language_column else "en-US",
+                )
             ),
+            axis=1,
+        )
+        ner_metrics = compute_ner_metrics_from_actual_predicted_annotated_text_columns(
+            actual_annotations, predicted_annotations, entity_codes_to_train
         )
         signals.message.emit(pd.DataFrame(ner_metrics).T.to_string())
 
