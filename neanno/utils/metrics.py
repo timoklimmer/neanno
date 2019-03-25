@@ -36,7 +36,13 @@ def compute_ner_metrics_at_text_level(
     for predicted_annotation in predicted_annotations:
         entity_code = predicted_annotation["entity_code"]
         counters[entity_code]["number_predictions"] += 1
-        if predicted_annotation in actual_annotations:
+        if any(
+            actual_annotation["entity_code"] == predicted_annotation["entity_code"]
+            and actual_annotation["start_net"] == predicted_annotation["start_net"]
+            and actual_annotation["end_net"] == predicted_annotation["end_net"]
+            for actual_annotation in actual_annotations
+        ):
+            # if predicted_annotation in actual_annotations:
             counters[entity_code]["correct"] += 1
         else:
             counters[entity_code]["incorrect"] += 1

@@ -114,7 +114,6 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
 
         # compute precision/recall values
         signals.message.emit("Computing precision/recall matrix...")
-        signals.message.emit("Note: the eval algorithm currently tests on strict positions, hence precision/recall are low although performance is good. needs rework to better reflect reality.")
 
         def predict_annotations(text, language):
             return self.predict_inline_annotations(
