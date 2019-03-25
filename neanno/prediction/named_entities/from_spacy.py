@@ -1,12 +1,21 @@
 import pathlib
 import random
 
+import pandas as pd
 import spacy
 import yaml
+from sklearn.model_selection import train_test_split
 from spacy.util import compounding, minibatch
 
 from neanno.prediction.predictor import Predictor
-from neanno.utils.text import extract_annotations_for_spacy_ner, replace_from_to
+from neanno.utils.metrics import (
+    compute_ner_metrics_from_actual_predicted_annotated_text_columns,
+)
+from neanno.utils.text import (
+    extract_annotations_for_spacy_ner,
+    remove_all_annotations_from_text,
+    replace_from_to,
+)
 
 
 class FromSpacyNamedEntitiesPredictor(Predictor):
@@ -65,9 +74,11 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
         # ensure we have all relevant named entities in the model
         for entity_code_to_train in entity_codes_to_train:
             ner_pipe.add_label(entity_code_to_train)
-        # prepare the training set
-        trainset = (
-            dataset[dataset[is_annotated_column] == True][text_column]
+        # prepare training and test set
+        annotated_data = dataset[dataset[is_annotated_column] == True]
+        trainset, testset = train_test_split(annotated_data, test_size=0.3)
+        trainset_for_spacy = (
+            trainset[text_column]
             .map(
                 lambda annotated_text: extract_annotations_for_spacy_ner(
                     annotated_text, entity_codes_to_train
@@ -75,10 +86,13 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
             )
             .tolist()
         )
+
         # do the training
         # note: there is certainly room for improvement, maybe switching to spacy's CLI
         #       which seems the recommendation by the spacy authors
-        signals.message.emit("Training NER model...")
+        signals.message.emit(
+            "Training NER model with predictor '{}'...".format(self.name)
+        )
         n_iterations = 10
         # note: this removes the unnamed vectors warning, TBD if needs changes
         self.spacy_model.vocab.vectors.name = "spacy_pretrained_vectors"
@@ -86,23 +100,36 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
         other_pipes = [pipe for pipe in self.spacy_model.pipe_names if pipe != "ner"]
         with self.spacy_model.disable_pipes(*other_pipes):
             for iteration in range(n_iterations):
-                random.shuffle(trainset)
+                random.shuffle(trainset_for_spacy)
                 losses = {}
-                batches = minibatch(trainset, size=compounding(4.0, 32.0, 1.001))
+                batches = minibatch(
+                    trainset_for_spacy, size=compounding(4.0, 32.0, 1.001)
+                )
                 for batch in batches:
                     texts, annotations = zip(*batch)
                     self.spacy_model.update(
                         texts, annotations, sgd=optimizer, drop=0.35, losses=losses
                     )
                 signals.message.emit(
-                    "Iteration: {}, loss: {}".format(iteration, losses["ner"])
+                    "Iteration: {}...".format(iteration)
                 )
 
-        # compute precision/recall for each entity code
-        # TODO: dataset might have changed meanwhile, need to use a frozen dataset for evaluation
-        # TODO: consider using a common eval, not only in this class
-        # TODO: think about if this is the right place (esp. for on-the-fly training)
-        # use compute_ner_metrics_from_actual_predicted_columns() function from neanno.utils.metrics
+        # compute precision/recall values
+        def predict_annotations(text, language):
+            return self.predict_inline_annotations(
+                remove_all_annotations_from_text(text), language
+            )
+
+        ner_metrics = compute_ner_metrics_from_actual_predicted_annotated_text_columns(
+            testset[text_column],
+            testset.apply(
+                lambda row: (
+                    predict_annotations(row[text_column], row[language_column])
+                ),
+                axis=1,
+            ),
+        )
+        signals.message.emit(pd.DataFrame(ner_metrics).T.to_string())
 
         # save model to output directory
         if self.target_model_directory is not None:

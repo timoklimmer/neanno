@@ -26,7 +26,7 @@ def compute_ner_metrics_at_text_level(
         entity_code: {
             "correct": 0,
             "incorrect": 0,
-            "actual": 0,
+            "number_predictions": 0,
             "possible": 0,
             "precision": 0,
             "recall": 0,
@@ -35,7 +35,7 @@ def compute_ner_metrics_at_text_level(
     }
     for predicted_annotation in predicted_annotations:
         entity_code = predicted_annotation["entity_code"]
-        counters[entity_code]["actual"] += 1
+        counters[entity_code]["number_predictions"] += 1
         if predicted_annotation in actual_annotations:
             counters[entity_code]["correct"] += 1
         else:
@@ -45,9 +45,11 @@ def compute_ner_metrics_at_text_level(
         counters[entity_code]["possible"] += 1
     for entity_code in considered_entity_codes:
         correct = counters[entity_code]["correct"]
-        actual = counters[entity_code]["correct"]
+        number_predictions = counters[entity_code]["number_predictions"]
         possible = counters[entity_code]["possible"]
-        counters[entity_code]["precision"] = correct / actual if actual > 0 else 0
+        counters[entity_code]["precision"] = (
+            correct / number_predictions if number_predictions > 0 else 0
+        )
         counters[entity_code]["recall"] = correct / possible if possible > 0 else 0
     return counters
 
@@ -56,7 +58,7 @@ def aggregate_ner_metrics(ner_metrics1, ner_metrics2):
     result = merge_dict_sum_child_dicts(ner_metrics1, ner_metrics2)
     for entity_code in result:
         correct = result[entity_code]["correct"]
-        actual = result[entity_code]["actual"]
+        actual = result[entity_code]["number_predictions"]
         possible = result[entity_code]["possible"]
         result[entity_code]["precision"] = correct / actual if actual > 0 else 0
         result[entity_code]["recall"] = correct / possible if possible > 0 else 0
