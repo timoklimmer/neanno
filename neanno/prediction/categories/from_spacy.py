@@ -73,7 +73,7 @@ class FromSpacyCategoriesPredictor(Predictor):
                     row["text"],
                     {
                         "cats": {
-                            category in row["categories"].split("|")
+                            category: category in row["categories"].split("|")
                             for category in categories_to_train
                         }
                     },
@@ -85,7 +85,9 @@ class FromSpacyCategoriesPredictor(Predictor):
         # do the training
         # note: there is certainly room for improvement, maybe switching to spacy's CLI
         #       which seems the recommendation by the spacy authors
-        signals.message.emit("Training categories model...")
+        signals.message.emit(
+            "Training categories model with predictor '{}'...".format(self.name)
+        )
         n_iterations = 20
         # get names of other pipes to disable them during training
         other_pipes = [
