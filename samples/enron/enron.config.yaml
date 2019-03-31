@@ -1,0 +1,73 @@
+# neanno config file for enron sample
+
+dataset:
+    source: csv:samples/enron/emails.csv
+    text_column: content
+    is_annotated_column: is_annotated
+    target: csv:samples/enron/emails.annotating.csv
+
+categories:
+  definitions:
+    - name: "Company Business, Strategy, etc."
+    - name: "Purely Personal"
+    - name: "Personal but in professional context"
+    - name: "Logistic Arrangements"
+    - name: "Employment arrangements"
+    - name: "Document editing/checking"
+    - name: "Empty message (due to missing attachment)"
+    - name: "Empty message"
+    - name: "Includes new text in addition to forwarded material"
+    - name: "Forwarded email(s) including replies"
+    - name: "Business letter(s) / document(s)"
+    - name: "News article(s)"
+    - name: "Government / academic report(s)"
+    - name: "Government action(s)"
+    - name: "Press release(s)"
+    - name: "Legal documents (complaints, lawsuits, advice)"
+    - name: "Pointers to url(s)"
+    - name: "Newsletters"
+    - name: "Jokes, humor (related to business)"
+    - name: "Jokes, humor (unrelated to business)"
+    - name: "Attachment(s) (assumed missing)"
+    - name: "regulations and regulators (includes price caps)"
+    - name: "internal projects -- progress and strategy"
+    - name: "company image -- current"
+    - name: "company image -- changing / influencing"
+    - name: "political influence / contributions / contacts"
+    - name: "california energy crisis / california politics"
+    - name: "internal company policy"
+    - name: "internal company operations"
+    - name: "alliances / partnerships"
+    - name: "legal advice"
+    - name: "talking points"
+    - name: "meeting minutes"
+    - name: "trip reports"
+    - name: "jubilation"
+    - name: "hope / anticipation"
+    - name: "humor"
+    - name: "camaraderie"
+    - name: "admiration"
+    - name: "gratitude"
+    - name: "friendship / affection"
+    - name: "sympathy / support"
+    - name: "sarcasm"
+    - name: "secrecy / confidentiality"
+    - name: "worry / anxiety"
+    - name: "concern"
+    - name: "competitiveness / aggressiveness"
+    - name: "triumph / gloating"
+    - name: "pride"
+    - name: "anger / agitation"
+    - name: "sadness / despair"
+    - name: "shame"
+    - name: "dislike / scorn"
+  column: categories
+  predictors:
+    - name: Categories from spacy
+      module: neanno.prediction.categories.from_spacy
+      class: FromSpacyCategoriesPredictor
+      is_prediction_enabled: true
+      source_model: blank:en
+      target_model_directory: samples/enron/textcats_model
+      target_model_name: enron_textcats
+

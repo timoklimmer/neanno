@@ -66,22 +66,23 @@ class FromSpacyCategoriesPredictor(Predictor):
         for category_to_train in categories_to_train:
             textcat_pipe.add_label(category_to_train)
         # prepare the training set
-        trainset = (
-            dataset[dataset[is_annotated_column] == True]
-            .apply(
-                lambda row: (
-                    row["text"],
-                    {
-                        "cats": {
-                            category: category in row["categories"].split("|")
-                            for category in categories_to_train
-                        }
-                    },
-                ),
-                axis=1,
-            )
-            .tolist()
+        trainset = dataset[dataset[is_annotated_column] == True].apply(
+            lambda row: (
+                row[text_column],
+                {
+                    "cats": {
+                        category: category in row[categories_column].split("|")
+                        for category in categories_to_train
+                    }
+                },
+            ),
+            axis=1,
         )
+        if trainset.size == 0:
+            raise ValueError(
+                "There is no annotated data, hence no training data. Annotate some texts to get training data."
+            )
+        trainset = trainset.tolist()
         # do the training
         # note: there is certainly room for improvement, maybe switching to spacy's CLI
         #       which seems the recommendation by the spacy authors

@@ -77,6 +77,10 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
         # prepare training and test set
         annotated_data = dataset[dataset[is_annotated_column] == True]
         trainset, testset = train_test_split(annotated_data, test_size=0.3)
+        if trainset.size == 0 or testset.size == 0:
+            raise ValueError(
+                "There is no annotated data, hence no training/test data. Annotate some texts to get training/test data."
+            )
         trainset_for_spacy = (
             trainset[text_column]
             .map(

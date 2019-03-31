@@ -353,18 +353,18 @@ class AnnotationDialog(QMainWindow):
         self.navigator = TextNavigator(self)
         self.navigator.setSubmitPolicy(QDataWidgetMapper.ManualSubmit)
         self.navigator.setModel(self.textmodel)
-        self.navigator.addMapping(
-            self.is_annotated_label, 0, QByteArray().insert(0, "text")
-        )
         if config.uses_languages:
-            self.navigator.addMapping(self.language_combobox, 1)
-        self.navigator.addMapping(self.textedit, 2)
+            self.navigator.addMapping(self.language_combobox, 0)
+        self.navigator.addMapping(self.textedit, 1)
         if config.is_categories_enabled:
             self.navigator.addMapping(
                 self.categories_selector,
-                3,
+                2,
                 QByteArray().insert(0, "selected_categories_text"),
             )
+        self.navigator.addMapping(
+            self.is_annotated_label, 3, QByteArray().insert(0, "text")
+        )
         self.navigator.currentIndexChanged.connect(
             self.update_navigation_related_controls
         )

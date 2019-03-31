@@ -14,6 +14,15 @@
             ]
         },
         {
+            "name": "neanno.py (enron)",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/neanno.py",
+            "args": [
+                "--config", "samples/enron/enron.config.yaml"
+            ]
+        },
+        {
             "name": "Python: Current File",
             "type": "python",
             "request": "launch",

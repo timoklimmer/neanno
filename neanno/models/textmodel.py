@@ -101,11 +101,8 @@ class TextModel(QAbstractTableModel):
         ]
 
         # return data for respective columns
-        # column 0: is_annotated
+        # column 0: language
         if index.column() == 0:
-            return str(is_annotated if is_annotated is not None else False)
-        # column 1: language
-        if index.column() == 1:
             language_candidate = str(
                 config.dataset_to_edit.ix[index.row(), self.language_column_index]
             )
@@ -113,23 +110,26 @@ class TextModel(QAbstractTableModel):
                 return language_candidate
             else:
                 return config.default_language
-        # column 2: text
-        if index.column() == 2:
+        # column 1: text
+        if index.column() == 1:
             # get text from dataset
             result = str(config.dataset_to_edit.ix[index.row(), self.text_column_index])
             # add predicted/suggested annotations if not annotated yet
             if not is_annotated:
-                language = self.data(index.siblingAtColumn(1))
+                language = self.data(index.siblingAtColumn(0))
                 result = config.prediction_pipeline.predict_inline_annotations(
                     result, language
                 )
             # return result
             return result
-        # column 3: categories
-        if index.column() == 3:
-            if not is_annotated:
+        # column 2: categories
+        if index.column() == 2:
+            categories_value_in_dataset = str(
+                config.dataset_to_edit.ix[index.row(), self.categories_column_index]
+            )
+            if not categories_value_in_dataset:
                 # predicted categories if not annotated yet
-                language = self.data(index.siblingAtColumn(1))
+                language = self.data(index.siblingAtColumn(0))
                 return "|".join(
                     config.prediction_pipeline.predict_text_categories(
                         str(
@@ -142,40 +142,39 @@ class TextModel(QAbstractTableModel):
                 )
             else:
                 # categories given by annotation
-                return str(
-                    config.dataset_to_edit.ix[index.row(), self.categories_column_index]
-                )
+                return categories_value_in_dataset
+        # column 3: is_annotated
+        if index.column() == 3:
+            return str(is_annotated if is_annotated is not None else False)
 
     def setData(self, index, value, role):
         row = index.row()
         col = index.column()
-        # skip setting is_annotated
-        if col == 0:
-            return True
-        # update dataset and do some additional things needed, depending on what is set
-        if (
-            self.data(index) != value
-            or not config.dataset_to_edit.ix[row, self.is_annotated_column_index]
-        ):
-            # set is annotated flag
-            config.dataset_to_edit.iat[row, self.is_annotated_column_index] = True
 
-            # update the corresponding cell in the dataset (and do some more things if needed)
-            # language
-            if index.column() == 1:
-                config.dataset_to_edit.iat[row, self.language_column_index] = value
-            # text
-            if index.column() == 2:
-                config.dataset_to_edit.iat[row, self.text_column_index] = value
-                self.compute_named_entities_distribution()
-                language = self.data(index.siblingAtColumn(1))
-                config.prediction_pipeline.learn_from_annotated_text(value, language)
-            # categories
-            if index.column() == 3:
-                config.dataset_to_edit.iat[row, self.categories_column_index] = value
-                self.compute_categories_distribution()
+        # update the corresponding cell in the dataset
+        # language
+        if index.column() == 0:
+            config.dataset_to_edit.iat[row, self.language_column_index] = value
+        # text
+        if index.column() == 1:
+            config.dataset_to_edit.iat[row, self.text_column_index] = value
+            language = self.data(index.siblingAtColumn(0))
+            config.prediction_pipeline.learn_from_annotated_text(value, language)
+        # categories
+        if index.column() == 2:
+            config.dataset_to_edit.iat[row, self.categories_column_index] = value
 
-            # save the dataset and emit a dataChanged signal
+        # set is annotated flag to true
+        config.dataset_to_edit.iat[row, self.is_annotated_column_index] = True
+
+        # re-compute distributions
+        if index.column() == 1:
+            self.compute_named_entities_distribution()
+        if index.column() == 2:
+            self.compute_categories_distribution()
+
+        # save the dataset and emit a dataChanged signal
+        if index.column() == 3:
             self.save()
             self.dataChanged.emit(index, index)
 
@@ -184,13 +183,13 @@ class TextModel(QAbstractTableModel):
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         if section == 0:
-            return config.is_annotated_column
-        if section == 1:
             return config.language_column
-        if section == 2:
+        if section == 1:
             return config.text_column
-        if section == 3:
+        if section == 2:
             return config.categories_column
+        if section == 3:
+            return config.is_annotated_column
         return None
 
     def rowCount(self, parent=QModelIndex()):
