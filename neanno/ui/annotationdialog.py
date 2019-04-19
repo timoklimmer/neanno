@@ -65,10 +65,10 @@ class AnnotationDialog(QMainWindow):
         # window
         self.setWindowTitle("neanno")
         screen = QDesktopWidget().screenGeometry()
-        self.setGeometry(0, 0, screen.width() * 0.75, screen.height() * 0.75)
-        mysize = self.geometry()
-        horizontal_position = (screen.width() - mysize.width()) / 2
-        vertical_position = (screen.height() - mysize.height()) / 6
+        self.setGeometry(0, 0, screen.width() * 0.75, screen.height() * 0.85)
+        window_size = self.geometry()
+        horizontal_position = (screen.width() - window_size.width()) / 2
+        vertical_position = (screen.height() - window_size.height()) / 6
         self.move(horizontal_position, vertical_position)
 
         # text edit
@@ -162,7 +162,6 @@ class AnnotationDialog(QMainWindow):
             )
             categories_groupbox_layout = QHBoxLayout()
             categories_groupbox_layout.addWidget(self.categories_selector)
-            categories_groupbox_layout.setSizeConstraint(QLayout.SetFixedSize)
             categories_groupbox = QGroupBox("Categories")
             categories_groupbox.setLayout(categories_groupbox_layout)
 
@@ -249,16 +248,19 @@ class AnnotationDialog(QMainWindow):
         close_button.setToolTip("Close")
         close_button.clicked.connect(self.close)
 
-        # remaining layouts
+        # left top/bottom splitter
+        left_top_bottom_splitter = QSplitter(Qt.Vertical)
+        left_top_bottom_splitter.addWidget(self.textedit)
+        left_top_bottom_splitter.setCollapsible(0, False)
+        left_top_bottom_splitter.addWidget(self.annotation_monitor)
+        left_top_bottom_splitter.setCollapsible(1, False)
+        left_top_bottom_splitter.setSizes([400, 100])
+
         # left panel
         left_panel_layout = QVBoxLayout()
-        left_panel_layout_splitter = QSplitter(Qt.Vertical)
-        left_panel_layout_splitter.addWidget(self.textedit)
-        left_panel_layout_splitter.setCollapsible(0, False)
-        left_panel_layout_splitter.addWidget(self.annotation_monitor)
-        left_panel_layout_splitter.setCollapsible(1, False)
-        left_panel_layout_splitter.setSizes([400, 100])
-        left_panel_layout.addWidget(left_panel_layout_splitter)
+        left_panel_layout.addWidget(left_top_bottom_splitter)
+        left_panel_layout.addLayout(navigation_buttons_layout)
+
         # right panel
         right_panel_layout = QVBoxLayout()
         if config.is_categories_enabled:
@@ -276,25 +278,22 @@ class AnnotationDialog(QMainWindow):
         right_buttons_layout = QHBoxLayout()
         right_buttons_layout.addStretch()
         right_buttons_layout.addWidget(close_button)
+        right_panel_layout.addLayout(right_buttons_layout)
+
+        # left/right splitter
+        left_right_splitter = QSplitter(Qt.Horizontal)
+        left_panel_layout_as_widget = QWidget()
+        left_panel_layout_as_widget.setLayout(left_panel_layout)
+        left_right_splitter.addWidget(left_panel_layout_as_widget)
+        left_right_splitter.setCollapsible(0, False)
+        right_panel_layout_as_widget = QWidget()
+        right_panel_layout_as_widget.setLayout(right_panel_layout)
+        left_right_splitter.addWidget(right_panel_layout_as_widget)
+        left_right_splitter.setCollapsible(1, False)
+        left_right_splitter.setSizes([100000, -1])
+
         # main
-        main_grid = QGridLayout()
-        main_grid.setSpacing(10)
-        left_right_panel_splitter = QSplitter(Qt.Horizontal)
-        left_panel_layout_widget = QWidget()
-        left_panel_layout_widget.setLayout(left_panel_layout)
-        right_panel_layout_widget = QWidget()
-        right_panel_layout_widget.setLayout(right_panel_layout)
-        left_right_panel_splitter.addWidget(left_panel_layout_widget)
-        left_right_panel_splitter.setCollapsible(0, False)
-        left_right_panel_splitter.addWidget(right_panel_layout_widget)
-        left_right_panel_splitter.setCollapsible(1, False)
-        left_right_panel_splitter.setSizes([100000, -1])
-        main_grid.addWidget(left_right_panel_splitter, 0, 0, 1, 0)
-        main_grid.addLayout(navigation_buttons_layout, 1, 0)
-        main_grid.addLayout(right_buttons_layout, 1, 1)
-        central_widget = QWidget()
-        central_widget.setLayout(main_grid)
-        self.setCentralWidget(central_widget)
+        self.setCentralWidget(left_right_splitter)
 
         # update the dataset-related controls so they show up
         self.update_dataset_related_controls()
