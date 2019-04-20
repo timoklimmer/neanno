@@ -7,6 +7,7 @@ from sklearn.model_selection import train_test_split
 from spacy.util import compounding, minibatch
 
 from neanno.prediction.predictor import Predictor
+from neanno.utils.list import is_majority_of_last_n_items_decreasing
 from neanno.utils.metrics import compute_category_metrics
 from neanno.utils.text import remove_all_annotations_from_text
 
@@ -70,7 +71,7 @@ class FromSpacyCategoriesPredictor(Predictor):
             textcat_pipe.add_label(category_to_train)
         # prepare training and test set
         annotated_data = dataset[dataset[is_annotated_column] == True]
-        trainset, testset = train_test_split(annotated_data, test_size=0.3)
+        trainset, testset = train_test_split(annotated_data, test_size=0.25)
         if trainset.size == 0 or testset.size == 0:
             raise ValueError(
                 "There is no annotated data, hence no training/test data. Annotate some texts to get training/test data."
@@ -93,14 +94,14 @@ class FromSpacyCategoriesPredictor(Predictor):
         signals.message.emit(
             "Training categories model with predictor '{}'...".format(self.name)
         )
-        n_iterations = 20
-        # get names of other pipes to disable them during training
+        max_iterations = 100
         other_pipes = [
             pipe for pipe in self.spacy_model.pipe_names if pipe != "textcat"
         ]
-        with self.spacy_model.disable_pipes(*other_pipes):  # only train textcat
+        iteration_losses = []
+        with self.spacy_model.disable_pipes(*other_pipes):
             optimizer = self.spacy_model.begin_training()
-            for iteration in range(n_iterations):
+            for iteration in range(max_iterations):
                 signals.message.emit("Iteration {}...".format(iteration))
                 losses = {}
                 batches = minibatch(
@@ -111,6 +112,17 @@ class FromSpacyCategoriesPredictor(Predictor):
                     self.spacy_model.update(
                         texts, annotations, sgd=optimizer, drop=0.2, losses=losses
                     )
+                iteration_loss = losses["textcat"]
+
+                # stop training when the majority of the last {last_iterations_window_size} trainings did not decrease
+                iteration_losses.append(iteration_loss)
+                last_iterations_window_size = 10      
+                if len(iteration_losses) > (
+                    last_iterations_window_size + 1
+                ) and not is_majority_of_last_n_items_decreasing(
+                    iteration_losses, last_iterations_window_size
+                ):
+                    break
 
         # compute precision/recall values
         signals.message.emit("Computing precision/recall matrix...")
