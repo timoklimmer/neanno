@@ -116,7 +116,7 @@ class FromSpacyCategoriesPredictor(Predictor):
 
                 # stop training when the majority of the last {last_iterations_window_size} trainings did not decrease
                 iteration_losses.append(iteration_loss)
-                last_iterations_window_size = 10      
+                last_iterations_window_size = 7      
                 if len(iteration_losses) > (
                     last_iterations_window_size + 1
                 ) and not is_majority_of_last_n_items_decreasing(
