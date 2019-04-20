@@ -8,9 +8,7 @@ from sklearn.model_selection import train_test_split
 from spacy.util import compounding, minibatch
 
 from neanno.prediction.predictor import Predictor
-from neanno.utils.metrics import (
-    compute_ner_metrics_from_actual_predicted_annotated_text_columns,
-)
+from neanno.utils.metrics import compute_ner_metrics
 from neanno.utils.text import (
     extract_annotations_for_spacy_ner,
     remove_all_annotations_from_text,
@@ -118,23 +116,17 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
 
         # compute precision/recall values
         signals.message.emit("Computing precision/recall matrix...")
-
-        def predict_annotations(text, language):
-            return self.predict_inline_annotations(
-                remove_all_annotations_from_text(text), language
-            )
-
         actual_annotations = testset[text_column]
         predicted_annotations = testset.apply(
             lambda row: (
-                predict_annotations(
-                    row[text_column],
+                self.predict_inline_annotations(
+                    remove_all_annotations_from_text(row[text_column]),
                     row[language_column] if language_column else "en-US",
                 )
             ),
             axis=1,
         )
-        ner_metrics = compute_ner_metrics_from_actual_predicted_annotated_text_columns(
+        ner_metrics = compute_ner_metrics(
             actual_annotations, predicted_annotations, entity_codes_to_train
         )
         signals.message.emit(pd.DataFrame(ner_metrics).T.to_string())

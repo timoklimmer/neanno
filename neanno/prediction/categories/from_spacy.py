@@ -1,11 +1,14 @@
 import pathlib
 
+import pandas as pd
 import spacy
 import yaml
+from sklearn.model_selection import train_test_split
 from spacy.util import compounding, minibatch
 
 from neanno.prediction.predictor import Predictor
-from neanno.utils.text import extract_annotations_for_spacy_ner, replace_from_to
+from neanno.utils.metrics import compute_category_metrics
+from neanno.utils.text import remove_all_annotations_from_text
 
 
 class FromSpacyCategoriesPredictor(Predictor):
@@ -65,8 +68,14 @@ class FromSpacyCategoriesPredictor(Predictor):
         # ensure we have all categories in the model
         for category_to_train in categories_to_train:
             textcat_pipe.add_label(category_to_train)
-        # prepare the training set
-        trainset = dataset[dataset[is_annotated_column] == True].apply(
+        # prepare training and test set
+        annotated_data = dataset[dataset[is_annotated_column] == True]
+        trainset, testset = train_test_split(annotated_data, test_size=0.3)
+        if trainset.size == 0 or testset.size == 0:
+            raise ValueError(
+                "There is no annotated data, hence no training/test data. Annotate some texts to get training/test data."
+            )
+        trainset_for_spacy = trainset.apply(
             lambda row: (
                 row[text_column],
                 {
@@ -77,12 +86,7 @@ class FromSpacyCategoriesPredictor(Predictor):
                 },
             ),
             axis=1,
-        )
-        if trainset.size == 0:
-            raise ValueError(
-                "There is no annotated data, hence no training data. Annotate some texts to get training data."
-            )
-        trainset = trainset.tolist()
+        ).tolist()
         # do the training
         # note: there is certainly room for improvement, maybe switching to spacy's CLI
         #       which seems the recommendation by the spacy authors
@@ -99,15 +103,33 @@ class FromSpacyCategoriesPredictor(Predictor):
             for iteration in range(n_iterations):
                 signals.message.emit("Iteration {}...".format(iteration))
                 losses = {}
-                batches = minibatch(trainset, size=compounding(4.0, 32.0, 1.001))
+                batches = minibatch(
+                    trainset_for_spacy, size=compounding(4.0, 32.0, 1.001)
+                )
                 for batch in batches:
                     texts, annotations = zip(*batch)
                     self.spacy_model.update(
                         texts, annotations, sgd=optimizer, drop=0.2, losses=losses
                     )
 
-        # compute precision/recalls
-        # TODO: complete
+        # compute precision/recall values
+        signals.message.emit("Computing precision/recall matrix...")
+        actual_categories_series = testset[categories_column]
+        predicted_categories_series = testset.apply(
+            lambda row: (
+                "|".join(
+                    self.predict_text_categories(
+                        row[text_column],
+                        row[language_column] if language_column else "en-US",
+                    )
+                )
+            ),
+            axis=1,
+        )
+        category_metrics = compute_category_metrics(
+            actual_categories_series, predicted_categories_series, categories_to_train
+        )
+        signals.message.emit(pd.DataFrame(category_metrics).T.to_string())
 
         # save model to output directory
         if self.target_model_directory is not None:
@@ -120,7 +142,7 @@ class FromSpacyCategoriesPredictor(Predictor):
 
     def predict_text_categories(self, text, language="en-US"):
         if self.spacy_model:
-            doc = self.spacy_model(text)
+            doc = self.spacy_model(remove_all_annotations_from_text(text))
             return [
                 category for category in doc.cats.keys() if doc.cats[category] >= 0.5
             ]
