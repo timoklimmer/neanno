@@ -24,6 +24,9 @@ class TextNavigator(QDataWidgetMapper):
             config.prediction_pipeline.reset_named_entity_terms_marked_for_removal()
             super().setCurrentIndex(index)
 
+    def navigate_to_same_index(self):
+        super().setCurrentIndex(self.getCurrentIndex())
+
     def revert(self):
         config.prediction_pipeline.reset_key_terms_marked_for_removal()
         config.prediction_pipeline.reset_named_entity_terms_marked_for_removal()

@@ -69,9 +69,8 @@ class TextModel(QAbstractTableModel):
             config.is_annotated_column
         )
 
-        # compute required distributions
-        self.compute_categories_distribution()
-        self.compute_named_entities_distribution()
+        # compute distributions
+        self.recompute_distributions()
 
     def compute_named_entities_distribution(self):
         if config.is_named_entities_enabled:
@@ -258,3 +257,14 @@ class TextModel(QAbstractTableModel):
 
     def reset_is_annotated_flags(self):
         config.dataset_to_edit[config.is_annotated_column] = False
+        self.recompute_distributions()
+        self.save()
+
+    def mark_all_texts_as_annotated(self):
+        config.dataset_to_edit[config.is_annotated_column] = True
+        self.recompute_distributions()
+        self.save()
+
+    def recompute_distributions(self):
+        self.compute_categories_distribution()
+        self.compute_named_entities_distribution()

@@ -331,6 +331,10 @@ class AnnotationDialog(QMainWindow):
         register_shortcut(
             self, SHORTCUT_SUBMIT_NEXT_BEST, self.submit_and_go_to_next_best
         )
+        # mark all text as annotated
+        register_shortcut(
+            self, SHORTCUT_MARK_ALL_AS_ANNOTATED, self.mark_all_texts_as_annotated
+        )
         # navigation shortcuts
         register_shortcut(self, SHORTCUT_BACKWARD, self.navigator.backward)
         register_shortcut(self, SHORTCUT_FORWARD, self.navigator.forward)
@@ -674,15 +678,13 @@ class AnnotationDialog(QMainWindow):
             QMessageBox.question(
                 self,
                 "Confirmation",
-                "This will reset all Is Annotated flags and save the dataset to its target. You may end up in big trouble if you don't know what you are doing.\n\nAre you sure you want to the reset/save?",
+                "This will reset all Is Annotated flags and save the dataset to its target. You may end up in big trouble if you don't know what you are doing.\n\nAre you sure you want to do the reset and save?",
                 QMessageBox.Yes | QMessageBox.No,
             )
             == QMessageBox.Yes
         ):
             self.textmodel.reset_is_annotated_flags()
-            self.is_annotated_label.setText("False")
-            self.textmodel.save()
-            self.navigator.toFirst()
+            self.navigator.navigate_to_same_index()
 
     def revert_changes(self):
         self.navigator.revert()
@@ -719,6 +721,19 @@ class AnnotationDialog(QMainWindow):
         self.navigator.setCurrentIndex(
             self.textmodel.get_next_best_row_index(self.navigator.currentIndex())
         )
+
+    def mark_all_texts_as_annotated(self):
+        if (
+            QMessageBox.question(
+                self,
+                "Confirmation",
+                "This will mark all texts as annotated and save the dataset to its target. You may end up in big trouble if you don't know what you are doing.\n\nAre you sure you want to set the marks and save?",
+                QMessageBox.Yes | QMessageBox.No,
+            )
+            == QMessageBox.Yes
+        ):
+            self.textmodel.mark_all_texts_as_annotated()
+            self.navigator.navigate_to_same_index()
 
     def configure_predictors(self):
         PredictorSelectionDialog.show(self)
