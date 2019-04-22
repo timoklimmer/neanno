@@ -1,4 +1,5 @@
 import pathlib
+import time
 
 import pandas as pd
 import spacy
@@ -94,6 +95,10 @@ class FromSpacyCategoriesPredictor(Predictor):
         signals.message.emit(
             "Training categories model with predictor '{}'...".format(self.name)
         )
+        start_time = time.time()
+        signals.message.emit(
+            "Start time: {}".format(time.strftime("%X", time.localtime(start_time)))
+        )
         max_iterations = 100
         other_pipes = [
             pipe for pipe in self.spacy_model.pipe_names if pipe != "textcat"
@@ -113,10 +118,11 @@ class FromSpacyCategoriesPredictor(Predictor):
                         texts, annotations, sgd=optimizer, drop=0.2, losses=losses
                     )
                 iteration_loss = losses["textcat"]
+                signals.message.emit("=> loss: {}".format(iteration_loss))
 
                 # stop training when the majority of the last {last_iterations_window_size} trainings did not decrease
                 iteration_losses.append(iteration_loss)
-                last_iterations_window_size = 7      
+                last_iterations_window_size = 7
                 if len(iteration_losses) > (
                     last_iterations_window_size + 1
                 ) and not is_majority_of_last_n_items_decreasing(
@@ -142,6 +148,17 @@ class FromSpacyCategoriesPredictor(Predictor):
             actual_categories_series, predicted_categories_series, categories_to_train
         )
         signals.message.emit(pd.DataFrame(category_metrics).T.to_string())
+
+        # compute training times
+        end_time = time.time()
+        signals.message.emit(
+            "End time: {}".format(time.strftime("%X", time.localtime(end_time)))
+        )
+        signals.message.emit(
+            "Training took (hh:mm:ss): {}.".format(
+                time.strftime("%H:%M:%S", time.gmtime(end_time - start_time))
+            )
+        )
 
         # save model to output directory
         if self.target_model_directory is not None:

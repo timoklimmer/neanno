@@ -1,5 +1,6 @@
 import pathlib
 import random
+import time
 
 import pandas as pd
 import spacy
@@ -96,6 +97,10 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
         signals.message.emit(
             "Training NER model with predictor '{}'...".format(self.name)
         )
+        start_time = time.time()
+        signals.message.emit(
+            "Start time: {}".format(time.strftime("%X", time.localtime(start_time)))
+        )
         max_iterations = 100
         # note: this removes the unnamed vectors warning, TBD if needs changes
         self.spacy_model.vocab.vectors.name = "spacy_pretrained_vectors"
@@ -116,6 +121,7 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
                         texts, annotations, sgd=optimizer, drop=0.35, losses=losses
                     )
                 iteration_loss = losses["ner"]
+                signals.message.emit("=> loss: {}".format(iteration_loss))
 
                 # stop training when the majority of the last {last_iterations_window_size} trainings did not decrease
                 iteration_losses.append(iteration_loss)
@@ -143,6 +149,17 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
             actual_annotations, predicted_annotations, entity_codes_to_train
         )
         signals.message.emit(pd.DataFrame(ner_metrics).T.to_string())
+
+        # compute training times
+        end_time = time.time()
+        signals.message.emit(
+            "End time: {}".format(time.strftime("%X", time.localtime(end_time)))
+        )
+        signals.message.emit(
+            "Training took (hh:mm:ss): {}.".format(
+                time.strftime("%H:%M:%S", time.gmtime(end_time - start_time))
+            )
+        )
 
         # save model to output directory
         if self.target_model_directory is not None:
