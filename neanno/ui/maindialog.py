@@ -25,6 +25,7 @@ from PyQt5.QtWidgets import (
 )
 
 from neanno.configuration.configmanager import ConfigManager
+from neanno.models.textmodel import TextModel
 from neanno.ui.about import show_about_dialog
 from neanno.ui.categoriesselector import CategoriesSelectorWidget
 from neanno.ui.navigator import TextNavigator
@@ -40,10 +41,11 @@ DEFAULT_PARENT_KEY_TERM = "<add your consolidating terms here, separated by comm
 class MainDialog(QMainWindow):
     """ The dialog shown to the user to do the annotation/labeling."""
 
-    def __init__(self, textmodel):
+    def __init__(self):
         print("Showing main dialog...")
         app = QApplication([])
         super().__init__()
+
         self.setWindowIcon(self.get_icon("icon.ico"))
         screen = QDesktopWidget().screenGeometry()
         self.setGeometry(0, 0, screen.width() * 0.75, screen.height() * 0.85)
@@ -51,10 +53,13 @@ class MainDialog(QMainWindow):
         horizontal_position = (screen.width() - window_size.width()) / 2
         vertical_position = (screen.height() - window_size.height()) / 6
         self.move(horizontal_position, vertical_position)
-        self.textmodel = textmodel
+
+        ConfigManager.init()
+        self.textmodel = TextModel()
         self.layout_controls()
         self.setup_and_wire_navigator_incl_buttons()
         self.setup_and_wire_shortcuts()
+
         self.show()
         app.exec_()
 
@@ -208,9 +213,9 @@ class MainDialog(QMainWindow):
             trigger_batch_trainings_button.clicked.connect(self.trigger_batch_trainings)
             predictors_from_vertical_layout.addWidget(trigger_batch_trainings_button)
 
-            #export_pipeline_model_button = QPushButton("Export Pipeline Model")
-            #export_pipeline_model_button.clicked.connect(self.export_pipeline_model)
-            #predictors_from_vertical_layout.addWidget(export_pipeline_model_button)
+            # export_pipeline_model_button = QPushButton("Export Pipeline Model")
+            # export_pipeline_model_button.clicked.connect(self.export_pipeline_model)
+            # predictors_from_vertical_layout.addWidget(export_pipeline_model_button)
             predictors_from_groupbox = QGroupBox("Predictors")
 
             predictors_from_groupbox.setLayout(predictors_from_vertical_layout)

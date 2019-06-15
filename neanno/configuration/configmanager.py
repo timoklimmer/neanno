@@ -5,6 +5,7 @@ import re
 
 import config
 import yaml
+from PyQt5.QtWidgets import QApplication, QDesktopWidget, QFileDialog
 
 from neanno.configuration.colors import DEFAULT_ENTITY_COLORS_PALETTE
 from neanno.configuration.definitions import CategoryDefinition, NamedEntityDefinition
@@ -17,7 +18,8 @@ from neanno.utils.yaml import validate_yaml
 class ConfigManager:
     """Collects all configuration settings and provides configuration-related objects to neanno (through config.*)."""
 
-    def __init__(self):
+    @staticmethod
+    def init():
         # specify neanno's args and load/validate the required config file
         ConfigManager.define_args_and_load_config_yaml()
         # instantiate prediction pipeline (setup/population will be done below)
@@ -43,11 +45,11 @@ class ConfigManager:
             description="A tool to label and annotate texts and train models.",
             add_help=False,
         )
-        required = config.parser.add_argument_group("required arguments")
-        required.add_argument(
+        optional = config.parser.add_argument_group("optional arguments")
+        optional.add_argument(
             "--config-file",
             help="""Points to a config file for neanno. See the airline_tickets.config.yaml file in samples/airline_tickets to learn how to write neanno config files.""",
-            required=True,
+            required=False,
         )
         help = config.parser.add_argument_group("help arguments")
         help.add_argument(
@@ -56,9 +58,14 @@ class ConfigManager:
 
         # load and validate config file
         args = config.parser.parse_args()
-        print("Using config file '{}'...".format(args.config_file))
+        config_file_path = (
+            args.config_file
+            if args.config_file
+            else ConfigManager.ask_for_config_file_path()
+        )
+        print("Using config file '{}'...".format(config_file_path))
         print("")
-        with open(args.config_file, "r") as config_file:
+        with open(config_file_path, "r") as config_file:
             with open(
                 os.path.join(
                     os.path.abspath(os.path.dirname(__file__)),
@@ -68,6 +75,20 @@ class ConfigManager:
             ) as config_schema_file:
                 config.yaml = yaml.load(config_file, Loader=yaml.FullLoader)
                 validate_yaml(config.yaml, config_schema_file)
+
+    @staticmethod
+    def ask_for_config_file_path():
+        result, _ = QFileDialog.getOpenFileName(
+            QDesktopWidget(),
+            "Select a config file to proceed",
+            "",
+            "Config file (*.yaml)",
+        )
+        if not result:
+            print("Config file selection was aborted by user => closing application.")
+            exit()
+        else:
+            return result
 
     @staticmethod
     def dataset_source():

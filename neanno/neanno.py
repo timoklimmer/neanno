@@ -4,7 +4,6 @@ from PyQt5 import QtCore
 from PyQt5.QtWidgets import QApplication
 
 from neanno.configuration.configmanager import ConfigManager
-from neanno.models.textmodel import TextModel
 from neanno.ui.maindialog import MainDialog
 
 from .version import __version__
@@ -22,11 +21,8 @@ def main():
         # print the neanno banner
         print_banner()
 
-        # process the configuration file
-        ConfigManager()
-
         # run the main dialog
-        MainDialog(TextModel())
+        MainDialog()
     except SystemExit:
         pass
     except:
