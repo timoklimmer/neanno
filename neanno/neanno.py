@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QApplication
 
 from neanno.configuration.configmanager import ConfigManager
 from neanno.models.textmodel import TextModel
-from neanno.ui.annotationdialog import AnnotationDialog
+from neanno.ui.maindialog import MainDialog
 
 from .version import __version__
 
@@ -25,8 +25,8 @@ def main():
         # process the configuration file
         ConfigManager()
 
-        # run the annotation dialog
-        AnnotationDialog(TextModel())
+        # run the main dialog
+        MainDialog(TextModel())
     except SystemExit:
         pass
     except:

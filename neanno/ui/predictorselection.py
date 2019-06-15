@@ -7,6 +7,7 @@ from PyQt5.QtWidgets import (
     QListWidget,
     QListWidgetItem,
     QVBoxLayout,
+    QLabel,
 )
 
 
@@ -15,9 +16,12 @@ class PredictorSelectionDialog(QDialog):
 
     def __init__(self, parent=None):
         super(PredictorSelectionDialog, self).__init__(parent)
-        self.setWindowTitle("Enable/Disable Predictors for Annotation Prediction")
+        self.setWindowTitle("Manage Predictors")
         self.setWindowModality(Qt.ApplicationModal)
         layout = QVBoxLayout(self)
+
+        # description
+        layout.addWidget(QLabel("Select the predictors that shall make predictions for unannotated texts."))
 
         # predictor list
         self.predictor_list = QListWidget()

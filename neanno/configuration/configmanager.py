@@ -71,7 +71,7 @@ class ConfigManager:
 
     @staticmethod
     def dataset_source():
-        print("Loading dataframe with texts to annotate...")
+        print("Loading texts for annotation...")
         config.text_column = ConfigManager.get_config_value("dataset/text_column")
         config.is_annotated_column = ConfigManager.get_config_value(
             "dataset/is_annotated_column"
@@ -239,7 +239,7 @@ class ConfigManager:
             predictor_name = predictor_config["name"]
             predictor_module = importlib.import_module(predictor_config["module"])
             predictor_class_name = predictor_config["class"]
-            print("Adding predictor '{}' to pipeline...".format(predictor_name))
+            print("Adding predictor '{}'...".format(predictor_name))
             predictor = getattr(predictor_module, predictor_class_name)(
                 predictor_config
             )

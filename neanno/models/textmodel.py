@@ -13,7 +13,7 @@ from neanno.utils.text import (
 
 
 class TextModel(QAbstractTableModel):
-    """Provides data to the annotation dialog / data widget mapper and triggers the saving of new annotated data."""
+    """Provides data to the main dialog (data widget mapper) and triggers the saving of new annotated data."""
 
     random_language_column_name = None
     random_categories_column_name = None
