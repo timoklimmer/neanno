@@ -40,6 +40,14 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
         )
 
     @property
+    def supports_online_training(self):
+        return False
+
+    @property
+    def supports_batch_training(self):
+        return True
+
+    @property
     def project_config_validation_schema_custom_part(self):
         return yaml.load(
             """

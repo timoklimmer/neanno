@@ -29,6 +29,7 @@ class ManagePredictorsDialog(QDialog):
         super(ManagePredictorsDialog, self).__init__(parent)
         self.setWindowTitle("Manage Predictors")
         self.setWindowModality(Qt.ApplicationModal)
+        self.setWindowFlags(self.windowFlags() ^ Qt.WindowContextHelpButtonHint)
         layout = QVBoxLayout(self)
 
         # predictor table
@@ -60,7 +61,8 @@ class ManagePredictorsDialog(QDialog):
                 row,
                 self.IS_ONLINE_TRAINING_ENABLED_COLUMN_INDEX,
                 ManagePredictorsDialog.get_centered_checkbox_widget(
-                    predictor.is_online_training_enabled
+                    predictor.supports_online_training,
+                    predictor.is_online_training_enabled,
                 ),
             )
             # is batch training enabled
@@ -68,7 +70,8 @@ class ManagePredictorsDialog(QDialog):
                 row,
                 self.IS_BATCH_TRAINING_ENABLED_COLUMN_INDEX,
                 ManagePredictorsDialog.get_centered_checkbox_widget(
-                    predictor.is_batch_training_enabled
+                    predictor.supports_batch_training,
+                    predictor.is_batch_training_enabled,
                 ),
             )
             # is prediction enabled item
@@ -77,7 +80,7 @@ class ManagePredictorsDialog(QDialog):
                 row,
                 self.IS_PREDICTION_ENABLED_COLUMN_INDEX,
                 ManagePredictorsDialog.get_centered_checkbox_widget(
-                    predictor.is_prediction_enabled
+                    True, predictor.is_prediction_enabled
                 ),
             )
 
@@ -95,6 +98,9 @@ class ManagePredictorsDialog(QDialog):
         self.setMinimumWidth(self.predictor_table.width())
         layout.addWidget(self.predictor_table)
 
+        # online training warning
+        layout.addWidget(QLabel("Note: When disabling online training, predictors might miss important training data during annotation."))
+
         # buttons
         buttons = QDialogButtonBox(
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel, Qt.Horizontal, self
@@ -104,10 +110,11 @@ class ManagePredictorsDialog(QDialog):
         layout.addWidget(buttons)
 
     @staticmethod
-    def get_centered_checkbox_widget(is_checked):
+    def get_centered_checkbox_widget(is_enabled, is_checked):
         result = QWidget()
         checkbox = QCheckBox()
         checkbox.setObjectName("checkbox")
+        checkbox.setEnabled(is_enabled)
         checkbox.setCheckState(Qt.Checked if is_checked else Qt.Unchecked)
         layout = QHBoxLayout(result)
         layout.addWidget(checkbox)

@@ -29,12 +29,12 @@ class Predictor(ABC):
                 )
             )
             raise
-        self._is_online_training_enabled = (
+        self._is_online_training_enabled = self.supports_online_training and (
             self._predictor_config["is_online_training_enabled"]
             if "is_online_training_enabled" in self._predictor_config
             else True
         )
-        self._is_batch_training_enabled = (
+        self._is_batch_training_enabled = self.supports_batch_training and (
             self._predictor_config["is_batch_training_enabled"]
             if "is_batch_training_enabled" in self._predictor_config
             else True
@@ -104,6 +104,16 @@ class Predictor(ABC):
     @property
     @abstractmethod
     def project_config_validation_schema_custom_part(self):
+        pass
+
+    @property
+    @abstractmethod
+    def supports_online_training(self):
+        pass
+
+    @property
+    @abstractmethod
+    def supports_batch_training(self):
         pass
 
     @property
