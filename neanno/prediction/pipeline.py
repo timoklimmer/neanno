@@ -36,9 +36,9 @@ class PredictionPipeline(QObject):
             if predictor.is_prediction_enabled
         ]
 
-    def invoke_predictors(self, function_name, *args, **kwargs):
+    def invoke_predictors(self, function_name, condition_function, *args, **kwargs):
         for predictor in self.get_all_predictors():
-            if hasattr(predictor, function_name):
+            if hasattr(predictor, function_name) and condition_function(predictor):
                 getattr(predictor, function_name)(*args, **kwargs)
 
     def collect_from_predictors(
@@ -59,7 +59,12 @@ class PredictionPipeline(QObject):
         return result
 
     def learn_from_annotated_text(self, annotated_text, language):
-        self.invoke_predictors("learn_from_annotated_text", annotated_text, language)
+        self.invoke_predictors(
+            "learn_from_annotated_text",
+            lambda predictor: predictor.is_online_training_enabled,
+            annotated_text,
+            language,
+        )
 
     def learn_from_annotated_dataset_async(
         self,
@@ -76,6 +81,7 @@ class PredictionPipeline(QObject):
             self.invoke_predictors,
             signal_slots,
             "learn_from_annotated_dataset",
+            lambda predictor: predictor.is_batch_training_enabled,
             dataset,
             text_column,
             is_annotated_column,
@@ -144,13 +150,13 @@ class PredictionPipeline(QObject):
         )
 
     def mark_key_term_for_removal(self, key_term):
-        self.invoke_predictors("mark_key_term_for_removal", key_term)
+        self.invoke_predictors("mark_key_term_for_removal", lambda predictor: predictor.is_online_training_enabled, key_term)
 
     def reset_key_terms_marked_for_removal(self):
-        self.invoke_predictors("reset_key_terms_marked_for_removal")
+        self.invoke_predictors("reset_key_terms_marked_for_removal", lambda predictor: predictor.is_online_training_enabled)
 
     def mark_named_entity_term_for_removal(self, term, entity_code):
-        self.invoke_predictors("mark_named_entity_term_for_removal", term, entity_code)
+        self.invoke_predictors("mark_named_entity_term_for_removal", lambda predictor: predictor.is_online_training_enabled, term, entity_code)
 
     def reset_named_entity_terms_marked_for_removal(self):
-        self.invoke_predictors("reset_named_entity_terms_marked_for_removal")
+        self.invoke_predictors("reset_named_entity_terms_marked_for_removal", lambda predictor: predictor.is_online_training_enabled)

@@ -35,7 +35,10 @@ categories:
     - name: Categories from spacy
       module: neanno.prediction.categories.from_spacy
       class: FromSpacyCategoriesPredictor
-      is_prediction_enabled: true
+      # note: set these to override the default values if needed, works for any predictor
+      #is_online_training_enabled: false 
+      #is_batch_training_enabled: false
+      #is_prediction_enabled: false
       source_model: blank:en
       target_model_directory: samples/airline_tickets/textcats_model
       target_model_name: airline_tickets_textcats
@@ -51,13 +54,11 @@ key_terms:
     - name: Key Terms from Dataset
       module: neanno.prediction.key_terms.from_dataset
       class: FromDatasetKeyTermsPredictor
-      is_prediction_enabled: true
       location: csv:samples/airline_tickets/default.key_terms.csv
     # Key Terms from Regexes
     - name: Key Terms from Regexes
       module: neanno.prediction.key_terms.from_regexes
       class: FromRegexesKeyTermsPredictor
-      is_prediction_enabled: true
       patterns:
         - name: terminals
           pattern: (?i)(\bterminal\s*\d+\b)|(\bT[1-9]\b)|(\bterminal\b)
@@ -84,7 +85,6 @@ named_entities:
     - name: Named Entities from Dataset
       module: neanno.prediction.named_entities.from_datasets
       class: FromDatasetsNamedEntitiesPredictor
-      is_prediction_enabled: true
       datasets:
         - code: AIRLINE
           location: csv:samples/airline_tickets/airlines.named_entities.csv
@@ -93,7 +93,6 @@ named_entities:
     - name: Named Entities from Regexes
       module: neanno.prediction.named_entities.from_regexes
       class: FromRegexesNamedEntitiesPredictor
-      is_prediction_enabled: true
       patterns:
       - entity: FROM
         pattern: (?<=\bfrom\s)[A-Z][A-Za-z]+\b
@@ -114,7 +113,6 @@ named_entities:
     - name: Named Entities from spacy
       module: neanno.prediction.named_entities.from_spacy
       class: FromSpacyNamedEntitiesPredictor
-      is_prediction_enabled: true
       source_model: blank:en
       target_model_directory: samples/airline_tickets/ner_model
       target_model_name: airline_tickets_ner

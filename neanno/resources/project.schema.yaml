@@ -62,9 +62,15 @@ categories:
                     class:
                         type: string
                         required: True
+                    is_online_training_enabled:
+                        type: boolean
+                        required: False
+                    is_batch_training_enabled:
+                        type: boolean
+                        required: False
                     is_prediction_enabled:
                         type: boolean
-                        required: True
+                        required: False
                 allow_unknown: True
             required: False
     required: False
@@ -98,9 +104,15 @@ key_terms:
                     class:
                         type: string
                         required: True
+                    is_online_training_enabled:
+                        type: boolean
+                        required: False
+                    is_batch_training_enabled:
+                        type: boolean
+                        required: False
                     is_prediction_enabled:
                         type: boolean
-                        required: True
+                        required: False
                 allow_unknown: True
             required: False
         backcolor:
@@ -149,9 +161,15 @@ named_entities:
                     class:
                         type: string
                         required: True
+                    is_online_training_enabled:
+                        type: boolean
+                        required: False
+                    is_batch_training_enabled:
+                        type: boolean
+                        required: False
                     is_prediction_enabled:
                         type: boolean
-                        required: True
+                        required: False
                 allow_unknown: True
             required: False
     required: False

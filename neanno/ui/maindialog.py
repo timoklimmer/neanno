@@ -29,7 +29,7 @@ from neanno.models.textmodel import TextModel
 from neanno.ui.about import show_about_dialog
 from neanno.ui.categoriesselector import CategoriesSelectorWidget
 from neanno.ui.navigator import TextNavigator
-from neanno.ui.predictormanagement import PredictorManagementDialog
+from neanno.ui.predictormanagement import ManagePredictorsDialog
 from neanno.ui.shortcuts import *
 from neanno.ui.syntaxhighlighters import TextEditHighlighter
 from neanno.utils.text import *
@@ -740,7 +740,7 @@ class MainDialog(QMainWindow):
             self.navigator.navigate_to_same_index()
 
     def configure_predictors(self):
-        PredictorManagementDialog.show(self)
+        ManagePredictorsDialog.show(self)
         self.navigator.navigate_to_same_index()
 
     def trigger_batch_trainings(self):

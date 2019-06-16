@@ -8,6 +8,8 @@ from neanno.utils.yaml import validate_yaml
 
 class Predictor(ABC):
     _name = None
+    _is_online_training_enabled = None
+    _is_batch_training_enabled = None
     _is_prediction_enabled = None
     _predictor_config = None
 
@@ -18,11 +20,6 @@ class Predictor(ABC):
             if "name" in self._predictor_config
             else str(uuid.uuid4())
         )
-        self._is_prediction_enabled = (
-            self._predictor_config["is_prediction_enabled"]
-            if "is_prediction_enabled" in self._predictor_config
-            else True
-        )
         try:
             validate_yaml(self._predictor_config, self.project_config_validation_schema)
         except:
@@ -32,6 +29,21 @@ class Predictor(ABC):
                 )
             )
             raise
+        self._is_online_training_enabled = (
+            self._predictor_config["is_online_training_enabled"]
+            if "is_online_training_enabled" in self._predictor_config
+            else True
+        )
+        self._is_batch_training_enabled = (
+            self._predictor_config["is_batch_training_enabled"]
+            if "is_batch_training_enabled" in self._predictor_config
+            else True
+        )
+        self._is_prediction_enabled = (
+            self._predictor_config["is_prediction_enabled"]
+            if "is_prediction_enabled" in self._predictor_config
+            else True
+        )
 
     @property
     def name(self):
@@ -76,6 +88,12 @@ class Predictor(ABC):
             class:
                 type: string
                 required: False
+            is_online_training_enabled:
+                type: boolean
+                required: False           
+            is_batch_training_enabled:
+                type: boolean
+                required: False
             is_prediction_enabled:
                 type: boolean
                 required: False
@@ -89,6 +107,22 @@ class Predictor(ABC):
         pass
 
     @property
+    def is_online_training_enabled(self):
+        return self._is_online_training_enabled
+
+    @is_online_training_enabled.setter
+    def is_online_training_enabled(self, value):
+        self._is_online_training_enabled = value
+
+    @property
+    def is_batch_training_enabled(self):
+        return self._is_batch_training_enabled
+
+    @is_batch_training_enabled.setter
+    def is_batch_training_enabled(self, value):
+        self._is_batch_training_enabled = value
+
+    @property
     def is_prediction_enabled(self):
         return self._is_prediction_enabled
 
@@ -96,7 +130,7 @@ class Predictor(ABC):
     def is_prediction_enabled(self, value):
         self._is_prediction_enabled = value
 
-    def learn_from_annotated_text(self, annotated_text, language):
+    def learn_from_annotated_text(self, annotated_text, language="en-us"):
         pass
 
     def learn_from_annotated_dataset(

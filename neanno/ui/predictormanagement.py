@@ -17,14 +17,16 @@ from PyQt5.QtWidgets import (
 )
 
 
-class PredictorManagementDialog(QDialog):
+class ManagePredictorsDialog(QDialog):
     """ A dialog to enable/disable predictors."""
 
     PREDICTOR_NAME_COLUMN_INDEX = 0
-    IS_PREDICTION_ENABLED_COLUMN_INDEX = 1
+    IS_ONLINE_TRAINING_ENABLED_COLUMN_INDEX = 1
+    IS_BATCH_TRAINING_ENABLED_COLUMN_INDEX = 2
+    IS_PREDICTION_ENABLED_COLUMN_INDEX = 3
 
     def __init__(self, parent=None):
-        super(PredictorManagementDialog, self).__init__(parent)
+        super(ManagePredictorsDialog, self).__init__(parent)
         self.setWindowTitle("Manage Predictors")
         self.setWindowModality(Qt.ApplicationModal)
         layout = QVBoxLayout(self)
@@ -35,12 +37,12 @@ class PredictorManagementDialog(QDialog):
         self.predictor_table.setRowCount(
             len(config.prediction_pipeline.get_all_predictors())
         )
-        self.predictor_table.setColumnCount(2)
+        self.predictor_table.setColumnCount(4)
         self.predictor_table.setSelectionMode(QAbstractItemView.NoSelection)
         self.predictor_table.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.predictor_table.verticalHeader().hide()
         self.predictor_table.setHorizontalHeaderLabels(
-            ("Predictor", "Prediction on/off")
+            ("Predictor", "Online Training", "Batch Training", "Predictions")
         )
 
         row = 0
@@ -53,12 +55,28 @@ class PredictorManagementDialog(QDialog):
             self.predictor_table.setItem(
                 row, self.PREDICTOR_NAME_COLUMN_INDEX, predictor_name_item
             )
+            # is online training enabled
+            self.predictor_table.setCellWidget(
+                row,
+                self.IS_ONLINE_TRAINING_ENABLED_COLUMN_INDEX,
+                ManagePredictorsDialog.get_centered_checkbox_widget(
+                    predictor.is_online_training_enabled
+                ),
+            )
+            # is batch training enabled
+            self.predictor_table.setCellWidget(
+                row,
+                self.IS_BATCH_TRAINING_ENABLED_COLUMN_INDEX,
+                ManagePredictorsDialog.get_centered_checkbox_widget(
+                    predictor.is_batch_training_enabled
+                ),
+            )
             # is prediction enabled item
             # note: we have to create our own widgets here because PyQt5 does not center the checkboxes for us
             self.predictor_table.setCellWidget(
                 row,
                 self.IS_PREDICTION_ENABLED_COLUMN_INDEX,
-                PredictorManagementDialog.get_centered_checkbox_widget(
+                ManagePredictorsDialog.get_centered_checkbox_widget(
                     predictor.is_prediction_enabled
                 ),
             )
@@ -99,7 +117,7 @@ class PredictorManagementDialog(QDialog):
         return result
 
     @staticmethod
-    def get_checkstate_from_centered_checkbox_widget(centered_checkbox_widget):
+    def get_checkstate_from_checkbox_widget(centered_checkbox_widget):
         return (
             centered_checkbox_widget.findChild(QCheckBox, "checkbox").checkState()
             == Qt.Checked
@@ -108,7 +126,7 @@ class PredictorManagementDialog(QDialog):
     @staticmethod
     def show(parent=None):
         # show the dialog
-        dialog = PredictorManagementDialog(parent)
+        dialog = ManagePredictorsDialog(parent)
         result = dialog.exec_()
         # process the new settings
         if result == QDialog.Accepted:
@@ -118,7 +136,20 @@ class PredictorManagementDialog(QDialog):
                     row, dialog.PREDICTOR_NAME_COLUMN_INDEX
                 ).text()
                 predictor = config.prediction_pipeline.get_predictor(predictor_name)
-                predictor.is_prediction_enabled = PredictorManagementDialog.get_checkstate_from_centered_checkbox_widget(
+                # is online training enabled
+                predictor.is_online_training_enabled = ManagePredictorsDialog.get_checkstate_from_checkbox_widget(
+                    dialog.predictor_table.cellWidget(
+                        row, dialog.IS_ONLINE_TRAINING_ENABLED_COLUMN_INDEX
+                    )
+                )
+                # is batch training enabled
+                predictor.is_batch_training_enabled = ManagePredictorsDialog.get_checkstate_from_checkbox_widget(
+                    dialog.predictor_table.cellWidget(
+                        row, dialog.IS_BATCH_TRAINING_ENABLED_COLUMN_INDEX
+                    )
+                )
+                # is prediction enabled
+                predictor.is_prediction_enabled = ManagePredictorsDialog.get_checkstate_from_checkbox_widget(
                     dialog.predictor_table.cellWidget(
                         row, dialog.IS_PREDICTION_ENABLED_COLUMN_INDEX
                     )
