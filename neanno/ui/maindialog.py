@@ -741,6 +741,7 @@ class MainDialog(QMainWindow):
 
     def configure_predictors(self):
         PredictorManagementDialog.show(self)
+        self.navigator.navigate_to_same_index()
 
     def trigger_batch_trainings(self):
         config.prediction_pipeline.learn_from_annotated_dataset_async(

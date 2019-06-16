@@ -2,16 +2,18 @@ import config
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
     QAbstractItemView,
+    QCheckBox,
     QDialog,
     QDialogButtonBox,
+    QHBoxLayout,
+    QHeaderView,
+    QLabel,
     QListWidget,
     QListWidgetItem,
-    QVBoxLayout,
-    QLabel,
     QTableWidget,
     QTableWidgetItem,
-    QAbstractItemView,
-    QHeaderView,
+    QVBoxLayout,
+    QWidget,
 )
 
 
@@ -52,15 +54,13 @@ class PredictorManagementDialog(QDialog):
                 row, self.PREDICTOR_NAME_COLUMN_INDEX, predictor_name_item
             )
             # is prediction enabled item
-            is_prediction_enabled_item = QTableWidgetItem()
-            is_prediction_enabled_item.setFlags(
-                Qt.ItemIsEnabled | Qt.ItemIsUserCheckable
-            )
-            is_prediction_enabled_item.setCheckState(
-                Qt.Checked if predictor.is_prediction_enabled else Qt.Unchecked
-            )
-            self.predictor_table.setItem(
-                row, self.IS_PREDICTION_ENABLED_COLUMN_INDEX, is_prediction_enabled_item
+            # note: we have to create our own widgets here because PyQt5 does not center the checkboxes for us
+            self.predictor_table.setCellWidget(
+                row,
+                self.IS_PREDICTION_ENABLED_COLUMN_INDEX,
+                PredictorManagementDialog.get_centered_checkbox_widget(
+                    predictor.is_prediction_enabled
+                ),
             )
 
             row += 1
@@ -86,20 +86,40 @@ class PredictorManagementDialog(QDialog):
         layout.addWidget(buttons)
 
     @staticmethod
+    def get_centered_checkbox_widget(is_checked):
+        result = QWidget()
+        checkbox = QCheckBox()
+        checkbox.setObjectName("checkbox")
+        checkbox.setCheckState(Qt.Checked if is_checked else Qt.Unchecked)
+        layout = QHBoxLayout(result)
+        layout.addWidget(checkbox)
+        layout.setAlignment(Qt.AlignCenter)
+        layout.setContentsMargins(0, 0, 0, 0)
+        result.setLayout(layout)
+        return result
+
+    @staticmethod
+    def get_checkstate_from_centered_checkbox_widget(centered_checkbox_widget):
+        return (
+            centered_checkbox_widget.findChild(QCheckBox, "checkbox").checkState()
+            == Qt.Checked
+        )
+
+    @staticmethod
     def show(parent=None):
         # show the dialog
         dialog = PredictorManagementDialog(parent)
         result = dialog.exec_()
-        # update the predictor objects if user has clicked OK
+        # process the new settings
         if result == QDialog.Accepted:
+            # update the predictor instances
             for row in range(dialog.predictor_table.rowCount()):
                 predictor_name = dialog.predictor_table.item(
                     row, dialog.PREDICTOR_NAME_COLUMN_INDEX
                 ).text()
                 predictor = config.prediction_pipeline.get_predictor(predictor_name)
-                predictor.is_prediction_enabled = (
-                    dialog.predictor_table.item(
+                predictor.is_prediction_enabled = PredictorManagementDialog.get_checkstate_from_centered_checkbox_widget(
+                    dialog.predictor_table.cellWidget(
                         row, dialog.IS_PREDICTION_ENABLED_COLUMN_INDEX
-                    ).checkState()
-                    == Qt.Checked
+                    )
                 )
