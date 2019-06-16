@@ -21,7 +21,7 @@ class FromDatasetsNamedEntitiesPredictor(Predictor):
         self.load_datasets(predictor_config["datasets"])
 
     @property
-    def config_validation_schema_custom_part(self):
+    def project_config_validation_schema_custom_part(self):
         return yaml.load(
             """
             datasets:

@@ -1,4 +1,4 @@
-# neanno config file for enron sample
+# project file for the enron sample
 
 dataset:
     source: csv:samples/enron/emails.csv

@@ -24,7 +24,7 @@ class Predictor(ABC):
             else True
         )
         try:
-            validate_yaml(self._predictor_config, self.config_validation_schema)
+            validate_yaml(self._predictor_config, self.project_config_validation_schema)
         except:
             print(
                 "Failed to create predictor '{}' because it was given a wrong configuration. To create the predictor you must follow it's required configuration schema.".format(
@@ -50,17 +50,17 @@ class Predictor(ABC):
         self._predictor_config = value
 
     @property
-    def config_validation_schema(self):
-        if self.config_validation_schema_custom_part:
+    def project_config_validation_schema(self):
+        if self.project_config_validation_schema_custom_part:
             return {
-                **self.config_validation_schema_base,
-                **self.config_validation_schema_custom_part,
+                **self.project_config_validation_schema_base,
+                **self.project_config_validation_schema_custom_part,
             }
         else:
-            return {**self.config_validation_schema_base}
+            return {**self.project_config_validation_schema_base}
 
     @property
-    def config_validation_schema_base(self):
+    def project_config_validation_schema_base(self):
         # notes: - these are the minimum requirements to instantiate a predictor.
         #          when a predictor is instantiated from the neanno UI, more
         #          fields may be required, and the neanno UI will validate for them.
@@ -85,7 +85,7 @@ class Predictor(ABC):
 
     @property
     @abstractmethod
-    def config_validation_schema_custom_part(self):
+    def project_config_validation_schema_custom_part(self):
         pass
 
     @property

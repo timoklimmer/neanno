@@ -20,7 +20,7 @@ class ConfigManager:
 
     @staticmethod
     def init():
-        # specify neanno's args and load/validate the required config file
+        # specify neanno's args and load/validate the required project file
         ConfigManager.define_args_and_load_config_yaml()
         # instantiate prediction pipeline (setup/population will be done below)
         config.prediction_pipeline = PredictionPipeline()
@@ -47,8 +47,8 @@ class ConfigManager:
         )
         optional = config.parser.add_argument_group("optional arguments")
         optional.add_argument(
-            "--config-file",
-            help="""Points to a config file for neanno. See the airline_tickets.config.yaml file in samples/airline_tickets to learn how to write neanno config files.""",
+            "--project-file",
+            help="""Points to a project file for neanno. See the airline_tickets.neanno.project.yaml file in samples/airline_tickets to learn how to write neanno project files.""",
             required=False,
         )
         help = config.parser.add_argument_group("help arguments")
@@ -56,36 +56,36 @@ class ConfigManager:
             "-h", "--help", action="help", help="show this help message and exit"
         )
 
-        # load and validate config file
+        # load and validate project file
         args = config.parser.parse_args()
-        config_file_path = (
-            args.config_file
-            if args.config_file
-            else ConfigManager.ask_for_config_file_path()
+        project_file_path = (
+            args.project_file
+            if args.project_file
+            else ConfigManager.ask_for_project_file_path()
         )
-        print("Using config file '{}'...".format(config_file_path))
+        print("Using project file '{}'...".format(project_file_path))
         print("")
-        with open(config_file_path, "r") as config_file:
+        with open(project_file_path, "r") as config_file:
             with open(
                 os.path.join(
                     os.path.abspath(os.path.dirname(__file__)),
                     "../resources",
-                    "config.schema.yaml",
+                    "project.schema.yaml",
                 )
-            ) as config_schema_file:
+            ) as project_schema_file:
                 config.yaml = yaml.load(config_file, Loader=yaml.FullLoader)
-                validate_yaml(config.yaml, config_schema_file)
+                validate_yaml(config.yaml, project_schema_file)
 
     @staticmethod
-    def ask_for_config_file_path():
+    def ask_for_project_file_path():
         result, _ = QFileDialog.getOpenFileName(
             QDesktopWidget(),
-            "Select a config file to proceed",
+            "Select a project file to proceed",
             "",
-            "Config file (*.yaml)",
+            "neanno project (*.neanno.project.yaml)",
         )
         if not result:
-            print("Config file selection was aborted by user => closing application.")
+            print("Project file selection was aborted by user => closing application.")
             exit()
         else:
             return result

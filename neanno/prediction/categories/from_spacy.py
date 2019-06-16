@@ -35,7 +35,7 @@ class FromSpacyCategoriesPredictor(Predictor):
         )
 
     @property
-    def config_validation_schema_custom_part(self):
+    def project_config_validation_schema_custom_part(self):
         return yaml.load(
             """
             source_model:

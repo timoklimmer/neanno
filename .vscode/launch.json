@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/neanno.py",
             "args": [
-                "--config", "samples/airline_tickets/airline_tickets.config.yaml"
+               "--project-file", "samples/airline_tickets/airline_tickets.neanno.project.yaml"
             ]
         },
         {
@@ -19,7 +19,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/neanno.py",
             "args": [
-                "--config", "samples/enron/enron.config.yaml"
+                "--project-file", "samples/enron/enron.neanno.project.yaml"
             ]
         },
         {

@@ -21,7 +21,7 @@ class FromDatasetKeyTermsPredictor(Predictor):
         self.load_dataset(predictor_config["location"])
 
     @property
-    def config_validation_schema_custom_part(self):
+    def project_config_validation_schema_custom_part(self):
         return yaml.load(
             """
             location:
