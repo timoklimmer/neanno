@@ -95,7 +95,7 @@ class TextModel(QAbstractTableModel):
             return QVariant()
 
         # get is_annotated
-        is_annotated = config.dataset_to_edit.ix[
+        is_annotated = config.dataset_to_edit.iloc[
             index.row(), self.is_annotated_column_index
         ]
 
@@ -103,7 +103,7 @@ class TextModel(QAbstractTableModel):
         # column 0: language
         if index.column() == 0:
             language_candidate = str(
-                config.dataset_to_edit.ix[index.row(), self.language_column_index]
+                config.dataset_to_edit.iloc[index.row(), self.language_column_index]
             )
             if language_candidate:
                 return language_candidate
@@ -112,7 +112,7 @@ class TextModel(QAbstractTableModel):
         # column 1: text
         if index.column() == 1:
             # get text from dataset
-            result = str(config.dataset_to_edit.ix[index.row(), self.text_column_index])
+            result = str(config.dataset_to_edit.iloc[index.row(), self.text_column_index])
             # add predicted/suggested annotations if not annotated yet
             if not is_annotated:
                 language = self.data(index.siblingAtColumn(0))
@@ -124,7 +124,7 @@ class TextModel(QAbstractTableModel):
         # column 2: categories
         if index.column() == 2:
             categories_value_in_dataset = str(
-                config.dataset_to_edit.ix[index.row(), self.categories_column_index]
+                config.dataset_to_edit.iloc[index.row(), self.categories_column_index]
             )
             if not categories_value_in_dataset:
                 # predicted categories if not annotated yet
@@ -132,7 +132,7 @@ class TextModel(QAbstractTableModel):
                 return "|".join(
                     config.prediction_pipeline.predict_text_categories(
                         str(
-                            config.dataset_to_edit.ix[
+                            config.dataset_to_edit.iloc[
                                 index.row(), self.text_column_index
                             ]
                         ),
@@ -253,7 +253,7 @@ class TextModel(QAbstractTableModel):
         return False in config.dataset_to_edit[config.is_annotated_column].values
 
     def unset_is_annotated_for_index(self, row_index):
-        config.dataset_to_edit.ix[row_index, self.is_annotated_column_index] = False
+        config.dataset_to_edit.iloc[row_index, self.is_annotated_column_index] = False
 
     def reset_is_annotated_flags(self):
         config.dataset_to_edit[config.is_annotated_column] = False
