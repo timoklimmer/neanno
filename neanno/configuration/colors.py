@@ -1,3 +1,5 @@
+"""Default color palette for entities for which no specific color was specified."""
+
 # maincolor, backcolor, forecolor
 DEFAULT_ENTITY_COLORS_PALETTE = [
     ("#243a5e", "#243a5e", "#ffffff"),

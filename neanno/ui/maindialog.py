@@ -27,11 +27,11 @@ from PyQt5.QtWidgets import (
 from neanno.configuration.configmanager import ConfigManager
 from neanno.models.textmodel import TextModel
 from neanno.ui.about import show_about_dialog
-from neanno.ui.categoriesselector import CategoriesSelectorWidget
-from neanno.ui.navigator import TextNavigator
+from neanno.ui.categoryselection import CategoriesSelectorWidget
+from neanno.ui.textnavigation import TextNavigator
 from neanno.ui.predictormanagement import ManagePredictorsDialog
 from neanno.ui.shortcuts import *
-from neanno.ui.syntaxhighlighters import TextEditHighlighter
+from neanno.ui.syntaxhighlighting import TextEditHighlighter
 from neanno.utils.text import *
 from neanno.utils.threading import ParallelWorker
 
