@@ -1,7 +1,7 @@
 from PyQt5.QtCore import QObject, QThreadPool
 
 from neanno.utils.list import get_set_of_list_and_keep_sequence, not_none
-from neanno.utils.threading import ParallelWorker, ParallelWorkerSignals
+from neanno.utils.threading import ParallelWorker, ConsoleSignalsHandler
 from neanno.utils.text import extract_annotations_as_list, annotate_text
 
 
@@ -75,11 +75,11 @@ class PredictionPipeline(QObject):
         categories_column,
         categories_to_train,
         entity_codes_to_train,
-        signal_slots=ParallelWorkerSignals.default_slots(),
+        signals_handler=ConsoleSignalsHandler()
     ):
         parallel_worker = ParallelWorker(
             self.invoke_predictors,
-            signal_slots,
+            signals_handler,
             "learn_from_annotated_dataset",
             lambda predictor: predictor.is_batch_training_enabled,
             dataset,
@@ -101,7 +101,7 @@ class PredictionPipeline(QObject):
         categories_column,
         categories_to_train,
         entity_codes_to_train,
-        signal_slots=ParallelWorkerSignals.default_slots(),
+        signals_handler=ConsoleSignalsHandler()
     ):
         # call the async version of this method
         self.learn_from_annotated_dataset_async(
@@ -112,7 +112,7 @@ class PredictionPipeline(QObject):
             categories_column,
             categories_to_train,
             entity_codes_to_train,
-            signal_slots,
+            signals_handler,
         )
         # wait for done
         # note: this waits until the entire threadpool is done
