@@ -1,4 +1,5 @@
-import neanno.neanno
+"""Is invoked when the neanno UI is started by running python neanno.py."""
 
-if __name__ == '__main__':
-    neanno.neanno.main()
+import neanno
+
+neanno.main()
