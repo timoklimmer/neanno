@@ -251,6 +251,7 @@ def extract_entity_codes_from_annotated_texts_column(annotated_texts_column):
     result.sort()
     return result
 
+
 def extract_categories_from_categories_column(categories_column):
     """ Extracts the set of all categories that appear in the specified categories column (pandas series)."""
     result = []
@@ -260,6 +261,7 @@ def extract_categories_from_categories_column(categories_column):
                 result.append(category)
     result.sort()
     return result
+
 
 def extract_annotations_for_spacy_ner(annotated_text, entity_codes_to_extract=None):
     """ Returns a tuple which for the specified text that can be used to train a named entity recognition (NER) with spacy."""

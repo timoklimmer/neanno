@@ -112,7 +112,9 @@ class TextModel(QAbstractTableModel):
         # column 1: text
         if index.column() == 1:
             # get text from dataset
-            result = str(config.dataset_to_edit.iloc[index.row(), self.text_column_index])
+            result = str(
+                config.dataset_to_edit.iloc[index.row(), self.text_column_index]
+            )
             # add predicted/suggested annotations if not annotated yet
             if not is_annotated:
                 language = self.data(index.siblingAtColumn(0))

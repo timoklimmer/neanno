@@ -1,6 +1,7 @@
 import os
-import pandas as pd
 import re
+
+import pandas as pd
 
 WINDOWS_LINE_ENDING = b"\r\n"
 UNIX_LINE_ENDING = b"\n"

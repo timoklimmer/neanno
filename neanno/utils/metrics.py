@@ -60,13 +60,12 @@ def compute_ner_metrics_on_text_level(
         counters[entity_code]["recall"] = correct / possible if possible > 0 else 0
     return counters
 
+
 def compute_category_metrics_on_text_level(
     actual_categories, predicted_categories, considered_categories
 ):
     actual_categories = [
-        category
-        for category in actual_categories
-        if category in considered_categories
+        category for category in actual_categories if category in considered_categories
     ]
     predicted_categories = [
         category
@@ -107,6 +106,7 @@ def compute_category_metrics_on_text_level(
         counters[category]["recall"] = correct / possible if possible > 0 else 0
     return counters
 
+
 def aggregate_ner_metrics(ner_metrics1, ner_metrics2):
     result = merge_dict_sum_child_dicts(ner_metrics1, ner_metrics2)
     for entity_code in result:
@@ -117,6 +117,7 @@ def aggregate_ner_metrics(ner_metrics1, ner_metrics2):
         result[entity_code]["recall"] = correct / possible if possible > 0 else 0
     return result
 
+
 def aggregate_category_metrics(category_metrics1, category_metrics2):
     result = merge_dict_sum_child_dicts(category_metrics1, category_metrics2)
     for category in result:
@@ -126,6 +127,7 @@ def aggregate_category_metrics(category_metrics1, category_metrics2):
         result[category]["precision"] = correct / actual if actual > 0 else 0
         result[category]["recall"] = correct / possible if possible > 0 else 0
     return result
+
 
 def compute_ner_metrics(
     actual_annotated_texts_pandas_series,

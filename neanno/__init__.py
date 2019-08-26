@@ -7,9 +7,10 @@ from PyQt5.QtWidgets import QApplication
 
 import neanno
 from neanno.configuration.configmanager import ConfigManager
-from neanno.ui.maindialog import MainDialog
+from neanno.ui.main_window import MainWindow
 
-__version__ = '0.1'
+__version__ = "0.1"
+
 
 def main():
     """Main function for neanno's user interface."""
@@ -37,7 +38,7 @@ def main():
         _print_startup_banner()
 
         # run the main dialog
-        MainDialog()
+        MainWindow()
     except SystemExit:
         pass
     except:

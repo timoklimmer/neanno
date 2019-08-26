@@ -27,18 +27,18 @@ from PyQt5.QtWidgets import (
 from neanno.configuration.configmanager import ConfigManager
 from neanno.models.textmodel import TextModel
 from neanno.ui.about import show_about_dialog
-from neanno.ui.categoryselection import CategoriesSelectorWidget
-from neanno.ui.textnavigation import TextNavigator
-from neanno.ui.predictormanagement import ManagePredictorsDialog
+from neanno.ui.category_selection import CategoriesSelectorWidget
+from neanno.ui.text_navigation import TextNavigator
+from neanno.ui.predictor_management import ManagePredictorsDialog
 from neanno.ui.shortcuts import *
-from neanno.ui.syntaxhighlighting import TextEditHighlighter
+from neanno.ui.syntax_highlighting import TextEditHighlighter
 from neanno.utils.text import *
 from neanno.utils.threading import ParallelWorker
 
 DEFAULT_PARENT_KEY_TERM = "<add your consolidating terms here, separated by commas>"
 
 
-class MainDialog(QMainWindow):
+class MainWindow(QMainWindow):
     """ The dialog shown to the user to do the annotation/labeling."""
 
     def __init__(self):
