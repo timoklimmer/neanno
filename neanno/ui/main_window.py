@@ -316,7 +316,8 @@ class MainWindow(QMainWindow):
                 font-family: Consolas;Monospace;
             }"""
         )
-        self.output_pane = QDockWidget("Batch Training Output", self)
+        self.output_pane_text_edit.setReadOnly(True)
+        self.output_pane = QDockWidget("Train Batch Predictors Output", self)
         self.output_pane.setFeatures(
             QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetMovable
         )
