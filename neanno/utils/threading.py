@@ -6,6 +6,8 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 
+from abc import ABC, abstractmethod
+
 
 class ParallelWorker(QRunnable):
     """Runs a function in parallel to the UI thread."""
@@ -36,7 +38,7 @@ class ParallelWorker(QRunnable):
 
 class ParallelWorkerSignals(QObject):
     """
-    Defines the available signals (callbacks) for a function that is run in parallel.
+    Defines the available signals and callbacks for a function that is run in parallel.
 
     Supported callbacks are:
 
@@ -73,47 +75,35 @@ class ConsoleSignalsHandler(ParallelWorkerSignals):
 
     def __init__(self):
         super().__init__()
-        self.started.connect(
-            ConsoleSignalsHandler.handle_started, type=Qt.DirectConnection
-        )
-        self.message.connect(
-            ConsoleSignalsHandler.handle_message, type=Qt.DirectConnection
-        )
-        self.progress.connect(
-            ConsoleSignalsHandler.handle_progress, type=Qt.DirectConnection
-        )
-        self.completed.connect(
-            ConsoleSignalsHandler.handle_completed, type=Qt.DirectConnection
-        )
-        self.success.connect(
-            ConsoleSignalsHandler.handle_success, type=Qt.DirectConnection
-        )
-        self.failure.connect(
-            ConsoleSignalsHandler.handle_failure, type=Qt.DirectConnection
-        )
+        self.started.connect(self.handle_started, type=Qt.DirectConnection)
+        self.message.connect(self.handle_message, type=Qt.DirectConnection)
+        self.progress.connect(self.handle_progress, type=Qt.DirectConnection)
+        self.completed.connect(self.handle_completed, type=Qt.DirectConnection)
+        self.success.connect(self.handle_success, type=Qt.DirectConnection)
+        self.failure.connect(self.handle_failure, type=Qt.DirectConnection)
 
     @pyqtSlot()
-    def handle_started():
+    def handle_started(self):
         pass
 
     @pyqtSlot(str)
-    def handle_message(message):
+    def handle_message(self, message):
         print(message)
 
     @pyqtSlot(float)
-    def handle_progress(percent_completed):
+    def handle_progress(self, percent_completed):
         print("{:.2%}".format(percent_completed))
 
     @pyqtSlot()
-    def handle_completed():
+    def handle_completed(self):
         print("Done.")
 
     @pyqtSlot(object)
-    def handle_success(result):
+    def handle_success(self, result):
         print("=> Success")
 
     @pyqtSlot(tuple)
-    def handle_failure(exception_info):
+    def handle_failure(self, exception_info):
         print("=> Failed to run a parallel job.")
         print(exception_info[0])
         print(exception_info[1])

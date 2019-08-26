@@ -1,6 +1,8 @@
 import os
+from abc import abstractmethod
 
 import config
+from PyQt5.QtCore import *
 from PyQt5.QtCore import QByteArray
 from PyQt5.QtGui import QIcon, QTextCursor
 from PyQt5.QtWidgets import (
@@ -28,12 +30,12 @@ from neanno.configuration.configmanager import ConfigManager
 from neanno.models.textmodel import TextModel
 from neanno.ui.about import show_about_dialog
 from neanno.ui.category_selection import CategoriesSelectorWidget
-from neanno.ui.text_navigation import TextNavigator
 from neanno.ui.predictor_management import ManagePredictorsDialog
 from neanno.ui.shortcuts import *
 from neanno.ui.syntax_highlighting import TextEditHighlighter
+from neanno.ui.text_navigation import TextNavigator
 from neanno.utils.text import *
-from neanno.utils.threading import ParallelWorker
+from neanno.utils.threading import ParallelWorker, ParallelWorkerSignals
 
 DEFAULT_PARENT_KEY_TERM = "<add your consolidating terms here, separated by commas>"
 
@@ -41,7 +43,61 @@ DEFAULT_PARENT_KEY_TERM = "<add your consolidating terms here, separated by comm
 class MainWindow(QMainWindow):
     """ The dialog shown to the user to do the annotation/labeling."""
 
+    class BatchTrainingSignalsHandler(ParallelWorkerSignals):
+        """Handles the signals emitted during batch training when triggered from neanno's UI."""
+
+        def __init__(self, main_window):
+            super().__init__()
+            self.main_window = main_window
+            self.trigger_batch_trainings_button = (
+                self.main_window.trigger_batch_trainings_button
+            )
+            self.trigger_batch_trainings_button_original_label = (
+                self.trigger_batch_trainings_button.text()
+            )
+
+            self.started.connect(self.handle_started, type=Qt.DirectConnection)
+            self.message.connect(self.handle_message, type=Qt.DirectConnection)
+            self.progress.connect(self.handle_progress, type=Qt.DirectConnection)
+            self.completed.connect(self.handle_completed, type=Qt.DirectConnection)
+            self.success.connect(self.handle_success, type=Qt.DirectConnection)
+            self.failure.connect(self.handle_failure, type=Qt.DirectConnection)
+
+        @pyqtSlot()
+        def handle_started(self):
+            self.main_window.trigger_batch_trainings_button.setEnabled(False)
+            self.trigger_batch_trainings_button.setText("In training...")
+
+        @pyqtSlot(str)
+        def handle_message(self, message):
+            print(message)
+
+        @pyqtSlot(float)
+        def handle_progress(self, percent_completed):
+            print("{:.2%}".format(percent_completed))
+
+        @pyqtSlot()
+        def handle_completed(self):
+            print("Done.")
+            self.trigger_batch_trainings_button.setText(
+                self.trigger_batch_trainings_button_original_label
+            )
+            self.main_window.trigger_batch_trainings_button.setEnabled(True)
+
+        @pyqtSlot(object)
+        def handle_success(self, result):
+            print("=> Yippie. Success!")
+
+        @pyqtSlot(tuple)
+        def handle_failure(self, exception_info):
+            print("=> Failed to run a parallel job.")
+            print(exception_info[0])
+            print(exception_info[1])
+            print(exception_info[2])
+
     def __init__(self):
+        """Constructor."""
+
         print("Showing main dialog...")
         app = QApplication([])
         super().__init__()
@@ -209,9 +265,15 @@ class MainWindow(QMainWindow):
             manage_predictors_button.clicked.connect(self.configure_predictors)
             predictors_from_vertical_layout.addWidget(manage_predictors_button)
 
-            trigger_batch_trainings_button = QPushButton("Trigger Batch Training(s)")
-            trigger_batch_trainings_button.clicked.connect(self.trigger_batch_trainings)
-            predictors_from_vertical_layout.addWidget(trigger_batch_trainings_button)
+            self.trigger_batch_trainings_button = QPushButton(
+                "Trigger Batch Training(s)"
+            )
+            self.trigger_batch_trainings_button.clicked.connect(
+                self.trigger_batch_trainings
+            )
+            predictors_from_vertical_layout.addWidget(
+                self.trigger_batch_trainings_button
+            )
 
             # export_pipeline_model_button = QPushButton("Export Pipeline Model")
             # export_pipeline_model_button.clicked.connect(self.export_pipeline_model)
@@ -745,13 +807,14 @@ class MainWindow(QMainWindow):
 
     def trigger_batch_trainings(self):
         config.prediction_pipeline.learn_from_annotated_dataset_async(
-            config.dataset_to_edit,
-            config.text_column,
-            config.is_annotated_column,
-            config.language_column,
-            config.categories_column,
-            config.categories_names_list,
-            config.named_entity_codes,
+            dataset=config.dataset_to_edit,
+            text_column=config.text_column,
+            is_annotated_column=config.is_annotated_column,
+            language_column=config.language_column,
+            categories_column=config.categories_column,
+            categories_to_train=config.categories_names_list,
+            entity_codes_to_train=config.named_entity_codes,
+            signals_handler=MainWindow.BatchTrainingSignalsHandler(self),
         )
 
     def export_pipeline_model(self):
