@@ -63,7 +63,7 @@ class ParallelWorkerSignals(QObject):
     """
 
     started = pyqtSignal()
-    message = pyqtSignal(str)
+    message = pyqtSignal(str, str)
     progress = pyqtSignal(float)
     completed = pyqtSignal()
     success = pyqtSignal(object)
@@ -86,9 +86,9 @@ class ConsoleSignalsHandler(ParallelWorkerSignals):
     def handle_started(self):
         pass
 
-    @pyqtSlot(str)
-    def handle_message(self, message):
-        print(message)
+    @pyqtSlot(str, str)
+    def handle_message(self, message, end):
+        print(message, end=end)
 
     @pyqtSlot(float)
     def handle_progress(self, percent_completed):

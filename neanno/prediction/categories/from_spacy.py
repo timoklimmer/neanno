@@ -100,12 +100,16 @@ class FromSpacyCategoriesPredictor(Predictor):
         # do the training
         # note: there is certainly room for improvement, maybe switching to spacy's CLI
         #       which seems the recommendation by the spacy authors
-        signals.message.emit(
-            "Training categories model with predictor '{}'...".format(self.name)
+        starting_training_message = "Training categories model with predictor '{}'...".format(
+            self.name
         )
+        signals.message.emit(starting_training_message, "\n")
+        signals.message.emit("=" * len(starting_training_message), "\n")
+
         start_time = time.time()
         signals.message.emit(
-            "Start time: {}".format(time.strftime("%X", time.localtime(start_time)))
+            "Start time: {}".format(time.strftime("%X", time.localtime(start_time))),
+            "\n",
         )
         max_iterations = 100
         other_pipes = [
@@ -115,7 +119,7 @@ class FromSpacyCategoriesPredictor(Predictor):
         with self.spacy_model.disable_pipes(*other_pipes):
             optimizer = self.spacy_model.begin_training()
             for iteration in range(max_iterations):
-                signals.message.emit("Iteration {}...".format(iteration))
+                signals.message.emit("Iteration {}...".format(iteration), " ")
                 losses = {}
                 batches = minibatch(
                     trainset_for_spacy, size=compounding(4.0, 32.0, 1.001)
@@ -126,7 +130,7 @@ class FromSpacyCategoriesPredictor(Predictor):
                         texts, annotations, sgd=optimizer, drop=0.2, losses=losses
                     )
                 iteration_loss = losses["textcat"]
-                signals.message.emit("=> loss: {}".format(iteration_loss))
+                signals.message.emit("=> loss: {}".format(iteration_loss), "\n")
 
                 # stop training when the majority of the last {last_iterations_window_size} trainings did not decrease
                 iteration_losses.append(iteration_loss)
@@ -139,7 +143,7 @@ class FromSpacyCategoriesPredictor(Predictor):
                     break
 
         # compute precision/recall values
-        signals.message.emit("Computing precision/recall matrix...")
+        signals.message.emit("Computing precision/recall matrix...", "\n")
         actual_categories_series = testset[categories_column]
         predicted_categories_series = testset.apply(
             lambda row: (
@@ -155,27 +159,33 @@ class FromSpacyCategoriesPredictor(Predictor):
         category_metrics = compute_category_metrics(
             actual_categories_series, predicted_categories_series, categories_to_train
         )
-        signals.message.emit(pd.DataFrame(category_metrics).T.to_string())
+        signals.message.emit(pd.DataFrame(category_metrics).T.to_string(), "\n")
 
         # compute training times
         end_time = time.time()
         signals.message.emit(
-            "End time: {}".format(time.strftime("%X", time.localtime(end_time)))
+            "End time: {}".format(time.strftime("%X", time.localtime(end_time))), "\n"
         )
         signals.message.emit(
             "Training took (hh:mm:ss): {}.".format(
                 time.strftime("%H:%M:%S", time.gmtime(end_time - start_time))
-            )
+            ),
+            "\n",
         )
 
         # save model to output directory
         if self.target_model_directory is not None:
             output_dir = pathlib.Path(self.target_model_directory)
-            signals.message.emit("Saving model to folder '{}'...".format(output_dir))
+            signals.message.emit(
+                "Saving model to folder '{}'...".format(output_dir), "\n"
+            )
             if not output_dir.exists():
                 output_dir.mkdir()
             self.spacy_model.meta["name"] = self.target_model_name
             self.spacy_model.to_disk(output_dir)
+
+        # send an empty message to improve readability of output
+        signals.message.emit("\n", "")
 
     def predict_text_categories(self, text, language="en-US"):
         if self.spacy_model:

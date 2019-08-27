@@ -816,9 +816,11 @@ class MainWindow(QMainWindow):
         self.output_pane_text_edit.clear()
         self.output_pane.setHidden(False)
 
-    @pyqtSlot(str)
-    def batch_training_message(self, message):
-        self.output_pane_text_edit.appendPlainText(message)
+    @pyqtSlot(str, str)
+    def batch_training_message(self, message, end):
+        self.output_pane_text_edit.moveCursor(QTextCursor.End)
+        self.output_pane_text_edit.insertPlainText(message + end)
+        self.output_pane_text_edit.moveCursor(QTextCursor.End)
 
     @pyqtSlot()
     def batch_training_completed(self):
@@ -832,7 +834,7 @@ class BatchTrainingSignalsHandler(ParallelWorkerSignals):
     """Handles the signals emitted during batch training when triggered from neanno's UI."""
 
     batch_training_started = pyqtSignal()
-    batch_training_message = pyqtSignal(str)
+    batch_training_message = pyqtSignal(str, str)
     batch_training_completed = pyqtSignal()
 
     def __init__(self, main_window):
@@ -853,9 +855,9 @@ class BatchTrainingSignalsHandler(ParallelWorkerSignals):
     def handle_started(self):
         self.batch_training_started.emit()
 
-    @pyqtSlot(str)
-    def handle_message(self, message):
-        self.batch_training_message.emit(message)
+    @pyqtSlot(str, str)
+    def handle_message(self, message, end):
+        self.batch_training_message.emit(message, end)
 
     @pyqtSlot(float)
     def handle_progress(self, percent_completed):
@@ -867,7 +869,7 @@ class BatchTrainingSignalsHandler(ParallelWorkerSignals):
 
     @pyqtSlot(object)
     def handle_success(self, result):
-        self.batch_training_message.emit("Done.")
+        self.batch_training_message.emit("Done.", "\n")
 
     @pyqtSlot(tuple)
     def handle_failure(self, exception_info):

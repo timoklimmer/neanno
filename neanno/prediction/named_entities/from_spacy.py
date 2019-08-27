@@ -102,12 +102,15 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
         # do the training
         # note: there is certainly room for improvement, maybe switching to spacy's CLI
         #       which seems the recommendation by the spacy authors
-        signals.message.emit(
-            "Training NER model with predictor '{}'...".format(self.name)
+        starting_training_message = "Training NER model with predictor '{}'...".format(
+            self.name
         )
+        signals.message.emit(starting_training_message, "\n")
+        signals.message.emit("=" * len(starting_training_message), "\n")
         start_time = time.time()
         signals.message.emit(
-            "Start time: {}".format(time.strftime("%X", time.localtime(start_time)))
+            "Start time: {}".format(time.strftime("%X", time.localtime(start_time))),
+            "\n",
         )
         max_iterations = 100
         # note: this removes the unnamed vectors warning, TBD if needs changes
@@ -117,7 +120,7 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
         iteration_losses = []
         with self.spacy_model.disable_pipes(*other_pipes):
             for iteration in range(max_iterations):
-                signals.message.emit("Iteration: {}...".format(iteration))
+                signals.message.emit("Iteration: {}...".format(iteration), " ")
                 random.shuffle(trainset_for_spacy)
                 losses = {}
                 batches = minibatch(
@@ -129,7 +132,7 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
                         texts, annotations, sgd=optimizer, drop=0.35, losses=losses
                     )
                 iteration_loss = losses["ner"]
-                signals.message.emit("=> loss: {}".format(iteration_loss))
+                signals.message.emit("=> loss: {}".format(iteration_loss), "\n")
 
                 # stop training when the majority of the last {last_iterations_window_size} trainings did not decrease
                 iteration_losses.append(iteration_loss)
@@ -142,7 +145,7 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
                     break
 
         # compute precision/recall values
-        signals.message.emit("Computing precision/recall matrix...")
+        signals.message.emit("Computing precision/recall matrix...", "\n")
         actual_annotations = testset[text_column]
         predicted_annotations = testset.apply(
             lambda row: (
@@ -156,27 +159,33 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
         ner_metrics = compute_ner_metrics(
             actual_annotations, predicted_annotations, entity_codes_to_train
         )
-        signals.message.emit(pd.DataFrame(ner_metrics).T.to_string())
+        signals.message.emit(pd.DataFrame(ner_metrics).T.to_string(), "\n")
 
         # compute training times
         end_time = time.time()
         signals.message.emit(
-            "End time: {}".format(time.strftime("%X", time.localtime(end_time)))
+            "End time: {}".format(time.strftime("%X", time.localtime(end_time))), "\n"
         )
         signals.message.emit(
             "Training took (hh:mm:ss): {}.".format(
                 time.strftime("%H:%M:%S", time.gmtime(end_time - start_time))
-            )
+            ),
+            "\n",
         )
 
         # save model to output directory
         if self.target_model_directory is not None:
             output_dir = pathlib.Path(self.target_model_directory)
-            signals.message.emit("Saving model to folder '{}'...".format(output_dir))
+            signals.message.emit(
+                "Saving model to folder '{}'...".format(output_dir), "\n"
+            )
             if not output_dir.exists():
                 output_dir.mkdir()
             self.spacy_model.meta["name"] = self.target_model_name
             self.spacy_model.to_disk(output_dir)
+
+        # send an empty message to improve readability of output
+        signals.message.emit("\n", "")
 
     def predict_inline_annotations(self, text, language="en-US"):
         if self.spacy_model:
