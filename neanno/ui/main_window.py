@@ -806,17 +806,38 @@ class MainWindow(QMainWindow):
             )
         self.textedit.setTextCursor(text_cursor_backup)
 
+    @pyqtSlot()
+    def batch_training_started(self):
+        self.train_batch_predictors_button.setEnabled(False)
+        self.train_batch_predictors_button_original_label = (
+            self.train_batch_predictors_button.text()
+        )
+        self.train_batch_predictors_button.setText("Training batch predictors...")
+        self.output_pane_text_edit.clear()
+        self.output_pane.setHidden(False)
+
+    @pyqtSlot(str)
+    def batch_training_message(self, message):
+        self.output_pane_text_edit.appendPlainText(message)
+
+    @pyqtSlot()
+    def batch_training_completed(self):
+        self.train_batch_predictors_button.setText(
+            self.train_batch_predictors_button_original_label
+        )
+        self.train_batch_predictors_button.setEnabled(True)
+
 
 class BatchTrainingSignalsHandler(ParallelWorkerSignals):
     """Handles the signals emitted during batch training when triggered from neanno's UI."""
 
+    batch_training_started = pyqtSignal()
+    batch_training_message = pyqtSignal(str)
+    batch_training_completed = pyqtSignal()
+
     def __init__(self, main_window):
         super().__init__()
         self.main_window = main_window
-        self.train_batch_predictors_button_original_label = (
-            self.main_window.train_batch_predictors_button.text()
-        )
-
         self.started.connect(self.handle_started, type=Qt.DirectConnection)
         self.message.connect(self.handle_message, type=Qt.DirectConnection)
         self.progress.connect(self.handle_progress, type=Qt.DirectConnection)
@@ -824,16 +845,17 @@ class BatchTrainingSignalsHandler(ParallelWorkerSignals):
         self.success.connect(self.handle_success, type=Qt.DirectConnection)
         self.failure.connect(self.handle_failure, type=Qt.DirectConnection)
 
+        self.batch_training_started.connect(main_window.batch_training_started)
+        self.batch_training_message.connect(main_window.batch_training_message)
+        self.batch_training_completed.connect(main_window.batch_training_completed)
+
     @pyqtSlot()
     def handle_started(self):
-        self.main_window.train_batch_predictors_button.setEnabled(False)
-        self.main_window.train_batch_predictors_button.setText("Training batch predictors...")
-        self.main_window.output_pane_text_edit.clear()
-        self.main_window.output_pane.setHidden(False)
+        self.batch_training_started.emit()
 
     @pyqtSlot(str)
     def handle_message(self, message):
-        self.main_window.output_pane_text_edit.appendPlainText(message)
+        self.batch_training_message.emit(message)
 
     @pyqtSlot(float)
     def handle_progress(self, percent_completed):
@@ -841,20 +863,15 @@ class BatchTrainingSignalsHandler(ParallelWorkerSignals):
 
     @pyqtSlot()
     def handle_completed(self):
-        self.main_window.train_batch_predictors_button.setText(
-            self.train_batch_predictors_button_original_label
-        )
-        self.main_window.train_batch_predictors_button.setEnabled(True)
+        self.batch_training_completed.emit()
 
     @pyqtSlot(object)
     def handle_success(self, result):
-        self.main_window.output_pane_text_edit.appendPlainText("Done.")
+        self.batch_training_message.emit("Done.")
 
     @pyqtSlot(tuple)
     def handle_failure(self, exception_info):
-        self.main_window.output_pane_text_edit.appendPlainText(
-            "=> Failed to run a parallel job."
-        )
-        self.main_window.output_pane_text_edit.appendPlainText(exception_info[0])
-        self.main_window.output_pane_text_edit.appendPlainText(exception_info[1])
-        self.main_window.output_pane_text_edit.appendPlainText(exception_info[2])
+        self.batch_training_message.emit("=> Failed to run a parallel job.")
+        self.batch_training_message.emit(exception_info[0])
+        self.batch_training_message.emit(exception_info[1])
+        self.batch_training_message.emit(exception_info[2])
