@@ -214,7 +214,7 @@ class MainWindow(QMainWindow):
             manage_predictors_button.clicked.connect(self.configure_predictors)
             predictors_from_vertical_layout.addWidget(manage_predictors_button)
 
-            self.train_batch_predictors_button = QPushButton("Train Batch Predictors")
+            self.train_batch_predictors_button = QPushButton("Train Batch-Learn Predictors")
             self.train_batch_predictors_button.clicked.connect(
                 self.train_batch_predictors
             )
@@ -317,7 +317,7 @@ class MainWindow(QMainWindow):
             }"""
         )
         self.output_pane_text_edit.setReadOnly(True)
-        self.output_pane = QDockWidget("Train Batch Predictors Output", self)
+        self.output_pane = QDockWidget("Output (you can continue annotation while training)", self)
         self.output_pane.setFeatures(
             QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetMovable
         )
@@ -812,7 +812,7 @@ class MainWindow(QMainWindow):
         self.train_batch_predictors_button_original_label = (
             self.train_batch_predictors_button.text()
         )
-        self.train_batch_predictors_button.setText("Training batch predictors...")
+        self.train_batch_predictors_button.setText("Training Batch-Learn Predictors...")
         self.output_pane_text_edit.clear()
         self.output_pane.setHidden(False)
 
