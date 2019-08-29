@@ -9,6 +9,7 @@ from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant, pyqtSig
 from neanno.utils.text import (
     compute_categories_distribution_from_column,
     compute_named_entities_distribution_from_column,
+    remove_all_annotations_from_text
 )
 
 from sklearn.model_selection import train_test_split
@@ -261,8 +262,12 @@ class TextModel(QAbstractTableModel):
     def unset_is_annotated_for_index(self, row_index):
         config.dataset_to_edit.iloc[row_index, self.is_annotated_column_index] = False
 
-    def reset_is_annotated_flags(self):
+    def remove_all_annotations_from_dataset(self):
         config.dataset_to_edit[config.is_annotated_column] = False
+        config.dataset_to_edit[config.categories_column] = ""
+        config.dataset_to_edit[config.text_column] = config.dataset_to_edit[
+            config.text_column
+        ].apply(lambda text: remove_all_annotations_from_text(text))
         self.recompute_distributions()
         self.save()
 

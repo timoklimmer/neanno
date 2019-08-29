@@ -386,15 +386,12 @@ class MainWindow(QMainWindow):
             self, SHORTCUT_REMOVE_ANNOTATION_AT_CURSOR, self.remove_annotation
         )
         register_shortcut(
-            self, SHORTCUT_REMOVE_ALL_FOR_CURRENT_TEXT, self.remove_all_annotations
-        )
-        register_shortcut(
-            self, SHORTCUT_RESET_IS_ANNOTATED_FLAG, self.reset_is_annotated_flag
+            self, SHORTCUT_REMOVE_ALL_ANNOTATIONS_OF_CURRENT_TEXT, self.remove_all_annotations
         )
         register_shortcut(
             self,
-            SHORTCUT_RESET_ALL_IS_ANNOTATED_FLAGS,
-            self.reset_all_is_annotated_flags,
+            SHORTCUT_REMOVE_ALL_ANNOTATIONS_FROM_DATASET,
+            self.remove_all_annotations_from_dataset,
         )
         register_shortcut(self, SHORTCUT_REVERT_CHANGES, self.revert_changes)
 
@@ -710,7 +707,7 @@ class MainWindow(QMainWindow):
         self.textmodel.unset_is_annotated_for_index(self.navigator.getCurrentIndex())
         self.is_annotated_label.setText("False")
 
-    def reset_all_is_annotated_flags(self):
+    def remove_all_annotations_from_dataset(self):
         if (
             QMessageBox.question(
                 self,
@@ -720,7 +717,7 @@ class MainWindow(QMainWindow):
             )
             == QMessageBox.Yes
         ):
-            self.textmodel.reset_is_annotated_flags()
+            self.textmodel.remove_all_annotations_from_dataset()
             self.navigator.navigate_to_same_index()
 
     def revert_changes(self):
@@ -764,7 +761,7 @@ class MainWindow(QMainWindow):
             QMessageBox.question(
                 self,
                 "Confirmation",
-                "This will mark all texts as annotated and save the dataset to its target. You may end up in big trouble if you don't know what you are doing.\n\nAre you sure you want to set the marks and save?",
+                "This will mark all texts as annotated and save the dataset. You may end up in big trouble if you don't know what you are doing.\n\nAre you sure you want to set the marks and save?",
                 QMessageBox.Yes | QMessageBox.No,
             )
             == QMessageBox.Yes
