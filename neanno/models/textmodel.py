@@ -278,7 +278,7 @@ class TextModel(QAbstractTableModel):
     def get_trainset(self, test_size=0.25):
         annotated_data = self.get_annotated_data()
         self.trainset, self.validationset = train_test_split(
-            annotated_data, test_size=test_size
+            annotated_data, train_size=(1 - test_size), test_size=test_size
         )
         return self.trainset
 

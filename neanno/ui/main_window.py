@@ -210,19 +210,14 @@ class MainWindow(QMainWindow):
             predictors_from_vertical_layout = QVBoxLayout()
 
             # Train Batch Models
-            self.train_batch_models_button = QPushButton(
-                "Train Batch Models"
-            )
-            self.train_batch_models_button.clicked.connect(
-                self.train_batch_models
-            )
-            predictors_from_vertical_layout.addWidget(
-                self.train_batch_models_button
-            )
+            self.train_batch_models_button = QPushButton("Train Batch Models")
+            self.train_batch_models_button.clicked.connect(self.train_batch_models)
+            predictors_from_vertical_layout.addWidget(self.train_batch_models_button)
 
             # Validate Models
             self.validate_models_button = QPushButton("Validate Models")
             self.validate_models_button.clicked.connect(self.validate_models)
+            self.validate_models_button.setEnabled(False)
             predictors_from_vertical_layout.addWidget(self.validate_models_button)
 
             # Export Pipeline Model
@@ -778,13 +773,15 @@ class MainWindow(QMainWindow):
             self.navigator.navigate_to_same_index()
 
     def train_batch_models(self):
-        trainset = self.textmodel.get_trainset()
-        if trainset is None or trainset.size == 0:
-            # TODO: show dialog instead
-            raise ValueError(
-                "There is not enough annotated train and/or test data for training models. Annotate some texts to get the required data."
+        if self.textmodel.get_annotated_texts_count() < 10:
+            QMessageBox.information(
+                self,
+                "Unfortunately...",
+                "There are not enough annotated texts for training models. Annotate at least 10 texts to enable this feature.",
+                QMessageBox.Ok,
             )
         else:
+            trainset = self.textmodel.get_trainset()
             config.prediction_pipeline.train_from_trainset_async(
                 trainset=trainset,
                 text_column=config.text_column,
@@ -798,10 +795,12 @@ class MainWindow(QMainWindow):
 
     def validate_models(self):
         validationset = self.textmodel.get_validationset()
-        if validationset is None or validationset.size == 0:
-            # TODO: show dialog instead
-            raise ValueError(
-                "There is not enough validation data for validating models. Annotate some texts to get the required data."
+        if validationset is None or validationset.size < 10:
+            QMessageBox.information(
+                self,
+                "Unfortunately...",
+                "There are not enough annotated texts for validating models or there was no model training before. Annotate at least 10 texts and do a batch model training to enable this feature.",
+                QMessageBox.Ok,
             )
         else:
             config.prediction_pipeline.validate_models_async(
@@ -866,6 +865,7 @@ class MainWindow(QMainWindow):
             self.train_batch_models_button_original_label
         )
         self.train_batch_models_button.setEnabled(True)
+        self.validate_models_button.setEnabled(True)
 
 
 class BatchTrainingSignalsHandler(ParallelWorkerSignals):
