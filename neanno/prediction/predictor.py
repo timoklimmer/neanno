@@ -11,6 +11,7 @@ class Predictor(ABC):
     _is_online_training_enabled = None
     _is_batch_training_enabled = None
     _is_prediction_enabled = None
+    _is_validation_enabled = None
     _predictor_config = None
 
     def __init__(self, predictor_config):
@@ -44,6 +45,8 @@ class Predictor(ABC):
             if "is_prediction_enabled" in self._predictor_config
             else True
         )
+        # TODO: make public in config
+        self._is_validation_enabled = True
 
     @property
     def name(self):
@@ -140,12 +143,20 @@ class Predictor(ABC):
     def is_prediction_enabled(self, value):
         self._is_prediction_enabled = value
 
+    @property
+    def is_validation_enabled(self):
+        return self._is_validation_enabled
+
+    @is_validation_enabled.setter
+    def is_validation_enabled(self, value):
+        self._is_validation_enabled = value
+
     def train_from_annotated_text(self, annotated_text, language="en-us"):
         pass
 
-    def train_from_annotated_dataset(
+    def train_from_trainset(
         self,
-        dataset,
+        trainset,
         text_column,
         is_annotated_column,
         language_column,
@@ -161,3 +172,16 @@ class Predictor(ABC):
 
     def predict_text_categories(self, text, language="en-US"):
         return []
+
+    def validate_model(
+        self,
+        validationset,
+        text_column,
+        is_annotated_column,
+        language_column,
+        categories_column,
+        categories_to_train,
+        entity_codes_to_train,
+        signals,
+    ):
+        pass

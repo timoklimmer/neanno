@@ -66,9 +66,9 @@ class PredictionPipeline(QObject):
             language,
         )
 
-    def train_from_annotated_dataset_async(
+    def train_from_trainset_async(
         self,
-        dataset,
+        trainset,
         text_column,
         is_annotated_column,
         language_column,
@@ -80,9 +80,9 @@ class PredictionPipeline(QObject):
         parallel_worker = ParallelWorker(
             self.invoke_predictors,
             signals_handler,
-            "train_from_annotated_dataset",
+            "train_from_trainset",
             lambda predictor: predictor.is_batch_training_enabled,
-            dataset,
+            trainset,
             text_column,
             is_annotated_column,
             language_column,
@@ -92,9 +92,9 @@ class PredictionPipeline(QObject):
         )
         self._threadpool.start(parallel_worker)
 
-    def train_from_annotated_dataset(
+    def train_from_trainset(
         self,
-        dataset,
+        trainset,
         text_column,
         is_annotated_column,
         language_column,
@@ -104,8 +104,8 @@ class PredictionPipeline(QObject):
         signals_handler=ConsoleSignalsHandler(),
     ):
         # call the async version of this method
-        self.train_from_annotated_dataset_async(
-            dataset,
+        self.train_from_trainset_async(
+            trainset,
             text_column,
             is_annotated_column,
             language_column,
@@ -175,3 +175,56 @@ class PredictionPipeline(QObject):
             "reset_named_entity_terms_marked_for_removal",
             lambda predictor: predictor.is_online_training_enabled,
         )
+
+    def validate_models_async(
+        self,
+        validationset,
+        text_column,
+        is_annotated_column,
+        language_column,
+        categories_column,
+        categories_to_train,
+        entity_codes_to_train,
+        signals_handler=ConsoleSignalsHandler(),
+    ):
+        parallel_worker = ParallelWorker(
+            self.invoke_predictors,
+            signals_handler,
+            "validate_model",
+            lambda predictor: predictor.is_validation_enabled,
+            validationset,
+            text_column,
+            is_annotated_column,
+            language_column,
+            categories_column,
+            categories_to_train,
+            entity_codes_to_train,
+        )
+        self._threadpool.start(parallel_worker)
+
+    def validate_models(
+        self,
+        validationset,
+        text_column,
+        is_annotated_column,
+        language_column,
+        categories_column,
+        categories_to_train,
+        entity_codes_to_train,
+        signals_handler=ConsoleSignalsHandler(),
+    ):
+        # call the async version of this method
+        self.validate_models_async(
+            validationset,
+            text_column,
+            is_annotated_column,
+            language_column,
+            categories_column,
+            categories_to_train,
+            entity_codes_to_train,
+            signals_handler,
+        )
+        # wait for done
+        # note: this waits until the entire threadpool is done
+        # TODO: check if there is a way to wait only for this worker
+        self._threadpool.waitForDone()

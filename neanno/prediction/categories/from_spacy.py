@@ -4,7 +4,6 @@ import time
 import pandas as pd
 import spacy
 import yaml
-from sklearn.model_selection import train_test_split
 from spacy.util import compounding, minibatch
 
 from neanno.prediction.predictor import Predictor
@@ -59,9 +58,9 @@ class FromSpacyCategoriesPredictor(Predictor):
             Loader=yaml.FullLoader,
         )
 
-    def train_from_annotated_dataset(
+    def train_from_trainset(
         self,
-        dataset,
+        trainset,
         text_column,
         is_annotated_column,
         language_column,
@@ -78,13 +77,7 @@ class FromSpacyCategoriesPredictor(Predictor):
         # ensure we have all categories in the model
         for category_to_train in categories_to_train:
             textcat_pipe.add_label(category_to_train)
-        # prepare training and test set
-        annotated_data = dataset[dataset[is_annotated_column] == True]
-        trainset, testset = train_test_split(annotated_data, test_size=0.25)
-        if trainset.size == 0 or testset.size == 0:
-            raise ValueError(
-                "There is no annotated data, hence no training/test data. Annotate some texts to get training/test data."
-            )
+        # prepare trainset for spacy
         trainset_for_spacy = trainset.apply(
             lambda row: (
                 row[text_column],
@@ -142,10 +135,63 @@ class FromSpacyCategoriesPredictor(Predictor):
                 ):
                     break
 
+        # save model to output directory
+        if self.target_model_directory is not None:
+            output_dir = pathlib.Path(self.target_model_directory)
+            signals.message.emit(
+                "Saving model to folder '{}'...".format(output_dir), "\n"
+            )
+            if not output_dir.exists():
+                output_dir.mkdir()
+            self.spacy_model.meta["name"] = self.target_model_name
+            self.spacy_model.to_disk(output_dir)
+
+        # compute training times
+        end_time = time.time()
+        signals.message.emit(
+            "End time: {}".format(time.strftime("%X", time.localtime(end_time))), "\n"
+        )
+        signals.message.emit(
+            "Training took (hh:mm:ss): {}.".format(
+                time.strftime("%H:%M:%S", time.gmtime(end_time - start_time))
+            ),
+            "\n",
+        )
+
+        # send an empty message to improve readability of output
+        signals.message.emit("\n", "")
+
+    def predict_text_categories(self, text, language="en-US"):
+        if self.spacy_model:
+            doc = self.spacy_model(remove_all_annotations_from_text(text))
+            return [
+                category for category in doc.cats.keys() if doc.cats[category] >= 0.5
+            ]
+        else:
+            return []
+
+    def validate_model(
+        self,
+        validationset,
+        text_column,
+        is_annotated_column,
+        language_column,
+        categories_column,
+        categories_to_train,
+        entity_codes_to_train,
+        signals,
+    ):
+        # inform about validation
+        starting_validation_message = "Validating category model from predictor '{}'...".format(
+            self.name
+        )
+        signals.message.emit(starting_validation_message, "\n")
+        signals.message.emit("=" * len(starting_validation_message), "\n")
+
         # compute precision/recall values
         signals.message.emit("Computing precision/recall matrix...", "\n")
-        actual_categories_series = testset[categories_column]
-        predicted_categories_series = testset.apply(
+        actual_categories_series = validationset[categories_column]
+        predicted_categories_series = validationset.apply(
             lambda row: (
                 "|".join(
                     self.predict_text_categories(
@@ -161,37 +207,5 @@ class FromSpacyCategoriesPredictor(Predictor):
         )
         signals.message.emit(pd.DataFrame(category_metrics).T.to_string(), "\n")
 
-        # compute training times
-        end_time = time.time()
-        signals.message.emit(
-            "End time: {}".format(time.strftime("%X", time.localtime(end_time))), "\n"
-        )
-        signals.message.emit(
-            "Training took (hh:mm:ss): {}.".format(
-                time.strftime("%H:%M:%S", time.gmtime(end_time - start_time))
-            ),
-            "\n",
-        )
-
-        # save model to output directory
-        if self.target_model_directory is not None:
-            output_dir = pathlib.Path(self.target_model_directory)
-            signals.message.emit(
-                "Saving model to folder '{}'...".format(output_dir), "\n"
-            )
-            if not output_dir.exists():
-                output_dir.mkdir()
-            self.spacy_model.meta["name"] = self.target_model_name
-            self.spacy_model.to_disk(output_dir)
-
         # send an empty message to improve readability of output
         signals.message.emit("\n", "")
-
-    def predict_text_categories(self, text, language="en-US"):
-        if self.spacy_model:
-            doc = self.spacy_model(remove_all_annotations_from_text(text))
-            return [
-                category for category in doc.cats.keys() if doc.cats[category] >= 0.5
-            ]
-        else:
-            return []

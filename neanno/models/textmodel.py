@@ -11,6 +11,8 @@ from neanno.utils.text import (
     compute_named_entities_distribution_from_column,
 )
 
+from sklearn.model_selection import train_test_split
+
 
 class TextModel(QAbstractTableModel):
     """Provides data to the main dialog (data widget mapper) and triggers the saving of new annotated data."""
@@ -21,6 +23,8 @@ class TextModel(QAbstractTableModel):
     category_distribution = {}
     saveStarted = pyqtSignal()
     saveCompleted = pyqtSignal()
+    trainset = None
+    validationset = None
 
     def __init__(self):
         super().__init__(parent=None)
@@ -270,3 +274,13 @@ class TextModel(QAbstractTableModel):
     def recompute_distributions(self):
         self.compute_categories_distribution()
         self.compute_named_entities_distribution()
+
+    def get_trainset(self, test_size=0.25):
+        annotated_data = self.get_annotated_data()
+        self.trainset, self.validationset = train_test_split(
+            annotated_data, test_size=test_size
+        )
+        return self.trainset
+
+    def get_validationset(self):
+        return self.validationset

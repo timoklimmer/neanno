@@ -205,27 +205,38 @@ class MainWindow(QMainWindow):
             language_groupbox = QGroupBox("Language")
             language_groupbox.setLayout(language_layout)
 
-        # predictors / modelling
+        # predictors
         if config.prediction_pipeline.has_predictors():
             predictors_from_vertical_layout = QVBoxLayout()
 
-            manage_predictors_button = QPushButton("Manage Predictors")
-            manage_predictors_button.clicked.connect(self.configure_predictors)
-            predictors_from_vertical_layout.addWidget(manage_predictors_button)
-
-            self.train_batch_predictors_button = QPushButton("Train Batch-Learn Predictors")
-            self.train_batch_predictors_button.clicked.connect(
-                self.train_batch_predictors
+            # Train Batch Models
+            self.train_batch_models_button = QPushButton(
+                "Train Batch Models"
+            )
+            self.train_batch_models_button.clicked.connect(
+                self.train_batch_models
             )
             predictors_from_vertical_layout.addWidget(
-                self.train_batch_predictors_button
+                self.train_batch_models_button
             )
 
+            # Validate Models
+            self.validate_models_button = QPushButton("Validate Models")
+            self.validate_models_button.clicked.connect(self.validate_models)
+            predictors_from_vertical_layout.addWidget(self.validate_models_button)
+
+            # Export Pipeline Model
             # export_pipeline_model_button = QPushButton("Export Pipeline Model")
             # export_pipeline_model_button.clicked.connect(self.export_pipeline_model)
             # predictors_from_vertical_layout.addWidget(export_pipeline_model_button)
-            predictors_from_groupbox = QGroupBox("Predictors")
 
+            # Manage Predictors
+            manage_predictors_button = QPushButton("Manage Predictors")
+            manage_predictors_button.clicked.connect(self.manage_predictors)
+            predictors_from_vertical_layout.addWidget(manage_predictors_button)
+
+            # Predictors groupbox
+            predictors_from_groupbox = QGroupBox("Predictors")
             predictors_from_groupbox.setLayout(predictors_from_vertical_layout)
 
         # dataset
@@ -316,7 +327,9 @@ class MainWindow(QMainWindow):
             }"""
         )
         self.output_pane_text_edit.setReadOnly(True)
-        self.output_pane = QDockWidget("Output (you can continue annotation while training)", self)
+        self.output_pane = QDockWidget(
+            "Output (you can continue annotation while training)", self
+        )
         self.output_pane.setFeatures(
             QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetMovable
         )
@@ -764,21 +777,47 @@ class MainWindow(QMainWindow):
             self.textmodel.mark_all_texts_as_annotated()
             self.navigator.navigate_to_same_index()
 
-    def configure_predictors(self):
+    def train_batch_models(self):
+        trainset = self.textmodel.get_trainset()
+        if trainset is None or trainset.size == 0:
+            # TODO: show dialog instead
+            raise ValueError(
+                "There is not enough annotated train and/or test data for training models. Annotate some texts to get the required data."
+            )
+        else:
+            config.prediction_pipeline.train_from_trainset_async(
+                trainset=trainset,
+                text_column=config.text_column,
+                is_annotated_column=config.is_annotated_column,
+                language_column=config.language_column,
+                categories_column=config.categories_column,
+                categories_to_train=config.categories_names_list,
+                entity_codes_to_train=config.named_entity_codes,
+                signals_handler=BatchTrainingSignalsHandler(self),
+            )
+
+    def validate_models(self):
+        validationset = self.textmodel.get_validationset()
+        if validationset is None or validationset.size == 0:
+            # TODO: show dialog instead
+            raise ValueError(
+                "There is not enough validation data for validating models. Annotate some texts to get the required data."
+            )
+        else:
+            config.prediction_pipeline.validate_models_async(
+                validationset=validationset,
+                text_column=config.text_column,
+                is_annotated_column=config.is_annotated_column,
+                language_column=config.language_column,
+                categories_column=config.categories_column,
+                categories_to_train=config.categories_names_list,
+                entity_codes_to_train=config.named_entity_codes,
+                signals_handler=BatchTrainingSignalsHandler(self),
+            )
+
+    def manage_predictors(self):
         ManagePredictorsDialog.show(self)
         self.navigator.navigate_to_same_index()
-
-    def train_batch_predictors(self):
-        config.prediction_pipeline.train_from_annotated_dataset_async(
-            dataset=config.dataset_to_edit,
-            text_column=config.text_column,
-            is_annotated_column=config.is_annotated_column,
-            language_column=config.language_column,
-            categories_column=config.categories_column,
-            categories_to_train=config.categories_names_list,
-            entity_codes_to_train=config.named_entity_codes,
-            signals_handler=BatchTrainingSignalsHandler(self),
-        )
 
     def export_pipeline_model(self):
         QMessageBox.information(
@@ -807,11 +846,11 @@ class MainWindow(QMainWindow):
 
     @pyqtSlot()
     def batch_training_started(self):
-        self.train_batch_predictors_button.setEnabled(False)
-        self.train_batch_predictors_button_original_label = (
-            self.train_batch_predictors_button.text()
+        self.train_batch_models_button.setEnabled(False)
+        self.train_batch_models_button_original_label = (
+            self.train_batch_models_button.text()
         )
-        self.train_batch_predictors_button.setText("Training Batch-Learn Predictors...")
+        self.train_batch_models_button.setText("Training Batch Models...")
         self.output_pane_text_edit.clear()
         self.output_pane.setHidden(False)
 
@@ -823,10 +862,10 @@ class MainWindow(QMainWindow):
 
     @pyqtSlot()
     def batch_training_completed(self):
-        self.train_batch_predictors_button.setText(
-            self.train_batch_predictors_button_original_label
+        self.train_batch_models_button.setText(
+            self.train_batch_models_button_original_label
         )
-        self.train_batch_predictors_button.setEnabled(True)
+        self.train_batch_models_button.setEnabled(True)
 
 
 class BatchTrainingSignalsHandler(ParallelWorkerSignals):

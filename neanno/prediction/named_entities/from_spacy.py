@@ -64,9 +64,9 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
             Loader=yaml.FullLoader,
         )
 
-    def train_from_annotated_dataset(
+    def train_from_trainset(
         self,
-        dataset,
+        trainset,
         text_column,
         is_annotated_column,
         language_column,
@@ -83,12 +83,6 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
         for entity_code_to_train in entity_codes_to_train:
             ner_pipe.add_label(entity_code_to_train)
         # prepare training and test set
-        annotated_data = dataset[dataset[is_annotated_column] == True]
-        trainset, testset = train_test_split(annotated_data, test_size=0.25)
-        if trainset.size == 0 or testset.size == 0:
-            raise ValueError(
-                "There is no annotated data, hence no training/test data. Annotate some texts to get training/test data."
-            )
         trainset_for_spacy = (
             trainset[text_column]
             .map(
@@ -144,22 +138,16 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
                 ):
                     break
 
-        # compute precision/recall values
-        signals.message.emit("Computing precision/recall matrix...", "\n")
-        actual_annotations = testset[text_column]
-        predicted_annotations = testset.apply(
-            lambda row: (
-                self.predict_inline_annotations(
-                    remove_all_annotations_from_text(row[text_column]),
-                    row[language_column] if language_column else "en-US",
-                )
-            ),
-            axis=1,
-        )
-        ner_metrics = compute_ner_metrics(
-            actual_annotations, predicted_annotations, entity_codes_to_train
-        )
-        signals.message.emit(pd.DataFrame(ner_metrics).T.to_string(), "\n")
+        # save model to output directory
+        if self.target_model_directory is not None:
+            output_dir = pathlib.Path(self.target_model_directory)
+            signals.message.emit(
+                "Saving model to folder '{}'...".format(output_dir), "\n"
+            )
+            if not output_dir.exists():
+                output_dir.mkdir()
+            self.spacy_model.meta["name"] = self.target_model_name
+            self.spacy_model.to_disk(output_dir)
 
         # compute training times
         end_time = time.time()
@@ -172,17 +160,6 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
             ),
             "\n",
         )
-
-        # save model to output directory
-        if self.target_model_directory is not None:
-            output_dir = pathlib.Path(self.target_model_directory)
-            signals.message.emit(
-                "Saving model to folder '{}'...".format(output_dir), "\n"
-            )
-            if not output_dir.exists():
-                output_dir.mkdir()
-            self.spacy_model.meta["name"] = self.target_model_name
-            self.spacy_model.to_disk(output_dir)
 
         # send an empty message to improve readability of output
         signals.message.emit("\n", "")
@@ -203,3 +180,41 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
                 )
                 shift += len(result) - old_result_length
             return result
+
+    def validate_model(
+        self,
+        validationset,
+        text_column,
+        is_annotated_column,
+        language_column,
+        categories_column,
+        categories_to_train,
+        entity_codes_to_train,
+        signals,
+    ):
+        # inform about validation
+        starting_validation_message = "Validating NER model from predictor '{}'...".format(
+            self.name
+        )
+        signals.message.emit(starting_validation_message, "\n")
+        signals.message.emit("=" * len(starting_validation_message), "\n")
+
+        # compute precision/recall values
+        signals.message.emit("Computing precision/recall matrix...", "\n")
+        actual_annotations = validationset[text_column]
+        predicted_annotations = validationset.apply(
+            lambda row: (
+                self.predict_inline_annotations(
+                    remove_all_annotations_from_text(row[text_column]),
+                    row[language_column] if language_column else "en-US",
+                )
+            ),
+            axis=1,
+        )
+        ner_metrics = compute_ner_metrics(
+            actual_annotations, predicted_annotations, entity_codes_to_train
+        )
+        signals.message.emit(pd.DataFrame(ner_metrics).T.to_string(), "\n")
+    
+        # send an empty message to improve readability of output
+        signals.message.emit("\n", "")
