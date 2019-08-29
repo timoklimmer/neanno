@@ -47,7 +47,6 @@ class MainWindow(QMainWindow):
     def __init__(self):
         """Constructor."""
 
-        print("Showing main dialog...")
         app = QApplication([])
         super().__init__()
 
