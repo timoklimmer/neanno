@@ -96,7 +96,7 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
         # do the training
         # note: there is certainly room for improvement, maybe switching to spacy's CLI
         #       which seems the recommendation by the spacy authors
-        starting_training_message = "Training NER model with predictor '{}'...".format(
+        starting_training_message = "Training '{}' model...".format(
             self.name
         )
         signals.message.emit(starting_training_message, "\n")
@@ -193,14 +193,13 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
         signals,
     ):
         # inform about validation
-        starting_validation_message = "Validating NER model from predictor '{}'...".format(
+        starting_validation_message = "{}".format(
             self.name
         )
         signals.message.emit(starting_validation_message, "\n")
         signals.message.emit("=" * len(starting_validation_message), "\n")
 
         # compute precision/recall values
-        signals.message.emit("Computing precision/recall matrix...", "\n")
         actual_annotations = validationset[text_column]
         predicted_annotations = validationset.apply(
             lambda row: (

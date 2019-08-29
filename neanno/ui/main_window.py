@@ -323,10 +323,10 @@ class MainWindow(QMainWindow):
         )
         self.output_pane_text_edit.setReadOnly(True)
         self.output_pane = QDockWidget(
-            "Output (you can continue annotation while training)", self
+            "Output (you can continue annotation while running)", self
         )
         self.output_pane.setFeatures(
-            QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetMovable
+            QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetMovable | QDockWidget.DockWidgetFloatable
         )
         self.output_pane.setWidget(self.output_pane_text_edit)
         self.addDockWidget(Qt.BottomDockWidgetArea, self.output_pane)

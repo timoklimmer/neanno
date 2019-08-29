@@ -93,7 +93,7 @@ class FromSpacyCategoriesPredictor(Predictor):
         # do the training
         # note: there is certainly room for improvement, maybe switching to spacy's CLI
         #       which seems the recommendation by the spacy authors
-        starting_training_message = "Training categories model with predictor '{}'...".format(
+        starting_training_message = "Training '{}' model...".format(
             self.name
         )
         signals.message.emit(starting_training_message, "\n")
@@ -182,14 +182,13 @@ class FromSpacyCategoriesPredictor(Predictor):
         signals,
     ):
         # inform about validation
-        starting_validation_message = "Validating category model from predictor '{}'...".format(
+        starting_validation_message = "{}".format(
             self.name
         )
         signals.message.emit(starting_validation_message, "\n")
         signals.message.emit("=" * len(starting_validation_message), "\n")
 
         # compute precision/recall values
-        signals.message.emit("Computing precision/recall matrix...", "\n")
         actual_categories_series = validationset[categories_column]
         predicted_categories_series = validationset.apply(
             lambda row: (
