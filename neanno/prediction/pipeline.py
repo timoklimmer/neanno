@@ -58,15 +58,15 @@ class PredictionPipeline(QObject):
             result = get_set_of_list_and_keep_sequence(result)
         return result
 
-    def learn_from_annotated_text(self, annotated_text, language):
+    def train_from_annotated_text(self, annotated_text, language):
         self.invoke_predictors(
-            "learn_from_annotated_text",
+            "train_from_annotated_text",
             lambda predictor: predictor.is_online_training_enabled,
             annotated_text,
             language,
         )
 
-    def learn_from_annotated_dataset_async(
+    def train_from_annotated_dataset_async(
         self,
         dataset,
         text_column,
@@ -80,7 +80,7 @@ class PredictionPipeline(QObject):
         parallel_worker = ParallelWorker(
             self.invoke_predictors,
             signals_handler,
-            "learn_from_annotated_dataset",
+            "train_from_annotated_dataset",
             lambda predictor: predictor.is_batch_training_enabled,
             dataset,
             text_column,
@@ -92,7 +92,7 @@ class PredictionPipeline(QObject):
         )
         self._threadpool.start(parallel_worker)
 
-    def learn_from_annotated_dataset(
+    def train_from_annotated_dataset(
         self,
         dataset,
         text_column,
@@ -104,7 +104,7 @@ class PredictionPipeline(QObject):
         signals_handler=ConsoleSignalsHandler(),
     ):
         # call the async version of this method
-        self.learn_from_annotated_dataset_async(
+        self.train_from_annotated_dataset_async(
             dataset,
             text_column,
             is_annotated_column,

@@ -140,10 +140,10 @@ class Predictor(ABC):
     def is_prediction_enabled(self, value):
         self._is_prediction_enabled = value
 
-    def learn_from_annotated_text(self, annotated_text, language="en-us"):
+    def train_from_annotated_text(self, annotated_text, language="en-us"):
         pass
 
-    def learn_from_annotated_dataset(
+    def train_from_annotated_dataset(
         self,
         dataset,
         text_column,

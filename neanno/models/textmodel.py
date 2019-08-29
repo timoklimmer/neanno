@@ -160,7 +160,7 @@ class TextModel(QAbstractTableModel):
         if index.column() == 1:
             config.dataset_to_edit.iat[row, self.text_column_index] = value
             language = self.data(index.siblingAtColumn(0))
-            config.prediction_pipeline.learn_from_annotated_text(value, language)
+            config.prediction_pipeline.train_from_annotated_text(value, language)
         # categories
         if index.column() == 2:
             config.dataset_to_edit.iat[row, self.categories_column_index] = value

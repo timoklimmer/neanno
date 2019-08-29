@@ -769,7 +769,7 @@ class MainWindow(QMainWindow):
         self.navigator.navigate_to_same_index()
 
     def train_batch_predictors(self):
-        config.prediction_pipeline.learn_from_annotated_dataset_async(
+        config.prediction_pipeline.train_from_annotated_dataset_async(
             dataset=config.dataset_to_edit,
             text_column=config.text_column,
             is_annotated_column=config.is_annotated_column,

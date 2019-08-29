@@ -64,7 +64,7 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
             Loader=yaml.FullLoader,
         )
 
-    def learn_from_annotated_dataset(
+    def train_from_annotated_dataset(
         self,
         dataset,
         text_column,

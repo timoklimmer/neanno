@@ -106,7 +106,7 @@ class FromDatasetKeyTermsPredictor(Predictor):
     def reset_key_terms_marked_for_removal(self):
         self.key_terms_marked_for_removal = []
 
-    def learn_from_annotated_text(self, annotated_text, language):
+    def train_from_annotated_text(self, annotated_text, language):
         # get terms to add/update
         key_terms_to_add = {}
         parented_terms_to_update = []
