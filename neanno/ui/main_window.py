@@ -226,9 +226,9 @@ class MainWindow(QMainWindow):
             # predictors_from_vertical_layout.addWidget(export_pipeline_model_button)
 
             # Manage Predictors
-            manage_predictors_button = QPushButton("Manage Predictors")
-            manage_predictors_button.clicked.connect(self.manage_predictors)
-            predictors_from_vertical_layout.addWidget(manage_predictors_button)
+            self.manage_predictors_button = QPushButton("Manage Predictors")
+            self.manage_predictors_button.clicked.connect(self.manage_predictors)
+            predictors_from_vertical_layout.addWidget(self.manage_predictors_button)
 
             # Predictors groupbox
             predictors_from_groupbox = QGroupBox("Predictors")
@@ -808,7 +808,7 @@ class MainWindow(QMainWindow):
                 categories_column=config.categories_column,
                 categories_to_train=config.categories_names_list,
                 entity_codes_to_train=config.named_entity_codes,
-                signals_handler=BatchTrainingSignalsHandler(self),
+                signals_handler=ModelValidationSignalsHandler(self),
             )
 
     def manage_predictors(self):
@@ -843,10 +843,12 @@ class MainWindow(QMainWindow):
     @pyqtSlot()
     def batch_training_started(self):
         self.train_batch_models_button.setEnabled(False)
+        self.manage_predictors_button.setEnabled(False)
         self.train_batch_models_button_original_label = (
             self.train_batch_models_button.text()
         )
         self.train_batch_models_button.setText("Training Batch Models...")
+        
         self.output_pane_text_edit.clear()
         self.output_pane.setHidden(False)
 
@@ -863,6 +865,27 @@ class MainWindow(QMainWindow):
         )
         self.train_batch_models_button.setEnabled(True)
         self.validate_models_button.setEnabled(True)
+        self.manage_predictors_button.setEnabled(True)
+
+    @pyqtSlot()
+    def model_validation_started(self):
+        self.train_batch_models_button.setEnabled(False)
+        self.validate_models_button.setEnabled(False)
+        self.manage_predictors_button.setEnabled(False)
+        self.output_pane_text_edit.clear()
+        self.output_pane.setHidden(False)
+
+    @pyqtSlot(str, str)
+    def model_validation_message(self, message, end):
+        self.output_pane_text_edit.moveCursor(QTextCursor.End)
+        self.output_pane_text_edit.insertPlainText(message + end)
+        self.output_pane_text_edit.moveCursor(QTextCursor.End)
+
+    @pyqtSlot()
+    def model_validation_completed(self):
+        self.train_batch_models_button.setEnabled(True)
+        self.validate_models_button.setEnabled(True)
+        self.manage_predictors_button.setEnabled(True)
 
 
 class BatchTrainingSignalsHandler(ParallelWorkerSignals):
@@ -912,3 +935,53 @@ class BatchTrainingSignalsHandler(ParallelWorkerSignals):
         self.batch_training_message.emit(exception_info[0])
         self.batch_training_message.emit(exception_info[1])
         self.batch_training_message.emit(exception_info[2])
+
+
+class ModelValidationSignalsHandler(ParallelWorkerSignals):
+    """Handles the signals emitted during model validation when triggered from neanno's UI."""
+
+    model_validation_started = pyqtSignal()
+    model_validation_message = pyqtSignal(str, str)
+    model_validation_completed = pyqtSignal()
+
+    def __init__(self, main_window):
+        super().__init__()
+        self.main_window = main_window
+        self.started.connect(self.handle_started, type=Qt.DirectConnection)
+        self.message.connect(self.handle_message, type=Qt.DirectConnection)
+        self.progress.connect(self.handle_progress, type=Qt.DirectConnection)
+        self.completed.connect(self.handle_completed, type=Qt.DirectConnection)
+        self.success.connect(self.handle_success, type=Qt.DirectConnection)
+        self.failure.connect(self.handle_failure, type=Qt.DirectConnection)
+
+        self.model_validation_started.connect(main_window.model_validation_started)
+        self.model_validation_message.connect(main_window.model_validation_message)
+        self.model_validation_completed.connect(main_window.model_validation_completed)
+
+    @pyqtSlot()
+    def handle_started(self):
+        self.model_validation_started.emit()
+
+    @pyqtSlot(str, str)
+    def handle_message(self, message, end):
+        self.model_validation_message.emit(message, end)
+
+    @pyqtSlot(float)
+    def handle_progress(self, percent_completed):
+        pass
+
+    @pyqtSlot()
+    def handle_completed(self):
+        self.model_validation_completed.emit()
+
+    @pyqtSlot(object)
+    def handle_success(self, result):
+        self.model_validation_message.emit("Done.", "\n")
+        
+
+    @pyqtSlot(tuple)
+    def handle_failure(self, exception_info):
+        self.model_validation_message.emit("=> Failed to run a parallel job.")
+        self.model_validation_message.emit(exception_info[0])
+        self.model_validation_message.emit(exception_info[1])
+        self.model_validation.emit(exception_info[2])
