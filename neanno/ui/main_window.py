@@ -931,10 +931,10 @@ class BatchTrainingSignalsHandler(ParallelWorkerSignals):
 
     @pyqtSlot(tuple)
     def handle_failure(self, exception_info):
-        self.batch_training_message.emit("=> Failed to run a parallel job.")
-        self.batch_training_message.emit(exception_info[0])
-        self.batch_training_message.emit(exception_info[1])
-        self.batch_training_message.emit(exception_info[2])
+        self.batch_training_message.emit("=> Failed to run a parallel job.", "\n")
+        self.batch_training_message.emit(str(exception_info[0]), "\n")
+        self.batch_training_message.emit(str(exception_info[1]), "\n")
+        self.batch_training_message.emit(str(exception_info[2]), "\n")
 
 
 class ModelValidationSignalsHandler(ParallelWorkerSignals):
@@ -981,7 +981,7 @@ class ModelValidationSignalsHandler(ParallelWorkerSignals):
 
     @pyqtSlot(tuple)
     def handle_failure(self, exception_info):
-        self.model_testing_message.emit("=> Failed to run a parallel job.")
-        self.model_testing_message.emit(exception_info[0])
-        self.model_testing_message.emit(exception_info[1])
-        self.model_testing.emit(exception_info[2])
+        self.model_testing_message.emit("=> Failed to run a parallel job.", "\n")
+        self.model_testing_message.emit(str(exception_info[0]), "\n")
+        self.model_testing_message.emit(str(exception_info[1]), "\n")
+        self.model_testing_message.emit(str(exception_info[2]), "\n")
