@@ -214,11 +214,11 @@ class MainWindow(QMainWindow):
             self.train_batch_models_button.clicked.connect(self.train_batch_models)
             predictors_from_vertical_layout.addWidget(self.train_batch_models_button)
 
-            # Validate Models
-            self.validate_models_button = QPushButton("Validate Models")
-            self.validate_models_button.clicked.connect(self.validate_models)
-            self.validate_models_button.setEnabled(False)
-            predictors_from_vertical_layout.addWidget(self.validate_models_button)
+            # Test Models
+            self.test_models_button = QPushButton("Test Models")
+            self.test_models_button.clicked.connect(self.test_models)
+            self.test_models_button.setEnabled(False)
+            predictors_from_vertical_layout.addWidget(self.test_models_button)
 
             # Export Pipeline Model
             # export_pipeline_model_button = QPushButton("Export Pipeline Model")
@@ -790,18 +790,18 @@ class MainWindow(QMainWindow):
                 signals_handler=BatchTrainingSignalsHandler(self),
             )
 
-    def validate_models(self):
-        validationset = self.textmodel.get_validationset()
-        if validationset is None or validationset.size < 10:
+    def test_models(self):
+        testset = self.textmodel.get_testset()
+        if testset is None or testset.size < 10:
             QMessageBox.information(
                 self,
                 "Unfortunately...",
-                "There are not enough annotated texts for validating models or there was no model training before. Annotate at least 10 texts and do a batch model training to enable this feature.",
+                "There are not enough annotated texts for testing models or there was no model training before. Annotate at least 10 texts and do a batch model training to enable this feature.",
                 QMessageBox.Ok,
             )
         else:
-            config.prediction_pipeline.validate_models_async(
-                validationset=validationset,
+            config.prediction_pipeline.test_models_async(
+                testset=testset,
                 text_column=config.text_column,
                 is_annotated_column=config.is_annotated_column,
                 language_column=config.language_column,
@@ -864,27 +864,27 @@ class MainWindow(QMainWindow):
             self.train_batch_models_button_original_label
         )
         self.train_batch_models_button.setEnabled(True)
-        self.validate_models_button.setEnabled(True)
+        self.test_models_button.setEnabled(True)
         self.manage_predictors_button.setEnabled(True)
 
     @pyqtSlot()
-    def model_validation_started(self):
+    def model_testing_started(self):
         self.train_batch_models_button.setEnabled(False)
-        self.validate_models_button.setEnabled(False)
+        self.test_models_button.setEnabled(False)
         self.manage_predictors_button.setEnabled(False)
         self.output_pane_text_edit.clear()
         self.output_pane.setHidden(False)
 
     @pyqtSlot(str, str)
-    def model_validation_message(self, message, end):
+    def model_testing_message(self, message, end):
         self.output_pane_text_edit.moveCursor(QTextCursor.End)
         self.output_pane_text_edit.insertPlainText(message + end)
         self.output_pane_text_edit.moveCursor(QTextCursor.End)
 
     @pyqtSlot()
-    def model_validation_completed(self):
+    def model_testing_completed(self):
         self.train_batch_models_button.setEnabled(True)
-        self.validate_models_button.setEnabled(True)
+        self.test_models_button.setEnabled(True)
         self.manage_predictors_button.setEnabled(True)
 
 
@@ -940,9 +940,9 @@ class BatchTrainingSignalsHandler(ParallelWorkerSignals):
 class ModelValidationSignalsHandler(ParallelWorkerSignals):
     """Handles the signals emitted during model validation when triggered from neanno's UI."""
 
-    model_validation_started = pyqtSignal()
-    model_validation_message = pyqtSignal(str, str)
-    model_validation_completed = pyqtSignal()
+    model_testing_started = pyqtSignal()
+    model_testing_message = pyqtSignal(str, str)
+    model_testing_completed = pyqtSignal()
 
     def __init__(self, main_window):
         super().__init__()
@@ -954,17 +954,17 @@ class ModelValidationSignalsHandler(ParallelWorkerSignals):
         self.success.connect(self.handle_success, type=Qt.DirectConnection)
         self.failure.connect(self.handle_failure, type=Qt.DirectConnection)
 
-        self.model_validation_started.connect(main_window.model_validation_started)
-        self.model_validation_message.connect(main_window.model_validation_message)
-        self.model_validation_completed.connect(main_window.model_validation_completed)
+        self.model_testing_started.connect(main_window.model_testing_started)
+        self.model_testing_message.connect(main_window.model_testing_message)
+        self.model_testing_completed.connect(main_window.model_testing_completed)
 
     @pyqtSlot()
     def handle_started(self):
-        self.model_validation_started.emit()
+        self.model_testing_started.emit()
 
     @pyqtSlot(str, str)
     def handle_message(self, message, end):
-        self.model_validation_message.emit(message, end)
+        self.model_testing_message.emit(message, end)
 
     @pyqtSlot(float)
     def handle_progress(self, percent_completed):
@@ -972,16 +972,16 @@ class ModelValidationSignalsHandler(ParallelWorkerSignals):
 
     @pyqtSlot()
     def handle_completed(self):
-        self.model_validation_completed.emit()
+        self.model_testing_completed.emit()
 
     @pyqtSlot(object)
     def handle_success(self, result):
-        self.model_validation_message.emit("Done.", "\n")
+        self.model_testing_message.emit("Done.", "\n")
         
 
     @pyqtSlot(tuple)
     def handle_failure(self, exception_info):
-        self.model_validation_message.emit("=> Failed to run a parallel job.")
-        self.model_validation_message.emit(exception_info[0])
-        self.model_validation_message.emit(exception_info[1])
-        self.model_validation.emit(exception_info[2])
+        self.model_testing_message.emit("=> Failed to run a parallel job.")
+        self.model_testing_message.emit(exception_info[0])
+        self.model_testing_message.emit(exception_info[1])
+        self.model_testing.emit(exception_info[2])

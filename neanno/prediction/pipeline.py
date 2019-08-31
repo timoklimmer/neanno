@@ -176,9 +176,9 @@ class PredictionPipeline(QObject):
             lambda predictor: predictor.is_online_training_enabled,
         )
 
-    def validate_models_async(
+    def test_models_async(
         self,
-        validationset,
+        testset,
         text_column,
         is_annotated_column,
         language_column,
@@ -190,9 +190,9 @@ class PredictionPipeline(QObject):
         parallel_worker = ParallelWorker(
             self.invoke_predictors,
             signals_handler,
-            "validate_model",
+            "test_model",
             lambda predictor: predictor.is_validation_enabled,
-            validationset,
+            testset,
             text_column,
             is_annotated_column,
             language_column,
@@ -202,9 +202,9 @@ class PredictionPipeline(QObject):
         )
         self._threadpool.start(parallel_worker)
 
-    def validate_models(
+    def test_models(
         self,
-        validationset,
+        testset,
         text_column,
         is_annotated_column,
         language_column,
@@ -214,8 +214,8 @@ class PredictionPipeline(QObject):
         signals_handler=ConsoleSignalsHandler(),
     ):
         # call the async version of this method
-        self.validate_models_async(
-            validationset,
+        self.test_models_async(
+            testset,
             text_column,
             is_annotated_column,
             language_column,

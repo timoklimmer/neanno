@@ -173,9 +173,9 @@ class Predictor(ABC):
     def predict_text_categories(self, text, language="en-US"):
         return []
 
-    def validate_model(
+    def test_model(
         self,
-        validationset,
+        testset,
         text_column,
         is_annotated_column,
         language_column,

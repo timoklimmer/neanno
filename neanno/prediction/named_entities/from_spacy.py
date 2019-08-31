@@ -181,9 +181,9 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
                 shift += len(result) - old_result_length
             return result
 
-    def validate_model(
+    def test_model(
         self,
-        validationset,
+        testset,
         text_column,
         is_annotated_column,
         language_column,
@@ -200,8 +200,8 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
         signals.message.emit("=" * len(starting_validation_message), "\n")
 
         # compute precision/recall values
-        actual_annotations = validationset[text_column]
-        predicted_annotations = validationset.apply(
+        actual_annotations = testset[text_column]
+        predicted_annotations = testset.apply(
             lambda row: (
                 self.predict_inline_annotations(
                     remove_all_annotations_from_text(row[text_column]),

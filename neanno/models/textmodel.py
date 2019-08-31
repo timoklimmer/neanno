@@ -25,7 +25,7 @@ class TextModel(QAbstractTableModel):
     saveStarted = pyqtSignal()
     saveCompleted = pyqtSignal()
     trainset = None
-    validationset = None
+    testset = None
 
     def __init__(self):
         super().__init__(parent=None)
@@ -282,10 +282,10 @@ class TextModel(QAbstractTableModel):
 
     def get_trainset(self, test_size=0.25):
         annotated_data = self.get_annotated_data()
-        self.trainset, self.validationset = train_test_split(
+        self.trainset, self.testset = train_test_split(
             annotated_data, train_size=(1 - test_size), test_size=test_size
         )
         return self.trainset
 
-    def get_validationset(self):
-        return self.validationset
+    def get_testset(self):
+        return self.testset

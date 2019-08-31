@@ -170,9 +170,9 @@ class FromSpacyCategoriesPredictor(Predictor):
         else:
             return []
 
-    def validate_model(
+    def test_model(
         self,
-        validationset,
+        testset,
         text_column,
         is_annotated_column,
         language_column,
@@ -189,8 +189,8 @@ class FromSpacyCategoriesPredictor(Predictor):
         signals.message.emit("=" * len(starting_validation_message), "\n")
 
         # compute precision/recall values
-        actual_categories_series = validationset[categories_column]
-        predicted_categories_series = validationset.apply(
+        actual_categories_series = testset[categories_column]
+        predicted_categories_series = testset.apply(
             lambda row: (
                 "|".join(
                     self.predict_text_categories(
