@@ -118,7 +118,7 @@ named_entities:
       target_model_name: airline_tickets_ner
 
 instructions: "
-Put your instructions for the annotators here.
+Add your instructions or hints for the human annotator(s) here (if the project file is edited).
 <br/>
-You can even use <b>HTML</b>.
+You can even use <b>HTML</b> if you need.
 "

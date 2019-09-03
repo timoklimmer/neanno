@@ -322,11 +322,11 @@ class MainWindow(QMainWindow):
             }"""
         )
         self.output_pane_text_edit.setReadOnly(True)
-        self.output_pane = QDockWidget(
-            "Output (you can continue annotation while running)", self
-        )
+        self.output_pane = QDockWidget("Output", self)
         self.output_pane.setFeatures(
-            QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetMovable | QDockWidget.DockWidgetFloatable
+            QDockWidget.DockWidgetClosable
+            | QDockWidget.DockWidgetMovable
+            | QDockWidget.DockWidgetFloatable
         )
         self.output_pane.setWidget(self.output_pane_text_edit)
         self.addDockWidget(Qt.BottomDockWidgetArea, self.output_pane)
@@ -386,7 +386,9 @@ class MainWindow(QMainWindow):
             self, SHORTCUT_REMOVE_ANNOTATION_AT_CURSOR, self.remove_annotation
         )
         register_shortcut(
-            self, SHORTCUT_REMOVE_ALL_ANNOTATIONS_OF_CURRENT_TEXT, self.remove_all_annotations
+            self,
+            SHORTCUT_REMOVE_ALL_ANNOTATIONS_OF_CURRENT_TEXT,
+            self.remove_all_annotations,
         )
         register_shortcut(
             self,
@@ -848,7 +850,6 @@ class MainWindow(QMainWindow):
             self.train_batch_models_button.text()
         )
         self.train_batch_models_button.setText("Training Batch Models...")
-        
         self.output_pane_text_edit.clear()
         self.output_pane.setHidden(False)
 
@@ -938,7 +939,7 @@ class BatchTrainingSignalsHandler(ParallelWorkerSignals):
 
 
 class ModelValidationSignalsHandler(ParallelWorkerSignals):
-    """Handles the signals emitted during model validation when triggered from neanno's UI."""
+    """Handles the signals emitted during model testing when triggered from neanno's UI."""
 
     model_testing_started = pyqtSignal()
     model_testing_message = pyqtSignal(str, str)
@@ -977,7 +978,6 @@ class ModelValidationSignalsHandler(ParallelWorkerSignals):
     @pyqtSlot(object)
     def handle_success(self, result):
         self.model_testing_message.emit("Done.", "\n")
-        
 
     @pyqtSlot(tuple)
     def handle_failure(self, exception_info):
