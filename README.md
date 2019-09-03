@@ -1,8 +1,8 @@
+![neanno](documentation/images/airline_tickets.png)
+
 # neanno
 
-**neanno is a tool for annotating texts.**
-
-![neanno](documentation/images/airline_tickets.png)
+neanno is a tool for annotating texts and building annotation prediction models.
 
 ## Installation
 To install, clone this repo and ensure all packages from requirements.txt are installed in your environment.
