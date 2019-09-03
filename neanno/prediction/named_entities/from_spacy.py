@@ -1,6 +1,5 @@
 import pathlib
 import random
-import time
 
 import pandas as pd
 import spacy
@@ -11,6 +10,7 @@ from spacy.util import compounding, minibatch
 from neanno.prediction.predictor import Predictor
 from neanno.utils.list import is_majority_of_last_n_items_decreasing
 from neanno.utils.metrics import compute_ner_metrics
+from neanno.utils.signals import *
 from neanno.utils.text import (
     extract_annotations_for_spacy_ner,
     remove_all_annotations_from_text,
@@ -96,16 +96,9 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
         # do the training
         # note: there is certainly room for improvement, maybe switching to spacy's CLI
         #       which seems the recommendation by the spacy authors
-        starting_training_message = "Training '{}' model...".format(
-            self.name
-        )
-        signals.message.emit(starting_training_message, "\n")
-        signals.message.emit("=" * len(starting_training_message), "\n")
-        start_time = time.time()
-        signals.message.emit(
-            "Start time: {}".format(time.strftime("%X", time.localtime(start_time))),
-            "\n",
-        )
+        emit_sub_header(self.name, signals)
+        start_time = emit_start_time(signals)
+
         max_iterations = 100
         # note: this removes the unnamed vectors warning, TBD if needs changes
         self.spacy_model.vocab.vectors.name = "spacy_pretrained_vectors"
@@ -114,7 +107,7 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
         iteration_losses = []
         with self.spacy_model.disable_pipes(*other_pipes):
             for iteration in range(max_iterations):
-                signals.message.emit("Iteration: {}...".format(iteration), " ")
+                emit_partial_message("Iteration {}...".format(iteration), signals)
                 random.shuffle(trainset_for_spacy)
                 losses = {}
                 batches = minibatch(
@@ -126,7 +119,7 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
                         texts, annotations, sgd=optimizer, drop=0.35, losses=losses
                     )
                 iteration_loss = losses["ner"]
-                signals.message.emit("=> loss: {}".format(iteration_loss), "\n")
+                emit_message(" => loss: {}".format(iteration_loss), signals)
 
                 # stop training when the majority of the last {last_iterations_window_size} trainings did not decrease
                 iteration_losses.append(iteration_loss)
@@ -141,30 +134,21 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
         # save model to output directory
         if self.target_model_directory is not None:
             output_dir = pathlib.Path(self.target_model_directory)
-            signals.message.emit(
-                "Saving model to folder '{}'...".format(output_dir), "\n"
-            )
+            emit_message("Saving model to folder '{}'...".format(output_dir), signals)
             if not output_dir.exists():
                 output_dir.mkdir()
             self.spacy_model.meta["name"] = self.target_model_name
             self.spacy_model.to_disk(output_dir)
 
-        # compute training times
-        end_time = time.time()
-        signals.message.emit(
-            "End time: {}".format(time.strftime("%X", time.localtime(end_time))), "\n"
-        )
-        signals.message.emit(
-            "Training took (hh:mm:ss): {}.".format(
-                time.strftime("%H:%M:%S", time.gmtime(end_time - start_time))
-            ),
-            "\n",
-        )
+        # compute and tell training times
+        emit_end_time_duration(start_time, "Training", signals)
 
-        # send an empty message to improve readability of output
-        signals.message.emit("\n", "")
+        # emit a new line to improve readability of output
+        emit_new_line(signals)
 
     def predict_inline_annotations(self, text, language="en-US"):
+        """Predicts the contained named entities on the given text."""
+
         if self.spacy_model:
             # TODO: add parent terms
             result = text
@@ -192,12 +176,10 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
         entity_codes_to_train,
         signals,
     ):
-        # inform about validation
-        starting_validation_message = "{}".format(
-            self.name
-        )
-        signals.message.emit(starting_validation_message, "\n")
-        signals.message.emit("=" * len(starting_validation_message), "\n")
+        """Tests the model using the given testset."""
+
+        # inform about this predictor
+        emit_sub_header(self.name, signals)
 
         # compute precision/recall values
         actual_annotations = testset[text_column]
@@ -213,7 +195,9 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
         ner_metrics = compute_ner_metrics(
             actual_annotations, predicted_annotations, entity_codes_to_train
         )
-        signals.message.emit(pd.DataFrame(ner_metrics).T.to_string(), "\n")
-    
-        # send an empty message to improve readability of output
-        signals.message.emit("\n", "")
+
+        # emit result
+        emit_message(pd.DataFrame(ner_metrics).T.to_string(), signals)
+
+        # emit a new line to improve readability of output
+        emit_new_line(signals)

@@ -1,5 +1,4 @@
 import pathlib
-import time
 
 import pandas as pd
 import spacy
@@ -9,6 +8,7 @@ from spacy.util import compounding, minibatch
 from neanno.prediction.predictor import Predictor
 from neanno.utils.list import is_majority_of_last_n_items_decreasing
 from neanno.utils.metrics import compute_category_metrics
+from neanno.utils.signals import *
 from neanno.utils.text import remove_all_annotations_from_text
 
 
@@ -69,6 +69,8 @@ class FromSpacyCategoriesPredictor(Predictor):
         entity_codes_to_train,
         signals,
     ):
+        """ Trains the model from the given trainset."""
+
         # ensure and get the textcat pipe from the spacy model
         if "textcat" not in self.spacy_model.pipe_names:
             textcat_pipe = self.spacy_model.create_pipe("textcat")
@@ -93,17 +95,9 @@ class FromSpacyCategoriesPredictor(Predictor):
         # do the training
         # note: there is certainly room for improvement, maybe switching to spacy's CLI
         #       which seems the recommendation by the spacy authors
-        starting_training_message = "Training '{}' model...".format(
-            self.name
-        )
-        signals.message.emit(starting_training_message, "\n")
-        signals.message.emit("=" * len(starting_training_message), "\n")
+        emit_sub_header(self.name, signals)
+        start_time = emit_start_time(signals)
 
-        start_time = time.time()
-        signals.message.emit(
-            "Start time: {}".format(time.strftime("%X", time.localtime(start_time))),
-            "\n",
-        )
         max_iterations = 100
         other_pipes = [
             pipe for pipe in self.spacy_model.pipe_names if pipe != "textcat"
@@ -112,7 +106,7 @@ class FromSpacyCategoriesPredictor(Predictor):
         with self.spacy_model.disable_pipes(*other_pipes):
             optimizer = self.spacy_model.begin_training()
             for iteration in range(max_iterations):
-                signals.message.emit("Iteration {}...".format(iteration), " ")
+                emit_partial_message("Iteration {}...".format(iteration), signals)
                 losses = {}
                 batches = minibatch(
                     trainset_for_spacy, size=compounding(4.0, 32.0, 1.001)
@@ -123,7 +117,7 @@ class FromSpacyCategoriesPredictor(Predictor):
                         texts, annotations, sgd=optimizer, drop=0.2, losses=losses
                     )
                 iteration_loss = losses["textcat"]
-                signals.message.emit("=> loss: {}".format(iteration_loss), "\n")
+                emit_message(" => loss: {}".format(iteration_loss), signals)
 
                 # stop training when the majority of the last {last_iterations_window_size} trainings did not decrease
                 iteration_losses.append(iteration_loss)
@@ -138,30 +132,21 @@ class FromSpacyCategoriesPredictor(Predictor):
         # save model to output directory
         if self.target_model_directory is not None:
             output_dir = pathlib.Path(self.target_model_directory)
-            signals.message.emit(
-                "Saving model to folder '{}'...".format(output_dir), "\n"
-            )
+            emit_message("Saving model to folder '{}'...".format(output_dir), signals)
             if not output_dir.exists():
                 output_dir.mkdir()
             self.spacy_model.meta["name"] = self.target_model_name
             self.spacy_model.to_disk(output_dir)
 
-        # compute training times
-        end_time = time.time()
-        signals.message.emit(
-            "End time: {}".format(time.strftime("%X", time.localtime(end_time))), "\n"
-        )
-        signals.message.emit(
-            "Training took (hh:mm:ss): {}.".format(
-                time.strftime("%H:%M:%S", time.gmtime(end_time - start_time))
-            ),
-            "\n",
-        )
+        # compute and tell training times
+        emit_end_time_duration(start_time, "Training", signals)
 
-        # send an empty message to improve readability of output
-        signals.message.emit("\n", "")
+        # emit a new line to improve readability of output
+        emit_new_line(signals)
 
     def predict_text_categories(self, text, language="en-US"):
+        """Predicts the text categories of the given text."""
+
         if self.spacy_model:
             doc = self.spacy_model(remove_all_annotations_from_text(text))
             return [
@@ -181,12 +166,10 @@ class FromSpacyCategoriesPredictor(Predictor):
         entity_codes_to_train,
         signals,
     ):
-        # inform about validation
-        starting_validation_message = "{}".format(
-            self.name
-        )
-        signals.message.emit(starting_validation_message, "\n")
-        signals.message.emit("=" * len(starting_validation_message), "\n")
+        """Tests the model using the given testset."""
+
+        # inform about this predictor
+        emit_sub_header(self.name, signals)
 
         # compute precision/recall values
         actual_categories_series = testset[categories_column]
@@ -204,7 +187,9 @@ class FromSpacyCategoriesPredictor(Predictor):
         category_metrics = compute_category_metrics(
             actual_categories_series, predicted_categories_series, categories_to_train
         )
-        signals.message.emit(pd.DataFrame(category_metrics).T.to_string(), "\n")
 
-        # send an empty message to improve readability of output
-        signals.message.emit("\n", "")
+        # emit result
+        emit_message(pd.DataFrame(category_metrics).T.to_string(), signals)
+
+        # emit a new line to improve readability of output
+        emit_new_line(signals)
