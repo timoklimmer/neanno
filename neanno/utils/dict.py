@@ -2,22 +2,23 @@ class QueryDict(dict):
     """Helper class to query a dict more conveniently."""
 
     def get(self, path, default=None):
-        keys = path.split("/")
-        value = None
-        for key in keys:
-            if value:
-                if isinstance(value, list):
-                    value = [
-                        child_value.get(key, default) if child_value else None
-                        for child_value in value
-                    ]
-                else:
-                    value = value.get(key, default)
-            else:
-                value = dict.get(self, key, default)
-            if not value:
-                break
-        return value
+        # return default value if path is None
+        if not path:
+            return default
+        # walk down the hierarchy and return either the found value or the default value
+        keys_from_path = path.split("/")
+        path_length = len(keys_from_path)
+        for i, key_from_path in enumerate(keys_from_path):
+            if i == 0:
+                parent_element = dict.get(self, key_from_path, default)
+                continue
+            if i > 0 and i < path_length:
+                try:
+                    parent_element = parent_element[key_from_path]
+                    continue
+                except:
+                    return default
+        return parent_element
 
 
 def merge_dict_sum_numbers(dict1, dict2):

@@ -44,6 +44,7 @@ categories:
       target_model_name: airline_tickets_textcats
 
 key_terms:
+  # note: use key_terms: {} if you want to use key terms but don't want to specify further sub-elements
   #shortcuts:
   #  standalone: Alt+1
   #  parented: Alt+2
