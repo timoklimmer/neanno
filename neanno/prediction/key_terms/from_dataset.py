@@ -2,13 +2,13 @@ import pandas as pd
 import yaml
 from flashtext import KeywordProcessor
 
-from neanno.prediction.predictor import Predictor
+from neanno.prediction.predictor import KeyTermsPredictor
 from neanno.utils.dataset import DatasetManager
 from neanno.utils.dict import merge_dict
 from neanno.utils.text import extract_annotations_as_generator
 
 
-class FromDatasetKeyTermsPredictor(Predictor):
+class FromDatasetKeyTermsPredictor(KeyTermsPredictor):
     """ Predicts key terms of a text by looking up terms in a dataset."""
 
     location_string = None

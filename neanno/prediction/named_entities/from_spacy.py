@@ -4,12 +4,10 @@ import random
 import pandas as pd
 import spacy
 import yaml
-from sklearn.model_selection import train_test_split
 from spacy.util import compounding, minibatch
 
-from neanno.prediction.predictor import Predictor
+from neanno.prediction.predictor import NamedEntitiesPredictor
 from neanno.utils.list import is_majority_of_last_n_items_decreasing
-from neanno.utils.metrics import compute_ner_metrics
 from neanno.utils.signals import *
 from neanno.utils.text import (
     extract_annotations_for_spacy_ner,
@@ -18,7 +16,7 @@ from neanno.utils.text import (
 )
 
 
-class FromSpacyNamedEntitiesPredictor(Predictor):
+class FromSpacyNamedEntitiesPredictor(NamedEntitiesPredictor):
     """ Trains and uses a spacy model to predict named entities. """
 
     source_model = None
@@ -164,40 +162,3 @@ class FromSpacyNamedEntitiesPredictor(Predictor):
                 )
                 shift += len(result) - old_result_length
             return result
-
-    def test_model(
-        self,
-        testset,
-        text_column,
-        is_annotated_column,
-        language_column,
-        categories_column,
-        categories_to_train,
-        entity_codes_to_train,
-        signals,
-    ):
-        """Tests the model using the given testset."""
-
-        # inform about this predictor
-        emit_sub_header(self.name, signals)
-
-        # compute precision/recall values
-        actual_annotations = testset[text_column]
-        predicted_annotations = testset.apply(
-            lambda row: (
-                self.predict_inline_annotations(
-                    remove_all_annotations_from_text(row[text_column]),
-                    row[language_column] if language_column else "en-US",
-                )
-            ),
-            axis=1,
-        )
-        ner_metrics = compute_ner_metrics(
-            actual_annotations, predicted_annotations, entity_codes_to_train
-        )
-
-        # emit result
-        emit_message(pd.DataFrame(ner_metrics).T.to_string(), signals)
-
-        # emit a new line to improve readability of output
-        emit_new_line(signals)

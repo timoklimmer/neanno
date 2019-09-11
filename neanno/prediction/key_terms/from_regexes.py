@@ -2,10 +2,10 @@ import re
 
 import yaml
 
-from neanno.prediction.predictor import Predictor
+from neanno.prediction.predictor import KeyTermsPredictor
 
 
-class FromRegexesKeyTermsPredictor(Predictor):
+class FromRegexesKeyTermsPredictor(KeyTermsPredictor):
     """ Predicts key terms of a text by using regular expressions."""
 
     pattern_definitions = {}

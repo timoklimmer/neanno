@@ -7,6 +7,11 @@ from neanno.utils.text import (
     extract_entity_codes_from_annotated_texts_column,
 )
 
+def f1_score(precision, recall):
+    if precision + recall == 0:
+        return 0
+    else:
+        return 2 * (precision * recall) / (precision + recall)
 
 def compute_ner_metrics_on_text_level(
     actual_annotations, predicted_annotations, considered_entity_codes
@@ -25,10 +30,10 @@ def compute_ner_metrics_on_text_level(
     ]
     counters = {
         entity_code: {
+            "actual": 0,
+            "predictions": 0,
             "correct": 0,
             "incorrect": 0,
-            "number_predictions": 0,
-            "possible": 0,
             "precision": 0,
             "recall": 0,
         }
@@ -36,7 +41,7 @@ def compute_ner_metrics_on_text_level(
     }
     for predicted_annotation in predicted_annotations:
         entity_code = predicted_annotation["entity_code"]
-        counters[entity_code]["number_predictions"] += 1
+        counters[entity_code]["predictions"] += 1
         if any(
             actual_annotation["entity_code"] == predicted_annotation["entity_code"]
             and actual_annotation["start_net"] == predicted_annotation["start_net"]
@@ -49,11 +54,11 @@ def compute_ner_metrics_on_text_level(
             counters[entity_code]["incorrect"] += 1
     for actual_annotation in actual_annotations:
         entity_code = actual_annotation["entity_code"]
-        counters[entity_code]["possible"] += 1
+        counters[entity_code]["actual"] += 1
     for entity_code in considered_entity_codes:
         correct = counters[entity_code]["correct"]
-        number_predictions = counters[entity_code]["number_predictions"]
-        possible = counters[entity_code]["possible"]
+        number_predictions = counters[entity_code]["predictions"]
+        possible = counters[entity_code]["actual"]
         counters[entity_code]["precision"] = (
             correct / number_predictions if number_predictions > 0 else 0
         )
@@ -74,10 +79,10 @@ def compute_category_metrics_on_text_level(
     ]
     counters = {
         category: {
+            "actual": 0,
+            "predictions": 0,
             "correct": 0,
             "incorrect": 0,
-            "number_predictions": 0,
-            "possible": 0,
             "precision": 0,
             "recall": 0,
         }
@@ -85,7 +90,7 @@ def compute_category_metrics_on_text_level(
     }
     for predicted_category in predicted_categories:
         category = predicted_category
-        counters[category]["number_predictions"] += 1
+        counters[category]["predictions"] += 1
         if any(
             actual_category == predicted_category
             for actual_category in actual_categories
@@ -95,11 +100,11 @@ def compute_category_metrics_on_text_level(
             counters[category]["incorrect"] += 1
     for actual_category in actual_categories:
         category = actual_category
-        counters[category]["possible"] += 1
+        counters[category]["actual"] += 1
     for category in considered_categories:
         correct = counters[category]["correct"]
-        number_predictions = counters[category]["number_predictions"]
-        possible = counters[category]["possible"]
+        number_predictions = counters[category]["predictions"]
+        possible = counters[category]["actual"]
         counters[category]["precision"] = (
             correct / number_predictions if number_predictions > 0 else 0
         )
@@ -110,22 +115,24 @@ def compute_category_metrics_on_text_level(
 def aggregate_ner_metrics(ner_metrics1, ner_metrics2):
     result = merge_dict_sum_child_dicts(ner_metrics1, ner_metrics2)
     for entity_code in result:
+        possible = result[entity_code]["actual"]
+        number_predictions = result[entity_code]["predictions"]
         correct = result[entity_code]["correct"]
-        actual = result[entity_code]["number_predictions"]
-        possible = result[entity_code]["possible"]
-        result[entity_code]["precision"] = correct / actual if actual > 0 else 0
+        result[entity_code]["precision"] = correct / number_predictions if number_predictions > 0 else 0
         result[entity_code]["recall"] = correct / possible if possible > 0 else 0
+        result[entity_code]["f1_score"] = f1_score(result[entity_code]["precision"], result[entity_code]["recall"])
     return result
 
 
 def aggregate_category_metrics(category_metrics1, category_metrics2):
     result = merge_dict_sum_child_dicts(category_metrics1, category_metrics2)
     for category in result:
+        possible = result[category]["actual"]
+        number_predictions = result[category]["predictions"]
         correct = result[category]["correct"]
-        actual = result[category]["number_predictions"]
-        possible = result[category]["possible"]
-        result[category]["precision"] = correct / actual if actual > 0 else 0
+        result[category]["precision"] = correct / number_predictions if number_predictions > 0 else 0
         result[category]["recall"] = correct / possible if possible > 0 else 0
+        result[category]["f1_score"] = f1_score(result[category]["precision"], result[category]["recall"])
     return result
 
 

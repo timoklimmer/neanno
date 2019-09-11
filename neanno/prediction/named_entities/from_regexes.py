@@ -2,10 +2,10 @@ import re
 
 import yaml
 
-from neanno.prediction.predictor import Predictor
+from neanno.prediction.predictor import NamedEntitiesPredictor
 
 
-class FromRegexesNamedEntitiesPredictor(Predictor):
+class FromRegexesNamedEntitiesPredictor(NamedEntitiesPredictor):
     """ Predicts named entities of a text by using regular expressions."""
 
     pattern_definitions = {}

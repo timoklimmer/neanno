@@ -5,14 +5,13 @@ import spacy
 import yaml
 from spacy.util import compounding, minibatch
 
-from neanno.prediction.predictor import Predictor
+from neanno.prediction.predictor import CategoriesPredictor
 from neanno.utils.list import is_majority_of_last_n_items_decreasing
-from neanno.utils.metrics import compute_category_metrics
 from neanno.utils.signals import *
 from neanno.utils.text import remove_all_annotations_from_text
 
 
-class FromSpacyCategoriesPredictor(Predictor):
+class FromSpacyCategoriesPredictor(CategoriesPredictor):
     """ Trains and uses a spacy model to predict text categories. """
 
     source_model = None
@@ -154,42 +153,3 @@ class FromSpacyCategoriesPredictor(Predictor):
             ]
         else:
             return []
-
-    def test_model(
-        self,
-        testset,
-        text_column,
-        is_annotated_column,
-        language_column,
-        categories_column,
-        categories_to_train,
-        entity_codes_to_train,
-        signals,
-    ):
-        """Tests the model using the given testset."""
-
-        # inform about this predictor
-        emit_sub_header(self.name, signals)
-
-        # compute precision/recall values
-        actual_categories_series = testset[categories_column]
-        predicted_categories_series = testset.apply(
-            lambda row: (
-                "|".join(
-                    self.predict_text_categories(
-                        row[text_column],
-                        row[language_column] if language_column else "en-US",
-                    )
-                )
-            ),
-            axis=1,
-        )
-        category_metrics = compute_category_metrics(
-            actual_categories_series, predicted_categories_series, categories_to_train
-        )
-
-        # emit result
-        emit_message(pd.DataFrame(category_metrics).T.to_string(), signals)
-
-        # emit a new line to improve readability of output
-        emit_new_line(signals)

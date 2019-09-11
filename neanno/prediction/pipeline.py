@@ -235,7 +235,7 @@ class PredictionPipeline(QObject):
             )
             emit_new_line(signals)
             emit_message(
-                "Total size of test set: {} ({:.0%})".format(testset.shape[0], testset_size),
+                "Total size of test set: {} ({:.0%} of all annotated data)".format(testset.shape[0], testset_size),
                 signals,
             )
             emit_new_line(signals)
