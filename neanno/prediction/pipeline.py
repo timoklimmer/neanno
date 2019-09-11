@@ -213,6 +213,7 @@ class PredictionPipeline(QObject):
     def test_models_async(
         self,
         testset,
+        testset_size,
         text_column,
         is_annotated_column,
         language_column,
@@ -230,6 +231,11 @@ class PredictionPipeline(QObject):
             emit_top_header("Testing Models...", signals)
             emit_message(
                 "NOTE: You can continue annotating while the models are tested.",
+                signals,
+            )
+            emit_new_line(signals)
+            emit_message(
+                "Total size of test set: {} ({:.0%})".format(testset.shape[0], testset_size),
                 signals,
             )
             emit_new_line(signals)
@@ -254,6 +260,7 @@ class PredictionPipeline(QObject):
     def test_models(
         self,
         testset,
+        testset_size,   
         text_column,
         is_annotated_column,
         language_column,
@@ -267,6 +274,7 @@ class PredictionPipeline(QObject):
         # call the async version of this method
         self.test_models_async(
             testset,
+            testset_size,
             text_column,
             is_annotated_column,
             language_column,

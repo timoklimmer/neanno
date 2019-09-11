@@ -793,7 +793,7 @@ class MainWindow(QMainWindow):
             )
 
     def test_models(self):
-        testset = self.textmodel.get_testset()
+        testset, testset_size = self.textmodel.get_testset()
         if testset is None or testset.size < 10:
             QMessageBox.information(
                 self,
@@ -804,6 +804,7 @@ class MainWindow(QMainWindow):
         else:
             config.prediction_pipeline.test_models_async(
                 testset=testset,
+                testset_size=testset_size,
                 text_column=config.text_column,
                 is_annotated_column=config.is_annotated_column,
                 language_column=config.language_column,
