@@ -19,11 +19,12 @@ from PyQt5.QtWidgets import (
     QLabel,
     QLayout,
     QMainWindow,
+    QPlainTextEdit,
     QProgressBar,
     QPushButton,
     QRadioButton,
     QSplitter,
-    QTextEdit,
+    QTextBrowser,
     QVBoxLayout,
     QWidget,
 )
@@ -81,9 +82,9 @@ class MainWindow(QMainWindow):
         # window
         self.setWindowTitle("neanno")
         # text edit
-        self.textedit = QTextEdit()
+        self.textedit = QPlainTextEdit()
         self.textedit.setStyleSheet(
-            """QTextEdit {
+            """QPlainTextEdit {
                 font-size: 14pt;
                 font-family: Consolas;Monospace;
                 color: lightgrey;
@@ -96,7 +97,7 @@ class MainWindow(QMainWindow):
         self.textedit.textChanged.connect(self.textedit_text_changed)
 
         # annotation monitor
-        self.annotation_monitor = QTextEdit()
+        self.annotation_monitor = QPlainTextEdit()
         self.annotation_monitor.setReadOnly(True)
         self.annotation_monitor.setStyleSheet(
             """
@@ -315,14 +316,18 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(left_right_splitter)
 
         # output
-        self.output_pane_text_edit = QTextEdit()
+        self.output_pane_text_edit = QTextBrowser()
         self.output_pane_text_edit.setStyleSheet(
-            """QTextEdit {
+            """QTextBrowser {
                 font-size: 10pt;
                 font-family: Consolas;Monospace;
             }"""
         )
         self.output_pane_text_edit.setReadOnly(True)
+        self.output_pane_text_edit.setOpenLinks(False)
+        self.output_pane_text_edit.anchorClicked.connect(
+            self.handle_anchorClicked_from_output_pane_text_edit
+        )
         self.output_pane = QDockWidget("Output", self)
         self.output_pane.setFeatures(
             QDockWidget.DockWidgetClosable
@@ -861,6 +866,18 @@ class MainWindow(QMainWindow):
         self.output_pane_text_edit.insertPlainText("\n")
         self.output_pane_text_edit.moveCursor(QTextCursor.End)
 
+    def insert_export_output_pane_contents_link(self):
+        self.insert_text_to_output_pane_text_edit("", "\n")
+        self.output_pane_text_edit.insertHtml(
+            'Click <a href="neanno:exportOutputPane">here</a> to export output.'
+        )
+
+    def handle_anchorClicked_from_output_pane_text_edit(self, url):
+        pass
+        # TODO: complete
+        #print("Click!")
+        #print(url)
+
     @pyqtSlot()
     def batch_training_started(self):
         self.train_batch_models_button.setEnabled(False)
@@ -888,6 +905,7 @@ class MainWindow(QMainWindow):
         self.train_batch_models_button.setEnabled(True)
         self.test_models_button.setEnabled(True)
         self.manage_predictors_button.setEnabled(True)
+        self.insert_export_output_pane_contents_link()
 
     @pyqtSlot()
     def model_testing_started(self):
@@ -910,6 +928,7 @@ class MainWindow(QMainWindow):
         self.train_batch_models_button.setEnabled(True)
         self.test_models_button.setEnabled(True)
         self.manage_predictors_button.setEnabled(True)
+        self.insert_export_output_pane_contents_link()
 
 
 class BatchTrainingSignalsHandler(ParallelWorkerSignals):
