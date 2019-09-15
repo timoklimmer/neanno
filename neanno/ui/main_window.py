@@ -867,10 +867,11 @@ class MainWindow(QMainWindow):
         self.output_pane_text_edit.moveCursor(QTextCursor.End)
 
     def insert_export_output_pane_contents_link(self):
-        self.insert_text_to_output_pane_text_edit("", "\n")
-        self.output_pane_text_edit.insertHtml(
-            'Click <a href="neanno:exportOutputPane">here</a> to export output.'
-        )
+        pass
+        #self.insert_text_to_output_pane_text_edit("", "\n")
+        #self.output_pane_text_edit.insertHtml(
+        #    'Click <a href="neanno:exportOutputPane">here</a> to export output.'
+        #)
 
     def handle_anchorClicked_from_output_pane_text_edit(self, url):
         pass
