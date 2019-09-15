@@ -14,11 +14,13 @@ from PyQt5.QtWidgets import (
     QDockWidget,
     QGridLayout,
     QGroupBox,
+    QFileDialog,
     QHBoxLayout,
     QInputDialog,
     QLabel,
     QLayout,
     QMainWindow,
+    QMessageBox,
     QPlainTextEdit,
     QProgressBar,
     QPushButton,
@@ -867,17 +869,23 @@ class MainWindow(QMainWindow):
         self.output_pane_text_edit.moveCursor(QTextCursor.End)
 
     def insert_export_output_pane_contents_link(self):
-        pass
-        #self.insert_text_to_output_pane_text_edit("", "\n")
-        #self.output_pane_text_edit.insertHtml(
-        #    'Click <a href="neanno:exportOutputPane">here</a> to export output.'
-        #)
+        self.insert_text_to_output_pane_text_edit("", "\n")
+        self.output_pane_text_edit.insertHtml(
+            'Click <a href="neanno:exportOutputPane">here</a> to export the output.'
+        )
 
     def handle_anchorClicked_from_output_pane_text_edit(self, url):
-        pass
-        # TODO: complete
-        #print("Click!")
-        #print(url)
+        action = url.toString()
+        if action == "neanno:exportOutputPane":
+            target_file_name, _ = QFileDialog.getSaveFileName(
+                QDesktopWidget(), "Export output", "", "Output (*.html)"
+            )
+            if target_file_name:
+                with open(target_file_name, "w") as target_file:
+                    target_file.write(self.output_pane_text_edit.toHtml())
+                QMessageBox.information(self, "Success", "Export completed.", QMessageBox.Ok)
+        else:
+            raise ValueError("There is no handler for action '{}'.".format(action))
 
     @pyqtSlot()
     def batch_training_started(self):
