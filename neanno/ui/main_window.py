@@ -36,8 +36,8 @@ from neanno.ui.predictor_management import ManagePredictorsDialog
 from neanno.ui.shortcuts import *
 from neanno.ui.syntax_highlighting import TextEditHighlighter
 from neanno.ui.text_navigation import TextNavigator
+from neanno.utils.multithreading import ParallelWorker, ParallelWorkerSignals
 from neanno.utils.text import *
-from neanno.utils.threading import ParallelWorker, ParallelWorkerSignals
 
 DEFAULT_PARENT_KEY_TERM = "<add your consolidating terms here, separated by commas>"
 
@@ -940,8 +940,9 @@ class BatchTrainingSignalsHandler(ParallelWorkerSignals):
     def handle_started(self):
         self.batch_training_started.emit()
 
-    @pyqtSlot(str, str)
-    def handle_message(self, message, end):
+    @pyqtSlot(str, bool)
+    def handle_message(self, message, end_with_newline):
+        end = "\n" if end_with_newline == True else ""
         self.batch_training_message.emit(message, end)
 
     @pyqtSlot(bytes, str)
@@ -996,8 +997,9 @@ class ModelValidationSignalsHandler(ParallelWorkerSignals):
     def handle_started(self):
         self.model_testing_started.emit()
 
-    @pyqtSlot(str, str)
-    def handle_message(self, message, end):
+    @pyqtSlot(str, bool)
+    def handle_message(self, message, end_with_newline):
+        end = "\n" if end_with_newline == True else ""
         self.model_testing_message.emit(message, end)
 
     @pyqtSlot(bytes, str)

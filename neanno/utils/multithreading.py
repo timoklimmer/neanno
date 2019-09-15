@@ -47,7 +47,7 @@ class ParallelWorkerSignals(QObject):
 
     message
         `str` = a message from the worker while it works
-        `str` = the postfix of the message
+        `bool` = whether to end with a new line or not
 
     image
         `bytes` = the image's bytes
@@ -68,7 +68,7 @@ class ParallelWorkerSignals(QObject):
     """
 
     started = pyqtSignal()
-    message = pyqtSignal(str, str)
+    message = pyqtSignal(str, bool)
     image = pyqtSignal(bytes, str)
     progress = pyqtSignal(float)
     completed = pyqtSignal()
@@ -93,8 +93,9 @@ class ConsoleSignalsHandler(ParallelWorkerSignals):
     def handle_started(self):
         pass
 
-    @pyqtSlot(str, str)
-    def handle_message(self, message, end):
+    @pyqtSlot(str, bool)
+    def handle_message(self, message, end_with_newline):
+        end = "\n" if end_with_newline == True else ""
         print(message, end=end)
 
     @pyqtSlot(bytes, str)

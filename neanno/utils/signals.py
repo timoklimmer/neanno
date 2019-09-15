@@ -5,20 +5,20 @@ import time
 
 def emit_top_header(text, signals):
     """ Emits a top header."""
-    signals.message.emit(text, "\n")
-    signals.message.emit(("=") * len(text), "\n")
-    signals.message.emit("", "\n")
+    signals.message.emit(text, True)
+    signals.message.emit(("=") * len(text), True)
+    signals.message.emit("", True)
 
 
 def emit_sub_header(text, signals):
     """ Emits a sub header."""
-    signals.message.emit(text, "\n")
-    signals.message.emit("-" * len(text), "\n")
+    signals.message.emit(text, True)
+    signals.message.emit("-" * len(text), True)
 
 
 def emit_message(message, signals):
     """Emits a simple message."""
-    signals.message.emit(message, "\n")
+    signals.message.emit(message, True)
 
 
 def emit_image(image_bytes, image_format, signals):
@@ -27,19 +27,19 @@ def emit_image(image_bytes, image_format, signals):
 
 def emit_partial_message(message, signals):
     """Emits the given message but does not advance to the next line."""
-    signals.message.emit(message, "")
+    signals.message.emit(message, False)
 
 
 def emit_new_line(signals):
     """Emits a new line to improve readability."""
-    signals.message.emit("\n", "")
+    signals.message.emit("", True)
 
 
 def emit_start_time(signals):
     """Emits the start time and returns it for later when the duration needs to be calculated."""
     start_time = time.time()
     signals.message.emit(
-        "Start time: {}".format(time.strftime("%X", time.localtime(start_time))), "\n"
+        "Start time: {}".format(time.strftime("%X", time.localtime(start_time))), True
     )
     return start_time
 
@@ -48,11 +48,11 @@ def emit_end_time_duration(start_time, activity_name, signals):
     """Emits the end time and duration of something that has started before."""
     end_time = time.time()
     signals.message.emit(
-        "End time: {}".format(time.strftime("%X", time.localtime(end_time))), "\n"
+        "End time: {}".format(time.strftime("%X", time.localtime(end_time))), True
     )
     signals.message.emit(
         "{} took (hh:mm:ss): {}.".format(
             activity_name, time.strftime("%H:%M:%S", time.gmtime(end_time - start_time))
         ),
-        "\n",
+        True,
     )
