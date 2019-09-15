@@ -47,6 +47,11 @@ class ParallelWorkerSignals(QObject):
 
     message
         `str` = a message from the worker while it works
+        `str` = the postfix of the message
+
+    image
+        `bytes` = the image's bytes
+        `str` = the image format, eg. png
 
     progress
         `float` = progress so far (value between 0 and 1)
@@ -64,6 +69,7 @@ class ParallelWorkerSignals(QObject):
 
     started = pyqtSignal()
     message = pyqtSignal(str, str)
+    image = pyqtSignal(bytes, str)
     progress = pyqtSignal(float)
     completed = pyqtSignal()
     success = pyqtSignal(object)
@@ -77,6 +83,7 @@ class ConsoleSignalsHandler(ParallelWorkerSignals):
         super().__init__()
         self.started.connect(self.handle_started, type=Qt.DirectConnection)
         self.message.connect(self.handle_message, type=Qt.DirectConnection)
+        self.image.connect(self.handle_image, type=Qt.DirectConnection)
         self.progress.connect(self.handle_progress, type=Qt.DirectConnection)
         self.completed.connect(self.handle_completed, type=Qt.DirectConnection)
         self.success.connect(self.handle_success, type=Qt.DirectConnection)
@@ -89,6 +96,10 @@ class ConsoleSignalsHandler(ParallelWorkerSignals):
     @pyqtSlot(str, str)
     def handle_message(self, message, end):
         print(message, end=end)
+
+    @pyqtSlot(bytes, str)
+    def handle_image(self, message):
+        print("(Image output is not supported on consoles.)", end="\n")
 
     @pyqtSlot(float)
     def handle_progress(self, percent_completed):

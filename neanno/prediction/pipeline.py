@@ -1,7 +1,7 @@
 from PyQt5.QtCore import QObject, QThreadPool
 
 from neanno.utils.list import get_set_of_list_and_keep_sequence, not_none
-from neanno.utils.signals import emit_top_header, emit_message, emit_new_line
+from neanno.utils.signals import *
 from neanno.utils.text import annotate_text, extract_annotations_as_list
 from neanno.utils.threading import ConsoleSignalsHandler, ParallelWorker
 

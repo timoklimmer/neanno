@@ -2,9 +2,9 @@
 
 import time
 
+
 def emit_top_header(text, signals):
     """ Emits a top header."""
-
     signals.message.emit(text, "\n")
     signals.message.emit(("=") * len(text), "\n")
     signals.message.emit("", "\n")
@@ -20,6 +20,10 @@ def emit_message(message, signals):
     """Emits a simple message."""
     signals.message.emit(message, "\n")
 
+
+def emit_image(image_bytes, image_format, signals):
+    """Emits the passed image."""
+    signals.image.emit(image_bytes, image_format)
 
 def emit_partial_message(message, signals):
     """Emits the given message but does not advance to the next line."""

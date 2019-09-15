@@ -1,3 +1,4 @@
+import base64
 import os
 from abc import abstractmethod
 
@@ -18,11 +19,11 @@ from PyQt5.QtWidgets import (
     QLabel,
     QLayout,
     QMainWindow,
-    QPlainTextEdit,
     QProgressBar,
     QPushButton,
     QRadioButton,
     QSplitter,
+    QTextEdit,
     QVBoxLayout,
     QWidget,
 )
@@ -80,9 +81,9 @@ class MainWindow(QMainWindow):
         # window
         self.setWindowTitle("neanno")
         # text edit
-        self.textedit = QPlainTextEdit()
+        self.textedit = QTextEdit()
         self.textedit.setStyleSheet(
-            """QPlainTextEdit {
+            """QTextEdit {
                 font-size: 14pt;
                 font-family: Consolas;Monospace;
                 color: lightgrey;
@@ -95,7 +96,7 @@ class MainWindow(QMainWindow):
         self.textedit.textChanged.connect(self.textedit_text_changed)
 
         # annotation monitor
-        self.annotation_monitor = QPlainTextEdit()
+        self.annotation_monitor = QTextEdit()
         self.annotation_monitor.setReadOnly(True)
         self.annotation_monitor.setStyleSheet(
             """
@@ -314,9 +315,9 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(left_right_splitter)
 
         # output
-        self.output_pane_text_edit = QPlainTextEdit()
+        self.output_pane_text_edit = QTextEdit()
         self.output_pane_text_edit.setStyleSheet(
-            """QPlainTextEdit {
+            """QTextEdit {
                 font-size: 10pt;
                 font-family: Consolas;Monospace;
             }"""
@@ -843,6 +844,23 @@ class MainWindow(QMainWindow):
             )
         self.textedit.setTextCursor(text_cursor_backup)
 
+    def insert_text_to_output_pane_text_edit(self, message, end):
+        self.output_pane_text_edit.moveCursor(QTextCursor.End)
+        self.output_pane_text_edit.insertPlainText(message + end)
+        self.output_pane_text_edit.moveCursor(QTextCursor.End)
+
+    def insert_image_to_output_pane_text_edit(self, image_bytes, image_format):
+        image_bytes_in_base64 = base64.b64encode(image_bytes)
+        image_bytes_in_base64_utf8_decoded = image_bytes_in_base64.decode("utf-8")
+        self.output_pane_text_edit.moveCursor(QTextCursor.End)
+        self.output_pane_text_edit.insertHtml(
+            '<img src="data:image/{};base64,{}"/>'.format(
+                image_format, image_bytes_in_base64_utf8_decoded
+            )
+        )
+        self.output_pane_text_edit.insertPlainText("\n")
+        self.output_pane_text_edit.moveCursor(QTextCursor.End)
+
     @pyqtSlot()
     def batch_training_started(self):
         self.train_batch_models_button.setEnabled(False)
@@ -856,9 +874,11 @@ class MainWindow(QMainWindow):
 
     @pyqtSlot(str, str)
     def batch_training_message(self, message, end):
-        self.output_pane_text_edit.moveCursor(QTextCursor.End)
-        self.output_pane_text_edit.insertPlainText(message + end)
-        self.output_pane_text_edit.moveCursor(QTextCursor.End)
+        self.insert_text_to_output_pane_text_edit(message, end)
+
+    @pyqtSlot(bytes, str)
+    def batch_training_image(self, image_bytes, image_format):
+        self.insert_image_to_output_pane_text_edit(image_bytes, image_format)
 
     @pyqtSlot()
     def batch_training_completed(self):
@@ -879,9 +899,11 @@ class MainWindow(QMainWindow):
 
     @pyqtSlot(str, str)
     def model_testing_message(self, message, end):
-        self.output_pane_text_edit.moveCursor(QTextCursor.End)
-        self.output_pane_text_edit.insertPlainText(message + end)
-        self.output_pane_text_edit.moveCursor(QTextCursor.End)
+        self.insert_text_to_output_pane_text_edit(message, end)
+
+    @pyqtSlot(bytes, str)
+    def model_testing_image(self, image_bytes, image_format):
+        self.insert_image_to_output_pane_text_edit(image_bytes, image_format)
 
     @pyqtSlot()
     def model_testing_completed(self):
@@ -895,6 +917,7 @@ class BatchTrainingSignalsHandler(ParallelWorkerSignals):
 
     batch_training_started = pyqtSignal()
     batch_training_message = pyqtSignal(str, str)
+    batch_training_image = pyqtSignal(bytes, str)
     batch_training_completed = pyqtSignal()
 
     def __init__(self, main_window):
@@ -902,6 +925,7 @@ class BatchTrainingSignalsHandler(ParallelWorkerSignals):
         self.main_window = main_window
         self.started.connect(self.handle_started, type=Qt.DirectConnection)
         self.message.connect(self.handle_message, type=Qt.DirectConnection)
+        self.image.connect(self.handle_image, type=Qt.DirectConnection)
         self.progress.connect(self.handle_progress, type=Qt.DirectConnection)
         self.completed.connect(self.handle_completed, type=Qt.DirectConnection)
         self.success.connect(self.handle_success, type=Qt.DirectConnection)
@@ -909,6 +933,7 @@ class BatchTrainingSignalsHandler(ParallelWorkerSignals):
 
         self.batch_training_started.connect(main_window.batch_training_started)
         self.batch_training_message.connect(main_window.batch_training_message)
+        self.batch_training_image.connect(main_window.batch_training_image)
         self.batch_training_completed.connect(main_window.batch_training_completed)
 
     @pyqtSlot()
@@ -918,6 +943,10 @@ class BatchTrainingSignalsHandler(ParallelWorkerSignals):
     @pyqtSlot(str, str)
     def handle_message(self, message, end):
         self.batch_training_message.emit(message, end)
+
+    @pyqtSlot(bytes, str)
+    def handle_image(self, image_bytes, image_format):
+        self.batch_training_image.emit(image_bytes, image_format)
 
     @pyqtSlot(float)
     def handle_progress(self, percent_completed):
@@ -944,6 +973,7 @@ class ModelValidationSignalsHandler(ParallelWorkerSignals):
 
     model_testing_started = pyqtSignal()
     model_testing_message = pyqtSignal(str, str)
+    model_testing_image = pyqtSignal(bytes, str)
     model_testing_completed = pyqtSignal()
 
     def __init__(self, main_window):
@@ -951,6 +981,7 @@ class ModelValidationSignalsHandler(ParallelWorkerSignals):
         self.main_window = main_window
         self.started.connect(self.handle_started, type=Qt.DirectConnection)
         self.message.connect(self.handle_message, type=Qt.DirectConnection)
+        self.image.connect(self.handle_image, type=Qt.DirectConnection)
         self.progress.connect(self.handle_progress, type=Qt.DirectConnection)
         self.completed.connect(self.handle_completed, type=Qt.DirectConnection)
         self.success.connect(self.handle_success, type=Qt.DirectConnection)
@@ -958,6 +989,7 @@ class ModelValidationSignalsHandler(ParallelWorkerSignals):
 
         self.model_testing_started.connect(main_window.model_testing_started)
         self.model_testing_message.connect(main_window.model_testing_message)
+        self.model_testing_image.connect(main_window.model_testing_image)
         self.model_testing_completed.connect(main_window.model_testing_completed)
 
     @pyqtSlot()
@@ -967,6 +999,10 @@ class ModelValidationSignalsHandler(ParallelWorkerSignals):
     @pyqtSlot(str, str)
     def handle_message(self, message, end):
         self.model_testing_message.emit(message, end)
+
+    @pyqtSlot(bytes, str)
+    def handle_image(self, image_bytes, image_format):
+        self.model_testing_image.emit(image_bytes, image_format)
 
     @pyqtSlot(float)
     def handle_progress(self, percent_completed):
