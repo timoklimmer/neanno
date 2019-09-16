@@ -29,6 +29,7 @@ from PyQt5.QtWidgets import (
     QTextBrowser,
     QVBoxLayout,
     QWidget,
+    QTextEdit,
 )
 
 from neanno.configuration.configmanager import ConfigManager
@@ -327,6 +328,8 @@ class MainWindow(QMainWindow):
         )
         self.output_pane_text_edit.setReadOnly(True)
         self.output_pane_text_edit.setOpenLinks(False)
+        self.output_pane_text_edit.setLineWrapMode(QTextEdit.NoWrap)
+
         self.output_pane_text_edit.anchorClicked.connect(
             self.handle_anchorClicked_from_output_pane_text_edit
         )

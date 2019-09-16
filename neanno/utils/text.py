@@ -581,3 +581,9 @@ def annotate_text(text, annotations):
 
     # return the result
     return text
+
+
+def normalize_labels_values(pandas_series):
+    """Normalizes the labels in the passed column so multiple label columns can be compared."""
+    return pandas_series.map(lambda labels: "|".join(sorted(labels.split("|"))))
+

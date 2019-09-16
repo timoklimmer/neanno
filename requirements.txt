@@ -6,3 +6,4 @@ scikit-learn>=0.20.3
 spacy>=2.1.8
 flashtext>=2.7
 cerberus>=1.3.1
+seaborn>=0.9.0

@@ -1,4 +1,9 @@
+from io import BytesIO
+
 import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sn
+from sklearn.metrics import confusion_matrix
 
 from neanno.utils.dict import merge_dict_sum_child_dicts
 from neanno.utils.text import (
@@ -6,12 +11,15 @@ from neanno.utils.text import (
     extract_categories_from_categories_column,
     extract_entity_codes_from_annotated_texts_column,
 )
+from neanno.utils.list import get_set_of_list_and_keep_sequence
+
 
 def f1_score(precision, recall):
     if precision + recall == 0:
         return 0
     else:
         return 2 * (precision * recall) / (precision + recall)
+
 
 def compute_ner_metrics_on_text_level(
     actual_annotations, predicted_annotations, considered_entity_codes
@@ -118,9 +126,13 @@ def aggregate_ner_metrics(ner_metrics1, ner_metrics2):
         possible = result[entity_code]["actual"]
         number_predictions = result[entity_code]["predictions"]
         correct = result[entity_code]["correct"]
-        result[entity_code]["precision"] = correct / number_predictions if number_predictions > 0 else 0
+        result[entity_code]["precision"] = (
+            correct / number_predictions if number_predictions > 0 else 0
+        )
         result[entity_code]["recall"] = correct / possible if possible > 0 else 0
-        result[entity_code]["f1_score"] = f1_score(result[entity_code]["precision"], result[entity_code]["recall"])
+        result[entity_code]["f1_score"] = f1_score(
+            result[entity_code]["precision"], result[entity_code]["recall"]
+        )
     return result
 
 
@@ -130,9 +142,13 @@ def aggregate_category_metrics(category_metrics1, category_metrics2):
         possible = result[category]["actual"]
         number_predictions = result[category]["predictions"]
         correct = result[category]["correct"]
-        result[category]["precision"] = correct / number_predictions if number_predictions > 0 else 0
+        result[category]["precision"] = (
+            correct / number_predictions if number_predictions > 0 else 0
+        )
         result[category]["recall"] = correct / possible if possible > 0 else 0
-        result[category]["f1_score"] = f1_score(result[category]["precision"], result[category]["recall"])
+        result[category]["f1_score"] = f1_score(
+            result[category]["precision"], result[category]["recall"]
+        )
     return result
 
 
@@ -193,3 +209,37 @@ def compute_category_metrics(
         )
         result = aggregate_category_metrics(result, category_metrics_on_text_level)
     return result
+
+
+def get_confusion_matrix(actual_series, predicted_series, categories_to_train):
+    """Computes a confusion matrix from the given actual and predicted series."""
+    actual_series = actual_series.map(lambda value: value if value else "(None)")
+    predicted_series = predicted_series.map(lambda value: value if value else "(None)")
+    categories = get_set_of_list_and_keep_sequence(
+        pd.Series(categories_to_train).append(
+            pd.Series(sorted(actual_series.append(predicted_series)))
+        )
+    )
+    result = pd.crosstab(
+        pd.Categorical(actual_series, categories=categories),
+        pd.Categorical(predicted_series, categories=categories),
+        rownames=["Actual"],
+        colnames=["Predicted"],
+        dropna=False,
+    )
+    return result
+
+
+def get_confusion_matrix_png_bytes(
+    actual_series, predicted_series, categories_to_train
+):
+    """Computes a confusion matrix from the given actual and predicted series and returns the bytes of a confusion matrix plot (png format)."""
+    confusion_matrix = get_confusion_matrix(
+        actual_series, predicted_series, categories_to_train
+    )
+    figure = sn.heatmap(
+        confusion_matrix, annot=True, fmt="d", linewidths=0.5
+    ).get_figure()
+    memory_buffer = BytesIO()
+    figure.savefig(memory_buffer, format="png")
+    return memory_buffer.getvalue()

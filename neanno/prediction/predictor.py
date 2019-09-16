@@ -4,9 +4,14 @@ from abc import ABC, abstractmethod
 import pandas as pd
 import yaml
 
-from neanno.utils.metrics import compute_category_metrics, compute_ner_metrics
+from neanno.utils.metrics import (
+    compute_category_metrics,
+    compute_ner_metrics,
+    get_confusion_matrix,
+    get_confusion_matrix_png_bytes,
+)
 from neanno.utils.signals import *
-from neanno.utils.text import remove_all_annotations_from_text
+from neanno.utils.text import normalize_labels_values, remove_all_annotations_from_text
 from neanno.utils.yaml import validate_yaml
 
 
@@ -212,7 +217,7 @@ class CategoriesPredictor(Predictor):
         # inform about this predictor
         emit_sub_header(self.name, signals)
 
-        # compute precision/recall values
+        # compute metrics
         actual_categories_series = testset[categories_column]
         predicted_categories_series = testset.apply(
             lambda row: (
@@ -242,18 +247,45 @@ class CategoriesPredictor(Predictor):
                 "recall",
                 "f1_score",
             ]
-        ].astype({
-            "actual": int,
-            "predictions": int,
-            "correct": int,
-            "incorrect": int,
-            "precision": float,
-            "recall": float,
-            "f1_score": float
-        })
+        ].astype(
+            {
+                "actual": int,
+                "predictions": int,
+                "correct": int,
+                "incorrect": int,
+                "precision": float,
+                "recall": float,
+                "f1_score": float,
+            }
+        )
 
-        # emit result
+        # emit metrics
         emit_message(category_metrics.to_string(), signals)
+
+        # emit blank line for better readability
+        emit_message("", signals)
+
+        # emit confusion matrix
+        actual_categories_series_normalized = normalize_labels_values(
+            actual_categories_series
+        )
+        predicted_categories_series_normalized = normalize_labels_values(
+            predicted_categories_series
+        )
+        # png_bytes = get_confusion_matrix_png_bytes(
+        #     actual_categories_series_normalized,
+        #     predicted_categories_series,
+        #     categories_to_train,
+        # )
+        # emit_image(png_bytes, "png", signals)
+        emit_message(
+            get_confusion_matrix(
+                actual_categories_series_normalized,
+                predicted_categories_series_normalized,
+                categories_to_train
+            ).to_string(),
+            signals
+        )
 
         # emit two new lines to improve readability of output
         emit_new_line(signals)
@@ -279,7 +311,7 @@ class NamedEntitiesPredictor(Predictor):
         # inform about this predictor
         emit_sub_header(self.name, signals)
 
-        # compute precision/recall values
+        # compute metrics
         actual_annotations = testset[text_column]
         predicted_annotations = testset.apply(
             lambda row: (
@@ -305,15 +337,17 @@ class NamedEntitiesPredictor(Predictor):
                 "recall",
                 "f1_score",
             ]
-        ].astype({
-            "actual": int,
-            "predictions": int,
-            "correct": int,
-            "incorrect": int,
-            "precision": float,
-            "recall": float,
-            "f1_score": float
-        })
+        ].astype(
+            {
+                "actual": int,
+                "predictions": int,
+                "correct": int,
+                "incorrect": int,
+                "precision": float,
+                "recall": float,
+                "f1_score": float,
+            }
+        )
 
         # emit result
         emit_message(pd.DataFrame(ner_metrics).to_string(), signals)
