@@ -713,9 +713,6 @@ class MainWindow(QMainWindow):
         if config.is_categories_enabled:
             self.categories_selector.set_selected_categories_by_text("")
 
-        # reset is annotated flag
-        self.reset_is_annotated_flag()
-
     def reset_is_annotated_flag(self):
         self.textmodel.unset_is_annotated_for_index(self.navigator.getCurrentIndex())
         self.is_annotated_label.setText("False")
