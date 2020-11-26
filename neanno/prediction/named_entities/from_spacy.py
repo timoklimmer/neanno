@@ -3,6 +3,7 @@ import random
 
 import pandas as pd
 import spacy
+import torch
 import yaml
 from spacy.util import compounding, minibatch
 
@@ -23,9 +24,15 @@ class FromSpacyNamedEntitiesPredictor(NamedEntitiesPredictor):
     target_model_directory = None
     target_model_name = None
     spacy_model = None
+    is_using_gpu = None
 
     def __init__(self, predictor_config):
         super().__init__(predictor_config)
+
+        self.is_using_gpu = spacy.prefer_gpu()
+        if self.is_using_gpu:
+            torch.set_default_tensor_type("torch.cuda.FloatTensor")
+
         self.source_model = predictor_config["source_model"]
         if "target_model_directory" in predictor_config:
             self.target_model_directory = predictor_config["target_model_directory"]
@@ -94,14 +101,17 @@ class FromSpacyNamedEntitiesPredictor(NamedEntitiesPredictor):
         # do the training
         # note: there is certainly room for improvement, maybe switching to spacy's CLI
         #       which seems the recommendation by the spacy authors
-        emit_sub_header(self.name, signals)
+        emit_sub_header(self.name, signals)        
         start_time = emit_start_time(signals)
+        emit_message("Using GPU..." if self.is_using_gpu else "Using CPU...", signals)
 
         max_iterations = 100
         # note: this removes the unnamed vectors warning, TBD if needs changes
         self.spacy_model.vocab.vectors.name = "spacy_pretrained_vectors"
         optimizer = self.spacy_model.begin_training()
-        other_pipes = [pipe for pipe in self.spacy_model.pipe_names if pipe != "ner"]
+        other_pipes = [
+            # pipe for pipe in self.spacy_model.pipe_names if pipe != "ner"
+        ]
         iteration_losses = []
         with self.spacy_model.disable_pipes(*other_pipes):
             for iteration in range(max_iterations):

@@ -39,7 +39,7 @@ categories:
       #is_online_training_enabled: false 
       #is_batch_training_enabled: false
       #is_prediction_enabled: false
-      source_model: blank:en
+      source_model: en_vectors_web_lg
       target_model_directory: samples/airline_tickets/textcats_model
       target_model_name: airline_tickets_textcats
 
@@ -114,7 +114,7 @@ named_entities:
     - name: Named Entities from spacy
       module: neanno.prediction.named_entities.from_spacy
       class: FromSpacyNamedEntitiesPredictor
-      source_model: blank:en
+      source_model: en_vectors_web_lg
       target_model_directory: samples/airline_tickets/ner_model
       target_model_name: airline_tickets_ner
 

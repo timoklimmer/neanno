@@ -2,6 +2,7 @@ import pathlib
 
 import pandas as pd
 import spacy
+import torch
 import yaml
 from spacy.util import compounding, minibatch
 
@@ -18,9 +19,16 @@ class FromSpacyCategoriesPredictor(CategoriesPredictor):
     target_model_directory = None
     target_model_name = None
     spacy_model = None
+    is_using_gpu = None
 
     def __init__(self, predictor_config):
         super().__init__(predictor_config)
+
+        self.is_using_gpu = spacy.prefer_gpu()
+        if self.is_using_gpu:
+            torch.cuda.empty_cache()
+            torch.set_default_tensor_type("torch.cuda.FloatTensor")
+
         self.source_model = predictor_config["source_model"]
         if "target_model_directory" in predictor_config:
             self.target_model_directory = predictor_config["target_model_directory"]
@@ -75,6 +83,7 @@ class FromSpacyCategoriesPredictor(CategoriesPredictor):
             textcat_pipe = self.spacy_model.create_pipe("textcat")
             self.spacy_model.add_pipe(textcat_pipe, last=True)
         textcat_pipe = self.spacy_model.get_pipe("textcat")
+
         # ensure we have all categories in the model
         for category_to_train in categories_to_train:
             textcat_pipe.add_label(category_to_train)
@@ -94,8 +103,9 @@ class FromSpacyCategoriesPredictor(CategoriesPredictor):
         # do the training
         # note: there is certainly room for improvement, maybe switching to spacy's CLI
         #       which seems the recommendation by the spacy authors
-        emit_sub_header(self.name, signals)
+        emit_sub_header(self.name, signals)        
         start_time = emit_start_time(signals)
+        emit_message("Using GPU..." if self.is_using_gpu else "Using CPU...", signals)
 
         max_iterations = 100
         other_pipes = [
